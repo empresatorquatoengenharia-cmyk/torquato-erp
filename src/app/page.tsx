@@ -48,12 +48,12 @@ export default function TorquatoFullERP() {
   const [financialsReceber, setFinancialsReceber] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Modais Administração
+  // Modais de Criação
   const [showEmpresaModal, setShowEmpresaModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showContratoModal, setShowContratoModal] = useState(false);
 
-  // Modais de Edição
+  // Modais de Edição Avançada
   const [showEditEmpresaModal, setShowEditEmpresaModal] = useState(false);
   const [editingEmpresa, setEditingEmpresa] = useState<any>(null);
 
@@ -63,7 +63,7 @@ export default function TorquatoFullERP() {
   const [showEditContratoModal, setShowEditContratoModal] = useState(false);
   const [editingContrato, setEditingContrato] = useState<any>(null);
 
-  // Forms Administração (Criação)
+  // Forms Criação
   const [empNome, setEmpNome] = useState('');
   const [empCnpj, setEmpCnpj] = useState('');
 
@@ -71,6 +71,13 @@ export default function TorquatoFullERP() {
   const [userEmail, setUserEmail] = useState('');
   const [userCargo, setUserCargo] = useState('Engenheiro');
   const [userLimite, setUserLimite] = useState('5000');
+  const [userPermissoes, setUserPermissoes] = useState({
+    financeiro: 'movimentar',
+    engenharia: 'movimentar',
+    compras: 'movimentar',
+    estoque: 'visualizar',
+    administracao: 'visualizar'
+  });
 
   const [contTitulo, setContTitulo] = useState('');
   const [contFornecedor, setContFornecedor] = useState('');
@@ -87,7 +94,12 @@ export default function TorquatoFullERP() {
     if (projData) setProjects(projData);
 
     const { data: userData } = await supabase.from('usuarios_erp').select('*').order('created_at', { ascending: false });
-    if (userData) setUsuarios(userData);
+    if (userData) {
+      setUsuarios(userData.map((u: any) => ({
+        ...u,
+        permissoes: u.permissoes || { financeiro: 'movimentar', engenharia: 'movimentar', compras: 'movimentar', estoque: 'visualizar', administracao: 'visualizar' }
+      })));
+    }
 
     const { data: contData } = await supabase.from('contratos_empresa').select('*').order('created_at', { ascending: false });
     if (contData) setContratos(contData);
@@ -101,7 +113,7 @@ export default function TorquatoFullERP() {
     setLoading(false);
   }
 
-  // Ações Criação
+  // Ações de Criação
   async function handleSaveEmpresa(e: React.FormEvent) {
     e.preventDefault();
     if (!empNome) return;
@@ -113,8 +125,13 @@ export default function TorquatoFullERP() {
   async function handleSaveUser(e: React.FormEvent) {
     e.preventDefault();
     if (!userName || !userEmail) return;
-    await supabase.from('usuarios_erp').insert([{
-      nome: userName, email: userEmail, cargo: userCargo, limite_aprovacao: parseFloat(userLimite), status: 'ativo'
+    await supabase.from('usuarios_erp'].insert([{
+      nome: userName, 
+      email: userEmail, 
+      cargo: userCargo, 
+      limite_aprovacao: parseFloat(userLimite), 
+      status: 'ativo',
+      permissoes: userPermissoes
     }]);
     setShowUserModal(false);
     setUserName(''); setUserEmail(''); setUserLimite('5000');
@@ -124,7 +141,7 @@ export default function TorquatoFullERP() {
   async function handleSaveContrato(e: React.FormEvent) {
     e.preventDefault();
     if (!contTitulo || !contValor) return;
-    await supabase.from('contratos_empresa').insert([{
+    await supabase.from('contratos_empresa'].insert([{
       titulo: contTitulo, fornecedor: contFornecedor, valor: parseFloat(contValor), status: contStatus
     }]);
     setShowContratoModal(false);
@@ -132,7 +149,7 @@ export default function TorquatoFullERP() {
     loadAllData();
   }
 
-  // Ações de Atualização (Edição)
+  // Ações de Edição (Update)
   async function handleUpdateEmpresa(e: React.FormEvent) {
     e.preventDefault();
     if (!editingEmpresa) return;
@@ -149,7 +166,8 @@ export default function TorquatoFullERP() {
       email: editingUser.email,
       cargo: editingUser.cargo,
       limite_aprovacao: parseFloat(editingUser.limite_aprovacao || 0),
-      status: editingUser.status
+      status: editingUser.status,
+      permissoes: editingUser.permissoes
     }).eq('id', editingUser.id);
     setShowEditUserModal(false);
     setEditingUser(null);
@@ -293,7 +311,6 @@ export default function TorquatoFullERP() {
           {/* CONTEÚDO PRINCIPAL */}
           <main className="flex-1 bg-slate-950 overflow-y-auto p-8 text-slate-200">
             
-            {/* MÓDULO ADMINISTRAÇÃO COMPLETO COM BOTÕES DE EDIÇÃO */}
             {activeModule === 'administracao' && (
               <div className="space-y-8">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
@@ -301,18 +318,18 @@ export default function TorquatoFullERP() {
                     <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                       <ShieldCheck className="w-6 h-6 text-amber-500" /> Administração & Governança Corporativa
                     </h1>
-                    <p className="text-xs text-slate-400 mt-1">Multiempresa, controle de acessos hierárquicos e gestão de contratos com opções completas de edição</p>
+                    <p className="text-xs text-slate-400 mt-1">Multiempresa, controle rigoroso de acessos hierárquicos e permissões granulares por página</p>
                   </div>
                 </div>
 
-                {/* 1. SEÇÃO MULTIEMPRESA */}
+                {/* 1. SEÇÃO MULTIEMPRESA COM EDIÇÃO */}
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex justify-between items-center">
                     <div>
                       <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
                         <Building2 className="w-4 h-4 text-amber-500" /> Extensão Multiempresa
                       </h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Gerencie todas as suas empresas e CNPJs em um único login com precisão.</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Gerencie todas as suas empresas e CNPJs em um único login.</p>
                     </div>
                     <button onClick={() => setShowEmpresaModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition">
                       + Cadastrar Nova Empresa
@@ -337,14 +354,14 @@ export default function TorquatoFullERP() {
                   </div>
                 </div>
 
-                {/* 2. SEÇÃO GESTÃO DE ACESSOS */}
+                {/* 2. SEÇÃO GESTÃO DE ACESSOS COM PERMISSÕES GRANULARES */}
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex justify-between items-center">
                     <div>
                       <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
                         <Lock className="w-4 h-4 text-blue-400" /> Gestão de Acessos & Limites Hierárquicos
                       </h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Defina limites para aprovação de gastos e liberação de processos sensíveis.</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Defina alçadas de aprovação e permissões por página (Visualizar vs Movimentar).</p>
                     </div>
                     <button onClick={() => setShowUserModal(true)} className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition">
                       + Novo Usuário & Alçada
@@ -357,8 +374,8 @@ export default function TorquatoFullERP() {
                         <th className="p-3">Colaborador</th>
                         <th className="p-3">E-mail</th>
                         <th className="p-3">Cargo / Nível</th>
-                        <th className="p-3">Limite de Aprovação de Gastos</th>
-                        <th className="p-3">Status</th>
+                        <th className="p-3">Limite de Gastos</th>
+                        <th className="p-3">Permissões por Módulo</th>
                         <th className="p-3 text-center">Ações</th>
                       </tr>
                     </thead>
@@ -372,7 +389,11 @@ export default function TorquatoFullERP() {
                             <td className="p-3 text-slate-400">{u.email}</td>
                             <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-500 font-bold">{u.cargo}</span></td>
                             <td className="p-3 font-bold text-emerald-400">R$ {Number(u.limite_aprovacao || 5000).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                            <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 font-bold uppercase">{u.status}</span></td>
+                            <td className="p-3 text-[11px] text-slate-300">
+                              Fin: <span className="text-amber-400 font-bold">{u.permissoes?.financeiro || 'movimentar'}</span> | 
+                              Eng: <span className="text-amber-400 font-bold">{u.permissoes?.engenharia || 'movimentar'}</span> | 
+                              Comp: <span className="text-amber-400 font-bold">{u.permissoes?.compras || 'movimentar'}</span>
+                            </td>
                             <td className="p-3 text-center">
                               <button onClick={() => { setEditingUser(u); setShowEditUserModal(true); }} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded text-xs font-bold inline-flex items-center gap-1">
                                 <Edit2 className="w-3 h-3" /> Editar
@@ -402,7 +423,7 @@ export default function TorquatoFullERP() {
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-950 text-slate-400 uppercase">
                       <tr>
-                        <th className="p-3">Título / Objeto do Contrato</th>
+                        <th className="p-3">Título / Objeto</th>
                         <th className="p-3">Fornecedor / Parte</th>
                         <th className="p-3">Valor Global</th>
                         <th className="p-3">Status</th>
@@ -458,11 +479,11 @@ export default function TorquatoFullERP() {
           </div>
         )}
 
-        {/* MODAL EDITAR EMPRESA */}
+        {/* MODAL EDITAR EMPRESA (Razão Social e CNPJ) */}
         {showEditEmpresaModal && editingEmpresa && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Informações da Empresa</h3><button onClick={() => setShowEditEmpresaModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Empresa (Multiempresa)</h3><button onClick={() => setShowEditEmpresaModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
               <form onSubmit={handleUpdateEmpresa} className="space-y-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Razão Social</label>
@@ -485,7 +506,7 @@ export default function TorquatoFullERP() {
         {showUserModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Usuário & Limite de Acesso</h3><button onClick={() => setShowUserModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Usuário & Limites</h3><button onClick={() => setShowUserModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
               <form onSubmit={handleSaveUser} className="space-y-3">
                 <input type="text" required placeholder="Nome Completo" value={userName} onChange={(e) => setUserName(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="email" required placeholder="E-mail de Acesso" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
@@ -505,11 +526,11 @@ export default function TorquatoFullERP() {
           </div>
         )}
 
-        {/* MODAL EDITAR USUÁRIO */}
+        {/* MODAL EDITAR USUÁRIO & PERMISSÕES GRANULARES POR PÁGINA */}
         {showEditUserModal && editingUser && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Usuário & Limites</h3><button onClick={() => setShowEditUserModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-800 text-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Usuário, Alçadas & Permissões por Página</h3><button onClick={() => setShowEditUserModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
               <form onSubmit={handleUpdateUser} className="space-y-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nome Completo</label>
@@ -519,26 +540,53 @@ export default function TorquatoFullERP() {
                   <label className="block text-xs font-bold text-slate-400 uppercase mb-1">E-mail</label>
                   <input type="email" required value={editingUser.email} onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Cargo / Nível</label>
-                  <select value={editingUser.cargo} onChange={(e) => setEditingUser({ ...editingUser, cargo: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                    <option value="Diretor">Diretor</option>
-                    <option value="Gerente de Obras">Gerente de Obras</option>
-                    <option value="Engenheiro">Engenheiro</option>
-                    <option value="Assistente Financeiro">Assistente Financeiro</option>
-                  </select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Cargo / Nível</label>
+                    <select value={editingUser.cargo} onChange={(e) => setEditingUser({ ...editingUser, cargo: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                      <option value="Diretor">Diretor</option>
+                      <option value="Gerente de Obras">Gerente de Obras</option>
+                      <option value="Engenheiro">Engenheiro</option>
+                      <option value="Assistente Financeiro">Assistente Financeiro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Limite Gastos (R$)</label>
+                    <input type="number" step="100" required value={editingUser.limite_aprovacao} onChange={(e) => setEditingUser({ ...editingUser, limite_aprovacao: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-bold" />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Limite Aprovação de Gastos (R$)</label>
-                  <input type="number" step="100" required value={editingUser.limite_aprovacao} onChange={(e) => setEditingUser({ ...editingUser, limite_aprovacao: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-bold" />
+
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                  <p className="text-xs font-bold text-amber-400 uppercase">Controle de Acesso Granular (Visualizar vs Movimentar)</p>
+                  
+                  <div className="grid grid-cols-2 gap-2 items-center text-xs">
+                    <span className="text-slate-300">Financeiro:</span>
+                    <select value={editingUser.permissoes?.financeiro || 'movimentar'} onChange={(e) => setEditingUser({ ...editingUser, permissoes: { ...editingUser.permissoes, financeiro: e.target.value } })} className="p-2 bg-slate-900 border border-slate-800 rounded-lg text-white">
+                      <option value="movimentar">Movimentar & Cadastrar</option>
+                      <option value="visualizar">Somente Visualizar</option>
+                      <option value="bloqueado">Sem Acesso</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 items-center text-xs">
+                    <span className="text-slate-300">Engenharia & RDO:</span>
+                    <select value={editingUser.permissoes?.engenharia || 'movimentar'} onChange={(e) => setEditingUser({ ...editingUser, permissoes: { ...editingUser.permissoes, engenharia: e.target.value } })} className="p-2 bg-slate-900 border border-slate-800 rounded-lg text-white">
+                      <option value="movimentar">Movimentar & Cadastrar</option>
+                      <option value="visualizar">Somente Visualizar</option>
+                      <option value="bloqueado">Sem Acesso</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 items-center text-xs">
+                    <span className="text-slate-300">Compras & Suprimentos:</span>
+                    <select value={editingUser.permissoes?.compras || 'movimentar'} onChange={(e) => setEditingUser({ ...editingUser, permissoes: { ...editingUser.permissoes, compras: e.target.value } })} className="p-2 bg-slate-900 border border-slate-800 rounded-lg text-white">
+                      <option value="movimentar">Movimentar & Cadastrar</option>
+                      <option value="visualizar">Somente Visualizar</option>
+                      <option value="bloqueado">Sem Acesso</option>
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Status</label>
-                  <select value={editingUser.status} onChange={(e) => setEditingUser({ ...editingUser, status: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                    <option value="ativo">Ativo</option>
-                    <option value="inativo">Inativo</option>
-                  </select>
-                </div>
+
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
                   <button type="button" onClick={() => setShowEditUserModal(false)} className="px-4 py-2 border border-slate-800 text-slate-400 rounded-xl text-xs">Cancelar</button>
                   <button type="submit" className="px-5 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs">Salvar Alterações</button>
