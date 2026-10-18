@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torquato ERP - Módulo Financeiro</title>
-    <!-- Cliente oficial Supabase JS -->
-    <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
+    <title>Torquato ERP - Sistema de Gestão</title>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; }
         body { font-family: Arial, sans-serif; margin: 0; background-color: #f8f9fa; display: flex; height: 100vh; }
-        aside { width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px; }
+        aside { width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px; flex-shrink: 0; }
         .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
         .logo-box { background: #f97316; color: #fff; padding: 8px 12px; border-radius: 6px; font-weight: bold; }
         .menu-title { font-size: 12px; color: #9ca3af; font-weight: bold; margin-bottom: 10px; }
@@ -58,10 +58,10 @@
     <main>
         <header>
             <h1 id="titulo-pagina">Fluxo de caixa</h1>
-            <div class="badge">● Supabase Conectado</div>
+            <div class="badge">● Supabase Ativo</div>
         </header>
 
-        <!-- FLUXO DE CAIXA -->
+        <!-- MÓDULO 1: FLUXO DE CAIXA -->
         <div id="fluxo" class="tab-content active">
             <div class="card-header">Saldo Mês Atual - Todos os Bancos / Caixas</div>
             <div class="card-body">
@@ -75,17 +75,17 @@
             </div>
         </div>
 
-        <!-- CONTAS A PAGAR -->
+        <!-- MÓDULO 2: CONTAS A PAGAR -->
         <div id="pagar" class="tab-content">
             <div class="form-box">
-                <h3 style="margin-top: 0; color: #1f2937;">Registar Conta a Pagar & Anexar Comprovante</h3>
+                <h3 style="margin-top: 0; color: #1f2937;">Cadastrar Conta a Pagar</h3>
                 <div class="form-grid">
-                    <div class="form-group"><label>Beneficiário / Fornecedor</label><input type="text" id="pag-beneficiario" placeholder="Ex: Casan"></div>
+                    <div class="form-group"><label>Beneficiário</label><input type="text" id="pag-beneficiario" placeholder="Ex: Casan"></div>
                     <div class="form-group"><label>Valor (R$)</label><input type="number" id="pag-valor" placeholder="0.00"></div>
                     <div class="form-group"><label>Vencimento</label><input type="date" id="pag-vencimento"></div>
-                    <div class="form-group"><label>Comprovante de Pagamento (PDF/Img)</label><input type="file" id="pag-comprovante"></div>
+                    <div class="form-group"><label>Comprovante (PDF/Imagem)</label><input type="file" id="pag-comprovante"></div>
                 </div>
-                <button class="btn-primary" onclick="salvarContaPagarSupabase()">Registar no Supabase</button>
+                <button class="btn-primary" onclick="salvarContaPagar()">Salvar no Supabase</button>
             </div>
 
             <div class="table-container">
@@ -100,13 +100,13 @@
                         </tr>
                     </thead>
                     <tbody id="tabela-pagar-corpo">
-                        <tr><td colspan="5" style="text-align: center; color: #6b7280;">A carregar dados do Supabase...</td></tr>
+                        <tr><td colspan="5" style="text-align: center; color: #6b7280;">Carregando dados...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- CONTAS A RECEBER -->
+        <!-- MÓDULO 3: CONTAS A RECEBER -->
         <div id="receber" class="tab-content">
             <div class="table-container">
                 <table>
@@ -119,7 +119,7 @@
                             <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tabela-receber-corpo">
                         <tr>
                             <td style="font-weight: bold;">Construtora Horizonte</td>
                             <td>Residencial Viena</td>
@@ -132,39 +132,39 @@
             </div>
         </div>
 
-        <!-- NOTAS ELETRÔNICAS E MANUAIS -->
+        <!-- MÓDULO 4: NOTAS FISCAIS -->
         <div id="notas" class="tab-content">
             <div class="form-box">
                 <h3 style="margin-top: 0; color: #1f2937;">Cadastrar Nota Fiscal (Eletrônica / Manual)</h3>
                 <div class="form-grid">
                     <div class="form-group"><label>Número da Nota</label><input type="text" id="nota-numero" placeholder="Ex: 56116"></div>
-                    <div class="form-group"><label>Fornecedor</label><input type="text" id="nota-fornecedor" placeholder="Nome do fornecedor"></div>
+                    <div class="form-group"><label>Fornecedor</label><input type="text" id="nota-fornecedor" placeholder="Ex: Casas D' Água"></div>
                     <div class="form-group"><label>Valor (R$)</label><input type="number" id="nota-valor" placeholder="0.00"></div>
                     <div class="form-group"><label>Rateio da Obra</label><input type="text" id="nota-obra" placeholder="Ex: Casa Diário"></div>
-                    <div class="form-group" style="grid-column: span 2;"><label>Carregar Ficheiro XML / PDF da Nota</label><input type="file" id="nota-arquivo" accept=".xml,.pdf"></div>
+                    <div class="form-group" style="grid-column: span 2;"><label>Arquivo XML / PDF</label><input type="file" id="nota-arquivo" accept=".xml,.pdf"></div>
                 </div>
-                <button class="btn-primary" onclick="salvarNotaSupabase()">Guardar Nota no Supabase</button>
+                <button class="btn-primary" onclick="salvarNota()">Salvar Nota no Supabase</button>
             </div>
 
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Número da Nota</th>
+                            <th>Número</th>
                             <th>Fornecedor</th>
                             <th>Valor</th>
-                            <th>Rateio Obra</th>
-                            <th>Ficheiro XML / PDF</th>
+                            <th>Obra</th>
+                            <th>Anexo</th>
                         </tr>
                     </thead>
                     <tbody id="tabela-notas-corpo">
-                        <tr><td colspan="5" style="text-align: center; color: #6b7280;">A carregar dados do Supabase...</td></tr>
+                        <tr><td colspan="5" style="text-align: center; color: #6b7280;">Carregando dados...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- TRIBUTOS -->
+        <!-- MÓDULO 5: TRIBUTOS -->
         <div id="tributos" class="tab-content">
             <div class="table-container">
                 <table>
@@ -190,11 +190,12 @@
     </main>
 
     <script>
-        const SUPABASE_URL = '[https://otsrxvqypfpflbpaobhl.supabase.co](https://otsrxvqypfpflbpaobhl.supabase.co)';
+        // CONFIGURAÇÃO CONSOLIDADA DO SUPABASE
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
-
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // NAVEGAÇÃO ENTRE MÓDULOS
         function mudarAba(idAba, elemento) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('aside li').forEach(el => el.classList.remove('active'));
@@ -211,75 +212,74 @@
             };
             document.getElementById('titulo-pagina').innerText = titulos[idAba];
 
-            if (idAba === 'notas') carregarNotasSupabase();
-            if (idAba === 'pagar') carregarContasPagarSupabase();
+            if (idAba === 'notas') carregarNotas();
+            if (idAba === 'pagar') carregarContasPagar();
         }
 
-        async function salvarNotaSupabase() {
+        // FUNÇÕES DO MÓDULO DE NOTAS
+        async function salvarNota() {
             const numero = document.getElementById('nota-numero').value;
             const fornecedor = document.getElementById('nota-fornecedor').value;
             const valor = parseFloat(document.getElementById('nota-valor').value);
             const obra = document.getElementById('nota-obra').value;
             const arquivoInput = document.getElementById('nota-arquivo');
-            const nomeArquivo = arquivoInput.files.length > 0 ? arquivoInput.files[0].name : 'Nota_Manual.pdf';
+            const arquivo = arquivoInput.files.length > 0 ? arquivoInput.files[0].name : 'Nota_Manual.pdf';
 
             if (!numero || !fornecedor || isNaN(valor)) {
                 alert('Preencha os campos obrigatórios da nota.');
                 return;
             }
 
-            const { error } = await supabaseClient
-                .from('notas_fiscais')
-                .insert([{ numero, fornecedor, valor, obra, arquivo: nomeArquivo }]);
+            const { error } = await supabaseClient.from('notas_fiscais').insert([{ numero, fornecedor, valor, obra, arquivo }]);
 
             if (error) {
-                console.error('Erro Supabase:', error);
-                alert('Erro ao guardar nota. Certifique-se de que executou o SQL no Supabase.');
+                alert('Erro ao salvar nota no Supabase.');
+                console.error(error);
             } else {
-                alert('Nota fiscal sincronizada no Supabase com sucesso!');
+                alert('Nota salva com sucesso!');
                 document.getElementById('nota-numero').value = '';
                 document.getElementById('nota-fornecedor').value = '';
                 document.getElementById('nota-valor').value = '';
                 document.getElementById('nota-obra').value = '';
                 arquivoInput.value = '';
-                carregarNotasSupabase();
+                carregarNotas();
             }
         }
 
-        async function carregarNotasSupabase() {
+        async function carregarNotas() {
             const tbody = document.getElementById('tabela-notas-corpo');
             const { data, error } = await supabaseClient.from('notas_fiscais').select('*');
             
             if (error) {
-                console.error('Erro ao buscar notas:', error);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Erro ao carregar dados do Supabase.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Erro ao carregar notas.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = '';
             if (data && data.length > 0) {
                 data.forEach(nota => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td style="font-weight: bold;">${nota.numero}</td>
-                        <td>${nota.fornecedor}</td>
-                        <td>R$ ${Number(nota.valor).toFixed(2)}</td>
-                        <td>${nota.obra || '-'}</td>
-                        <td><span class="tag" style="background: #e2e8f0;">📄 ${nota.arquivo || 'Documento'}</span></td>
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-weight: bold;">${nota.numero}</td>
+                            <td>${nota.fornecedor}</td>
+                            <td>R$ ${Number(nota.valor).toFixed(2)}</td>
+                            <td>${nota.obra || '-'}</td>
+                            <td><span class="tag">📄 ${nota.arquivo || 'Documento'}</span></td>
+                        </tr>
                     `;
-                    tbody.appendChild(tr);
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #6b7280;">Nenhuma nota fiscal cadastrada no Supabase.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #6b7280;">Nenhuma nota cadastrada.</td></tr>`;
             }
         }
 
-        async function salvarContaPagarSupabase() {
+        // FUNÇÕES DO MÓDULO DE CONTAS A PAGAR
+        async function salvarContaPagar() {
             const beneficiario = document.getElementById('pag-beneficiario').value;
             const valor = parseFloat(document.getElementById('pag-valor').value);
             const vencimento = document.getElementById('pag-vencimento').value;
             const compInput = document.getElementById('pag-comprovante');
-            const nomeComp = compInput.files.length > 0 ? compInput.files[0].name : 'Comprovante.pdf';
+            const comprovante = compInput.files.length > 0 ? compInput.files[0].name : 'Comprovante.pdf';
             const codigo = Math.floor(10000 + Math.random() * 90000);
 
             if (!beneficiario || isNaN(valor)) {
@@ -287,54 +287,52 @@
                 return;
             }
 
-            const { error } = await supabaseClient
-                .from('contas_pagar')
-                .insert([{ codigo, beneficiario, valor, vencimento, comprovante: nomeComp }]);
+            const { error } = await supabaseClient.from('contas_pagar').insert([{ codigo, beneficiario, valor, vencimento, comprovante }]);
 
             if (error) {
-                console.error('Erro Supabase:', error);
-                alert('Erro ao guardar conta. Certifique-se de que executou o SQL no Supabase.');
+                alert('Erro ao salvar conta a pagar.');
+                console.error(error);
             } else {
-                alert('Conta a pagar sincronizada no Supabase com sucesso!');
+                alert('Conta salva com sucesso!');
                 document.getElementById('pag-beneficiario').value = '';
                 document.getElementById('pag-valor').value = '';
                 document.getElementById('pag-vencimento').value = '';
                 compInput.value = '';
-                carregarContasPagarSupabase();
+                carregarContasPagar();
             }
         }
 
-        async function carregarContasPagarSupabase() {
+        async function carregarContasPagar() {
             const tbody = document.getElementById('tabela-pagar-corpo');
             const { data, error } = await supabaseClient.from('contas_pagar').select('*');
             
             if (error) {
-                console.error('Erro ao buscar contas:', error);
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Erro ao carregar dados do Supabase.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Erro ao carregar contas.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = '';
             if (data && data.length > 0) {
                 data.forEach(conta => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td style="font-weight: bold;">${conta.codigo}</td>
-                        <td>${conta.beneficiario}</td>
-                        <td style="font-weight: bold;">R$ ${Number(conta.valor).toFixed(2)}</td>
-                        <td>${conta.vencimento || '-'}</td>
-                        <td><span class="tag" style="background: #fed7aa; color: #9a3412;">📎 ${conta.comprovante || 'Comprovante'}</span></td>
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-weight: bold;">${conta.codigo}</td>
+                            <td>${conta.beneficiario}</td>
+                            <td style="font-weight: bold;">R$ ${Number(conta.valor).toFixed(2)}</td>
+                            <td>${conta.vencimento || '-'}</td>
+                            <td><span class="tag" style="background: #fed7aa; color: #9a3412;">📎 ${conta.comprovante || 'Comprovante'}</span></td>
+                        </tr>
                     `;
-                    tbody.appendChild(tr);
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #6b7280;">Nenhuma conta a pagar cadastrada no Supabase.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #6b7280;">Nenhuma conta cadastrada.</td></tr>`;
             }
         }
 
+        // CARREGAMENTO INICIAL
         window.onload = () => {
-            carregarNotasSupabase();
-            carregarContasPagarSupabase();
+            carregarNotas();
+            carregarContasPagar();
         };
     </script>
 </body>
