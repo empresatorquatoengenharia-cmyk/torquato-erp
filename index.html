@@ -1,303 +1,125 @@
-<aside>
-    <div class="logo">
-        <div class="logo-box">K</div>
-        <span style="font-weight: bold; font-size: 18px; color: #1f2937;">Torquato ERP</span>
-    </div>
-    <div class="menu-title">FINANCEIRO</div>
-    <ul>
-        <li class="active" onclick="mudarAba('fluxo', this)">Fluxo de caixa</li>
-        <li onclick="mudarAba('pagar', this)">Contas a pagar</li>
-        <li onclick="mudarAba('receber', this)">Contas a receber</li>
-        <li onclick="mudarAba('notas', this)">Notas eletrônicas e manuais</li>
-        <li onclick="mudarAba('tributos', this)">Tributos</li>
-    </ul>
-</aside>
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Módulo Financeiro</title>
+    <!-- Importação oficial do Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #f8f9fa; display: flex; height: 100vh; }
+        aside { width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px; box-sizing: border-box; }
+        .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
+        .logo-box { background: #f97316; color: #fff; padding: 8px 12px; border-radius: 6px; font-weight: bold; }
+        .menu-title { font-size: 12px; color: #9ca3af; font-weight: bold; margin-bottom: 10px; }
+        ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+        li { padding: 10px 12px; border-radius: 6px; cursor: pointer; color: #4b5563; }
+        li.active { background: #fff7ed; color: #ea580c; font-weight: bold; border-left: 4px solid #ea580c; }
+        main { flex: 1; padding: 30px; overflow-y: auto; box-sizing: border-box; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        h1 { font-size: 24px; color: #1f2937; margin: 0; }
+        .badge { background: #16a34a; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+        .card-header { background: #1f2937; color: #fff; padding: 15px 20px; border-radius: 8px 8px 0 0; font-weight: bold; }
+        .card-body { background: #fff; border: 1px solid #e5e7eb; border-radius: 0 0 8px 8px; padding: 20px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+        .form-box { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 6px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px; box-sizing: border-box; }
+        .btn-primary { background: #ea580c; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-primary:hover { background: #c2410c; }
+        .table-container { background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th { background: #f3f4f6; padding: 12px; border-bottom: 1px solid #e5e7eb; color: #374151; }
+        td { padding: 12px; border-bottom: 1px solid #f3f4f6; }
+        .tag { background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #374151; display: inline-block; margin-right: 4px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
 
-<main>
-    <header>
-        <h1 id="titulo-pagina">Fluxo de caixa</h1>
-        <div id="status-badge" class="badge">● Supabase Sincronizado</div>
-    </header>
-
-    <!-- FLUXO DE CAIXA -->
-    <div id="fluxo" class="tab-content active">
-        <div class="card-header">Saldo Mês Atual - Todos os Bancos / Caixas</div>
-        <div class="card-body">
-            <div class="row"><span>Saldo mês anterior</span><span style="font-weight: 600;">R$ 4.196.061,32</span></div>
-            <div class="row" style="color: #2563eb;"><span>Entradas efetivadas</span><span style="font-weight: 600;">R$ 26.033,45</span></div>
-            <div class="row" style="color: #dc2626;"><span>Saídas efetivadas</span><span style="font-weight: 600;">R$ 888,87</span></div>
-            <div class="row" style="font-weight: bold; font-size: 16px; border-bottom: 2px solid #e5e7eb; color: #1f2937;"><span>Saldo atual (+ saldos iniciais)</span><span>R$ 4.221.205,90</span></div>
-            <div class="row" style="color: #2563eb;"><span>Entradas previstas</span><span style="font-weight: 600;">R$ 52.937,98</span></div>
-            <div class="row" style="color: #dc2626;"><span>Saídas previstas</span><span style="font-weight: 600;">R$ 11,94</span></div>
-            <div class="row" style="font-weight: bold; font-size: 16px; color: #16a34a; border-bottom: none;"><span>Saldo final previsto (mês)</span><span>R$ 4.274.131,94</span></div>
+    <aside>
+        <div class="logo">
+            <div class="logo-box">K</div>
+            <span style="font-weight: bold; font-size: 18px; color: #1f2937;">Torquato ERP</span>
         </div>
-    </div>
+        <div class="menu-title">FINANCEIRO</div>
+        <ul>
+            <li class="active" onclick="mudarAba('fluxo', this)">Fluxo de caixa</li>
+            <li onclick="mudarAba('pagar', this)">Contas a pagar</li>
+            <li onclick="mudarAba('receber', this)">Contas a receber</li>
+            <li onclick="mudarAba('notas', this)">Notas eletrônicas e manuais</li>
+            <li onclick="mudarAba('tributos', this)">Tributos</li>
+        </ul>
+    </aside>
 
-    <!-- CONTAS A PAGAR -->
-    <div id="pagar" class="tab-content">
-        <div class="form-box">
-            <h3 style="margin-top: 0; color: #1f2937;">Registar Conta a Pagar & Anexar Comprovante</h3>
-            <div class="form-grid">
-                <div class="form-group"><label>Beneficiário / Fornecedor</label><input type="text" id="pag-beneficiario" placeholder="Ex: Casan"></div>
-                <div class="form-group"><label>Valor (R$)</label><input type="number" id="pag-valor" placeholder="0.00" step="0.01"></div>
-                <div class="form-group"><label>Vencimento</label><input type="date" id="pag-vencimento"></div>
-                <div class="form-group"><label>Comprovante de Pagamento (PDF/Img)</label><input type="file" id="pag-comprovante"></div>
+    <main>
+        <header>
+            <h1 id="titulo-pagina">Fluxo de caixa</h1>
+            <div class="badge">● Supabase Sincronizado</div>
+        </header>
+
+        <!-- FLUXO DE CAIXA -->
+        <div id="fluxo" class="tab-content active">
+            <div class="card-header">Saldo Mês Atual - Todos os Bancos / Caixas</div>
+            <div class="card-body">
+                <div class="row"><span>Saldo mês anterior</span><span style="font-weight: 600;">R$ 4.196.061,32</span></div>
+                <div class="row" style="color: #2563eb;"><span>Entradas efetivadas</span><span style="font-weight: 600;">R$ 26.033,45</span></div>
+                <div class="row" style="color: #dc2626;"><span>Saídas efetivadas</span><span style="font-weight: 600;">R$ 888,87</span></div>
+                <div class="row" style="font-weight: bold; font-size: 16px; border-bottom: 2px solid #e5e7eb; color: #1f2937;"><span>Saldo atual (+ saldos iniciais)</span><span>R$ 4.221.205,90</span></div>
+                <div class="row" style="color: #2563eb;"><span>Entradas previstas</span><span style="font-weight: 600;">R$ 52.937,98</span></div>
+                <div class="row" style="color: #dc2626;"><span>Saídas previstas</span><span style="font-weight: 600;">R$ 11,94</span></div>
+                <div class="row" style="font-weight: bold; font-size: 16px; color: #16a34a; border-bottom: none;"><span>Saldo final previsto (mês)</span><span>R$ 4.274.131,94</span></div>
             </div>
-            <button class="btn-primary" onclick="salvarContaPagarSupabase()">Registar no Supabase</button>
         </div>
 
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Beneficiário</th>
-                        <th>Valor</th>
-                        <th>Vencimento</th>
-                        <th>Comprovante</th>
-                    </tr>
-                </thead>
-                <tbody id="tabela-pagar-corpo">
-                    <tr><td colspan="5" class="empty-state">A carregar dados do Supabase...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- CONTAS A RECEBER -->
-    <div id="receber" class="tab-content">
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Obra</th>
-                        <th>Valor</th>
-                        <th>Vencimento</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="tabela-receber-corpo">
-                    <tr>
-                        <td style="font-weight: bold;">Construtora Horizonte</td>
-                        <td>Residencial Viena</td>
-                        <td style="color: #2563eb; font-weight: bold;">R$ 26.097,19</td>
-                        <td>10/05/2026</td>
-                        <td>A Receber</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- NOTAS ELETRÔNICAS E MANUAIS -->
-    <div id="notas" class="tab-content">
-        <div class="form-box">
-            <h3 style="margin-top: 0; color: #1f2937;">Cadastrar Nota Fiscal (Eletrônica / Manual)</h3>
-            <div class="form-grid">
-                <div class="form-group"><label>Número da Nota</label><input type="text" id="nota-numero" placeholder="Ex: 56116"></div>
-                <div class="form-group"><label>Fornecedor</label><input type="text" id="nota-fornecedor" placeholder="Nome do fornecedor"></div>
-                <div class="form-group"><label>Valor (R$)</label><input type="number" id="nota-valor" placeholder="0.00" step="0.01"></div>
-                <div class="form-group"><label>Rateio da Obra</label><input type="text" id="nota-obra" placeholder="Ex: Casa Diário"></div>
-                <div class="form-group" style="grid-column: span 2;"><label>Carregar Ficheiro XML / PDF da Nota</label><input type="file" id="nota-arquivo" accept=".xml,.pdf"></div>
+        <!-- CONTAS A PAGAR -->
+        <div id="pagar" class="tab-content">
+            <div class="form-box">
+                <h3 style="margin-top: 0; color: #1f2937;">Registar Conta a Pagar & Anexar Comprovante</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Beneficiário / Fornecedor</label><input type="text" id="pag-beneficiario" placeholder="Ex: Casan"></div>
+                    <div class="form-group"><label>Valor (R$)</label><input type="number" id="pag-valor" placeholder="0.00"></div>
+                    <div class="form-group"><label>Vencimento</label><input type="date" id="pag-vencimento"></div>
+                    <div class="form-group"><label>Comprovante de Pagamento (PDF/Img)</label><input type="file" id="pag-comprovante"></div>
+                </div>
+                <button class="btn-primary" onclick="salvarContaPagarSupabase()">Registar no Supabase</button>
             </div>
-            <button class="btn-primary" onclick="salvarNotaSupabase()">Guardar Nota no Supabase</button>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Beneficiário</th>
+                            <th>Valor</th>
+                            <th>Vencimento</th>
+                            <th>Comprovante</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-pagar-corpo">
+                        <tr><td colspan="5" style="text-align: center; color: #6b7280;">A carregar dados do Supabase...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Número da Nota</th>
-                        <th>Fornecedor</th>
-                        <th>Valor</th>
-                        <th>Rateio Obra</th>
-                        <th>Ficheiro XML / PDF</th>
-                    </tr>
-                </thead>
-                <tbody id="tabela-notas-corpo">
-                    <tr><td colspan="5" class="empty-state">A carregar dados do Supabase...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- TRIBUTOS -->
-    <div id="tributos" class="tab-content">
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Imposto / Guia</th>
-                        <th>Competência</th>
-                        <th>Valor</th>
-                        <th>Vencimento</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="font-weight: bold;">Guia DAS (Simples Nacional)</td>
-                        <td>04/2026</td>
-                        <td>R$ 550,00</td>
-                        <td>20/05/2026</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</main>
-
-<script>
-    // CREDENCIAIS DO SUPABASE
-    const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
-
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    function mudarAba(idAba, elemento) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('aside li').forEach(el => el.classList.remove('active'));
-        
-        document.getElementById(idAba).classList.add('active');
-        elemento.classList.add('active');
-
-        const titulos = {
-            'fluxo': 'Fluxo de caixa',
-            'pagar': 'Contas a pagar',
-            'receber': 'Contas a receber',
-            'notas': 'Notas eletrônicas e manuais',
-            'tributos': 'Gestão de Tributos'
-        };
-        document.getElementById('titulo-pagina').innerText = titulos[idAba];
-
-        if (idAba === 'notas') carregarNotasSupabase();
-        if (idAba === 'pagar') carregarContasPagarSupabase();
-    }
-
-    // --- SALVAR E CARREGAR NOTAS FISCAIS ---
-    async function salvarNotaSupabase() {
-        const numero = document.getElementById('nota-numero').value;
-        const fornecedor = document.getElementById('nota-fornecedor').value;
-        const valor = parseFloat(document.getElementById('nota-valor').value);
-        const obra = document.getElementById('nota-obra').value;
-        const arquivoInput = document.getElementById('nota-arquivo');
-        const nomeArquivo = arquivoInput.files.length > 0 ? arquivoInput.files[0].name : 'Nota_Manual.pdf';
-
-        if (!numero || !fornecedor || isNaN(valor)) {
-            alert('Preencha os campos obrigatórios (Número, Fornecedor e Valor).');
-            return;
-        }
-
-        const { data, error } = await supabaseClient
-            .from('notas_fiscais')
-            .insert([{ numero, fornecedor, valor, obra, arquivo: nomeArquivo }]);
-
-        if (error) {
-            console.error('Erro ao guardar nota:', error);
-            alert('Erro ao sincronizar com o Supabase:\n' + error.message + '\n\nCertifique-se de que executou o script SQL no painel do Supabase.');
-        } else {
-            alert('Nota fiscal guardada e sincronizada no Supabase com sucesso!');
-            document.getElementById('nota-numero').value = '';
-            document.getElementById('nota-fornecedor').value = '';
-            document.getElementById('nota-valor').value = '';
-            document.getElementById('nota-obra').value = '';
-            arquivoInput.value = '';
-            carregarNotasSupabase();
-        }
-    }
-
-    async function carregarNotasSupabase() {
-        const tbody = document.getElementById('tabela-notas-corpo');
-        const { data, error } = await supabaseClient.from('notas_fiscais').select('*').order('id', { ascending: false });
-        
-        if (error) {
-            console.error('Erro ao buscar notas:', error);
-            tbody.innerHTML = `<tr><td colspan="5" class="empty-state" style="color: #dc2626;">Erro ao carregar dados: ${error.message}</td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = '';
-        
-        if (data && data.length > 0) {
-            data.forEach(nota => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-weight: bold;">${nota.numero}</td>
-                    <td>${nota.fornecedor}</td>
-                    <td>R$ ${Number(nota.valor).toFixed(2)}</td>
-                    <td>${nota.obra || '-'}</td>
-                    <td><span class="tag" style="background: #e2e8f0;">📄 ${nota.arquivo || 'Documento'}</span></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        } else {
-            tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Nenhuma nota fiscal registrada.</td></tr>`;
-        }
-    }
-
-    // --- SALVAR E CARREGAR CONTAS A PAGAR ---
-    async function salvarContaPagarSupabase() {
-        const beneficiario = document.getElementById('pag-beneficiario').value;
-        const valor = parseFloat(document.getElementById('pag-valor').value);
-        const vencimento = document.getElementById('pag-vencimento').value;
-        const compInput = document.getElementById('pag-comprovante');
-        const nomeComp = compInput.files.length > 0 ? compInput.files[0].name : 'Comprovante.pdf';
-        const codigo = Math.floor(10000 + Math.random() * 90000);
-
-        if (!beneficiario || isNaN(valor)) {
-            alert('Preencha o beneficiário e o valor.');
-            return;
-        }
-
-        const { data, error } = await supabaseClient
-            .from('contas_pagar')
-            .insert([{ codigo, beneficiario, valor, vencimento, comprovante: nomeComp }]);
-
-        if (error) {
-            console.error('Erro ao guardar conta:', error);
-            alert('Erro ao sincronizar conta a pagar com o Supabase:\n' + error.message);
-        } else {
-            alert('Conta a pagar guardada e comprovante sincronizado com sucesso!');
-            document.getElementById('pag-beneficiario').value = '';
-            document.getElementById('pag-valor').value = '';
-            document.getElementById('pag-vencimento').value = '';
-            compInput.value = '';
-            carregarContasPagarSupabase();
-        }
-    }
-
-    async function carregarContasPagarSupabase() {
-        const tbody = document.getElementById('tabela-pagar-corpo');
-        const { data, error } = await supabaseClient.from('contas_pagar').select('*').order('id', { ascending: false });
-        
-        if (error) {
-            console.error('Erro ao buscar contas:', error);
-            tbody.innerHTML = `<tr><td colspan="5" class="empty-state" style="color: #dc2626;">Erro ao carregar dados: ${error.message}</td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = '';
-
-        if (data && data.length > 0) {
-            data.forEach(conta => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-weight: bold;">${conta.codigo}</td>
-                    <td>${conta.beneficiario}</td>
-                    <td style="font-weight: bold;">R$ ${Number(conta.valor).toFixed(2)}</td>
-                    <td>${conta.vencimento || '-'}</td>
-                    <td><span class="tag" style="background: #fed7aa; color: #9a3412;">📎 ${conta.comprovante || 'Comprovante'}</span></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        } else {
-            tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Nenhuma conta a pagar registrada.</td></tr>`;
-        }
-    }
-
-    // Carregar dados iniciais ao carregar a página
-    window.onload = () => {
-        carregarNotasSupabase();
-        carregarContasPagarSupabase();
-    };
-</script>
+        <!-- CONTAS A RECEBER -->
+        <div id="receber" class="tab-content">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Obra</th>
+                            <th>Valor</th>
+                            <th>Vencimento</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: bold;">Construtora Horizonte</td>
+                            <td>Residencial Viena</td>
+                            <td style="color: #25
