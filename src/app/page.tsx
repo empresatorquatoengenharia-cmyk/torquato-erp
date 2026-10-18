@@ -122,10 +122,10 @@ export default function TorquatoFullERP() {
       const { data: bolData } = await supabase.from('boletos_erp').select('*');
       if (bolData) setBoletos(bolData);
 
-      const { data: tribData } = await supabase.from('tributos_erp').select('*');
+      const { data: tribData } = await supabase.from('tributos_erp').select('*').order('vencimento', { ascending: true });
       if (tribData) setTributos(tribData);
     } catch (err) {
-      console.error('Erro ao carregar dados:', err);
+      console.error('Erro ao carregar dados do Supabase:', err);
     }
   }
 
@@ -147,78 +147,101 @@ export default function TorquatoFullERP() {
   async function handleSaveEmpresa(e: React.FormEvent) {
     e.preventDefault();
     if (!empNome) return;
-    await supabase.from('empresas_erp').insert([{ nome: empNome, cnpj: empCnpj || '00.000.000/0001-00' }]);
-    setShowEmpresaModal(false); setEmpNome(''); setEmpCnpj(''); loadAllData();
+    try {
+      await supabase.from('empresas_erp').insert([{ nome: empNome, cnpj: empCnpj || '00.000.000/0001-00' }]);
+      setShowEmpresaModal(false); setEmpNome(''); setEmpCnpj(''); loadAllData();
+    } catch (err) { console.error('Erro ao salvar empresa:', err); }
   }
 
   async function handleSaveUser(e: React.FormEvent) {
     e.preventDefault();
     if (!userName || !userEmail) return;
-    await supabase.from('usuarios_erp').insert([{ nome: userName, email: userEmail, cargo: userCargo, limite_aprovacao: parseFloat(userLimite || '0'), status: 'ativo' }]);
-    setShowUserModal(false); setUserName(''); setUserEmail(''); loadAllData();
+    try {
+      await supabase.from('usuarios_erp').insert([{ nome: userName, email: userEmail, cargo: userCargo, limite_aprovacao: parseFloat(userLimite || '0'), status: 'ativo' }]);
+      setShowUserModal(false); setUserName(''); setUserEmail(''); loadAllData();
+    } catch (err) { console.error('Erro ao salvar usuário:', err); }
   }
 
   async function handleSaveContrato(e: React.FormEvent) {
     e.preventDefault();
     if (!contTitulo || !contValor) return;
-    await supabase.from('contratos_empresa').insert([{ titulo: contTitulo, fornecedor: contFornecedor, valor: parseFloat(contValor || '0'), status: 'Ativo' }]);
-    setShowContratoModal(false); setContTitulo(''); setContFornecedor(''); setContValor(''); loadAllData();
+    try {
+      await supabase.from('contratos_empresa').insert([{ titulo: contTitulo, fornecedor: contFornecedor, valor: parseFloat(contValor || '0'), status: 'Ativo' }]);
+      setShowContratoModal(false); setContTitulo(''); setContFornecedor(''); setContValor(''); loadAllData();
+    } catch (err) { console.error('Erro ao salvar contrato:', err); }
   }
 
   async function handleSaveFinanceiro(e: React.FormEvent) {
     e.preventDefault();
     if (!finDescricao || !finValor) return;
-    const tableTarget = finTipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
-    await supabase.from(tableTarget).insert([{
-      descricao: finDescricao,
-      valor: parseFloat(finValor || '0'),
-      vencimento: finVencimento || new Date().toISOString().split('T')[0],
-      categoria: finCategoria,
-      status: finStatus,
-      empresa: selectedCompany,
-      nf_nome: finNfNome || null,
-      nf_url: finNfUrl || null,
-      comprovante_nome: finCompNome || null,
-      comprovante_url: finCompUrl || null
-    }]);
-    setShowFinanceiroModal(false);
-    setFinDescricao(''); setFinValor(''); setFinNfNome(''); setFinNfUrl(''); setFinCompNome(''); setFinCompUrl('');
-    loadAllData();
+    try {
+      const tableTarget = finTipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
+      await supabase.from(tableTarget).insert([{
+        descricao: finDescricao,
+        valor: parseFloat(finValor || '0'),
+        vencimento: finVencimento || new Date().toISOString().split('T')[0],
+        categoria: finCategoria,
+        status: finStatus,
+        empresa: selectedCompany,
+        nf_nome: finNfNome || null,
+        nf_url: finNfUrl || null,
+        comprovante_nome: finCompNome || null,
+        comprovante_url: finCompUrl || null
+      }]);
+      setShowFinanceiroModal(false);
+      setFinDescricao(''); setFinValor(''); setFinNfNome(''); setFinNfUrl(''); setFinCompNome(''); setFinCompUrl('');
+      loadAllData();
+    } catch (err) { console.error('Erro ao salvar lançamento financeiro:', err); }
   }
 
   async function handleSaveBanco(e: React.FormEvent) {
     e.preventDefault();
     if (!bancoNome) return;
-    await supabase.from('contas_bancarias').insert([{ banco: bancoNome, agencia: bancoAgencia, conta: bancoConta, saldo: parseFloat(bancoSaldo || '0'), empresa: selectedCompany }]);
-    setShowBancoModal(false); setBancoNome(''); setBancoAgencia(''); setBancoConta(''); setBancoSaldo(''); loadAllData();
+    try {
+      await supabase.from('contas_bancarias').insert([{ banco: bancoNome, agencia: bancoAgencia, conta: bancoConta, saldo: parseFloat(bancoSaldo || '0'), empresa: selectedCompany }]);
+      setShowBancoModal(false); setBancoNome(''); setBancoAgencia(''); setBancoConta(''); setBancoSaldo(''); loadAllData();
+    } catch (err) { console.error('Erro ao salvar conta bancária:', err); }
   }
 
   async function handleSaveTributo(e: React.FormEvent) {
     e.preventDefault();
     if (!tribImposto || !tribValor) return;
-    await supabase.from('tributos_erp').insert([{
-      imposto: tribImposto,
-      competencia: tribCompetencia || 'Atual',
-      valor: parseFloat(tribValor || '0'),
-      vencimento: tribVencimento || new Date().toISOString().split('T')[0],
-      status: 'Previsto',
-      empresa: selectedCompany
-    }]);
-    setShowTributoModal(false);
-    setTribImposto('DAS (Simples Nacional)'); setTribCompetencia(''); setTribValor(''); setTribVencimento('');
-    loadAllData();
+    try {
+      await supabase.from('tributos_erp').insert([{
+        imposto: tribImposto,
+        competencia: tribCompetencia || 'Atual',
+        valor: parseFloat(tribValor || '0'),
+        vencimento: tribVencimento || new Date().toISOString().split('T')[0],
+        status: 'Previsto',
+        empresa: selectedCompany
+      }]);
+      setShowTributoModal(false);
+      setTribImposto('DAS (Simples Nacional)'); setTribCompetencia(''); setTribValor(''); setTribVencimento('');
+      loadAllData();
+    } catch (err) { console.error('Erro ao salvar tributo:', err); }
   }
 
   async function handleToggleQuitar(item: any, tipo: 'pagar' | 'receber') {
-    const novoStatus = item.status === 'Pago' || item.status === 'Recebido' ? 'Pendente' : (tipo === 'pagar' ? 'Pago' : 'Recebido');
-    const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
-    await supabase.from(tableTarget).update({ status: novoStatus }).eq('id', item.id);
-    loadAllData();
+    try {
+      const novoStatus = item.status === 'Pago' || item.status === 'Recebido' ? 'Pendente' : (tipo === 'pagar' ? 'Pago' : 'Recebido');
+      const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
+      await supabase.from(tableTarget).update({ status: novoStatus }).eq('id', item.id);
+      loadAllData();
+    } catch (err) { console.error('Erro ao alterar status:', err); }
+  }
+
+  async function handleToggleQuitarTributo(item: any) {
+    try {
+      const novoStatus = item.status === 'Pago' ? 'Previsto' : 'Pago';
+      await supabase.from('tributos_erp').update({ status: novoStatus }).eq('id', item.id);
+      loadAllData();
+    } catch (err) { console.error('Erro ao alterar status do tributo:', err); }
   }
 
   async function handleDeleteEmpresa(id: string) { if (confirm('Excluir empresa?')) { await supabase.from('empresas_erp').delete().eq('id', id); loadAllData(); } }
   async function handleDeleteUser(id: string) { if (confirm('Excluir usuário?')) { await supabase.from('usuarios_erp').delete().eq('id', id); loadAllData(); } }
   async function handleDeleteContrato(id: string) { if (confirm('Excluir contrato?')) { await supabase.from('contratos_empresa').delete().eq('id', id); loadAllData(); } }
+  async function handleDeleteTributo(id: string) { if (confirm('Excluir tributo?')) { await supabase.from('tributos_erp').delete().eq('id', id); loadAllData(); } }
   async function handleDeleteFinanceiro(id: string, tipo: 'pagar' | 'receber') {
     if (confirm('Excluir lançamento?')) {
       const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
@@ -227,7 +250,7 @@ export default function TorquatoFullERP() {
     }
   }
 
-  // Filtros Globais
+  // Filtros Globais por Empresa Ativa
   const filteredPagar = financialsPagar.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
   const filteredReceber = financialsReceber.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
   const filteredBancos = contasBancarias.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
@@ -271,9 +294,13 @@ export default function TorquatoFullERP() {
                 onChange={(e) => setSelectedCompany(e.target.value)}
                 className="bg-transparent text-amber-400 font-bold focus:outline-none cursor-pointer"
               >
-                {empresas.map(emp => (
-                  <option key={emp.id} value={emp.nome} className="bg-slate-900">{emp.nome}</option>
-                ))}
+                {empresas.length === 0 ? (
+                  <option value="Torquato Engenharia Ltda" className="bg-slate-900">Torquato Engenharia Ltda</option>
+                ) : (
+                  empresas.map(emp => (
+                    <option key={emp.id} value={emp.nome} className="bg-slate-900">{emp.nome}</option>
+                  ))
+                )}
               </select>
             </div>
           </div>
@@ -593,7 +620,7 @@ export default function TorquatoFullERP() {
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                     <div className="flex justify-between items-center">
                       <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Wallet className="w-4 h-4 text-amber-500" /> Contas Bancárias & Conciliação</h3>
-                      <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">+ Nova Conta</button>
+                      <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">+ Nova Conta</button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {filteredBancos.length === 0 ? (
@@ -658,7 +685,7 @@ export default function TorquatoFullERP() {
                           <p className="text-xs">Nenhum tributo registrado para {selectedCompany}.</p>
                           <button 
                             onClick={() => setShowTributoModal(true)} 
-                            className="mt-3 px-3 py-2 bg-rose-600/20 text-rose-400 font-bold rounded-lg text-xs hover:bg-rose-600/30 transition"
+                            className="mt-3 px-3 py-2 bg-rose-600/20 text-rose-400 font-bold rounded-lg text-xs hover:bg-rose-600/30 transition cursor-pointer"
                           >
                             + Cadastrar primeiro tributo
                           </button>
@@ -670,11 +697,17 @@ export default function TorquatoFullERP() {
                               <p className="font-bold text-white text-sm">{trib.imposto}</p>
                               <p className="text-slate-400 mt-0.5">Competência: <span className="text-amber-400 font-bold">{trib.competencia}</span> • Vencimento: {trib.vencimento}</p>
                             </div>
-                            <div className="text-right flex items-center gap-4">
+                            <div className="text-right flex items-center gap-3">
                               <div>
                                 <p className="font-black text-rose-400 text-sm">R$ {Number(trib.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                                <span className="inline-block mt-1 text-[10px] bg-rose-500/10 text-rose-400 px-2.5 py-0.5 rounded-full uppercase font-bold">{trib.status || 'Previsto'}</span>
+                                <span className={`inline-block mt-1 text-[10px] px-2.5 py-0.5 rounded-full uppercase font-bold ${trib.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>{trib.status || 'Previsto'}</span>
                               </div>
+                              <button onClick={() => handleToggleQuitarTributo(trib)} className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${trib.status === 'Pago' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}>
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => handleDeleteTributo(trib.id)} className="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded-lg transition cursor-pointer">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                           </div>
                         ))
@@ -793,7 +826,7 @@ export default function TorquatoFullERP() {
                   <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, 'comprovante')} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white cursor-pointer" />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar Lançamento</button></div>
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs cursor-pointer">Salvar Lançamento</button></div>
               </form>
             </div>
           </div>
@@ -808,7 +841,7 @@ export default function TorquatoFullERP() {
                 <input type="text" placeholder="Agência" value={bancoAgencia} onChange={(e) => setBancoAgencia(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="text" placeholder="Conta Corrente" value={bancoConta} onChange={(e) => setBancoConta(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="number" step="0.01" placeholder="Saldo Inicial (R$)" value={bancoSaldo} onChange={(e) => setBancoSaldo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar Conta</button></div>
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">Salvar Conta</button></div>
               </form>
             </div>
           </div>
@@ -829,7 +862,7 @@ export default function TorquatoFullERP() {
                 <input type="text" placeholder="Competência (ex: 05/2026)" value={tribCompetencia} onChange={(e) => setTribCompetencia(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="number" step="0.01" required placeholder="Valor do Tributo (R$)" value={tribValor} onChange={(e) => setTribValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="date" required value={tribVencimento} onChange={(e) => setTribVencimento(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs">Salvar Tributo</button></div>
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs cursor-pointer">Salvar Tributo</button></div>
               </form>
             </div>
           </div>
@@ -842,7 +875,7 @@ export default function TorquatoFullERP() {
               <form onSubmit={handleSaveEmpresa} className="space-y-3">
                 <input type="text" required placeholder="Razão Social" value={empNome} onChange={(e) => setEmpNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="text" placeholder="CNPJ" value={empCnpj} onChange={(e) => setEmpCnpj(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">Salvar</button></div>
               </form>
             </div>
           </div>
@@ -855,7 +888,7 @@ export default function TorquatoFullERP() {
               <form onSubmit={handleSaveUser} className="space-y-3">
                 <input type="text" required placeholder="Nome Completo" value={userName} onChange={(e) => setUserName(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="email" required placeholder="E-mail" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">Salvar</button></div>
               </form>
             </div>
           </div>
@@ -868,7 +901,7 @@ export default function TorquatoFullERP() {
               <form onSubmit={handleSaveContrato} className="space-y-3">
                 <input type="text" required placeholder="Título do Contrato" value={contTitulo} onChange={(e) => setContTitulo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="number" step="0.01" required placeholder="Valor (R$)" value={contValor} onChange={(e) => setContValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">Salvar</button></div>
               </form>
             </div>
           </div>
