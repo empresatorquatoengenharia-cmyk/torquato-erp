@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torquato ERP - Cadastros Gerais de Suprimentos</title>
+    <title>Torquato ERP - Cadastros & Hierarquia de Suprimentos</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client -->
@@ -17,7 +17,7 @@
             <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
-                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Parâmetros & Cadastros</p>
+                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Parâmetros & Hierarquia</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -53,30 +53,41 @@
         <main class="flex-1 p-8 max-w-6xl space-y-6">
             <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
                 <div>
-                    <h2 class="text-xl font-bold text-white">Cadastros e Parâmetros de Apoio</h2>
-                    <p class="text-xs text-slate-400">Gerencie unidades, categorias de produtos e fornecedores do ERP.</p>
+                    <h2 class="text-xl font-bold text-white">Hierarquia e Parâmetros de Suprimentos</h2>
+                    <p class="text-xs text-slate-400">Gerencie unidades, categorias, subcategorias e fornecedores do ERP.</p>
                 </div>
                 <!-- Abas de Navegação interna -->
-                <div class="flex items-center space-x-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs">
-                    <button onclick="mudarAba('unidades')" id="btn-aba-unidades" class="px-4 py-2 rounded-lg font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Unidades</button>
-                    <button onclick="mudarAba('cat_produtos')" id="btn-aba-cat_produtos" class="px-4 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer">Cat. Produtos</button>
-                    <button onclick="mudarAba('cat_fornecedores')" id="btn-aba-cat_fornecedores" class="px-4 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer">Cat. Fornecedores</button>
+                <div class="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs">
+                    <button onclick="mudarAba('unidades')" id="btn-aba-unidades" class="px-3.5 py-2 rounded-lg font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Unidades</button>
+                    <button onclick="mudarAba('cat_produtos')" id="btn-aba-cat_produtos" class="px-3.5 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer">Categorias</button>
+                    <button onclick="mudarAba('sub_produtos')" id="btn-aba-sub_produtos" class="px-3.5 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer">Subcategorias</button>
+                    <button onclick="mudarAba('cat_fornecedores')" id="btn-aba-cat_fornecedores" class="px-3.5 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer">Fornecedores</button>
                 </div>
             </div>
 
             <!-- Formulário de Cadastro / Edição Dinâmico -->
             <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
-                <h3 class="text-sm font-bold text-amber-400" id="form-titulo">Adicionar Nova Unidade de Medida</h3>
+                <h3 class="text-sm font-bold text-amber-400" id="form-titulo">Adicionar Novo Registo</h3>
                 <form onsubmit="salvarCadastro(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                     <input type="hidden" id="item-id">
-                    <div id="campo-extra-wrapper">
-                        <label class="block text-slate-400 font-bold mb-1" id="label-campo-1">Sigla (Ex: kg, m²)</label>
+                    
+                    <!-- Campo Dinâmico 0 (Ex: Select de Categoria para Subcategorias) -->
+                    <div id="wrapper-campo-0" class="hidden md:col-span-3">
+                        <label class="block text-slate-400 font-bold mb-1">Categoria Pai</label>
+                        <select id="input-campo-0" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500 cursor-pointer">
+                            <!-- Preenchido via JS -->
+                        </select>
+                    </div>
+
+                    <div id="wrapper-campo-1">
+                        <label class="block text-slate-400 font-bold mb-1" id="label-campo-1">Nome / Sigla</label>
                         <input type="text" id="input-campo-1" required placeholder="Ex: kg" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
                     </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-slate-400 font-bold mb-1" id="label-campo-2">Descrição / Nome Completo</label>
+                    <div id="wrapper-campo-2" class="md:col-span-2">
+                        <label class="block text-slate-400 font-bold mb-1" id="label-campo-2">Descrição</label>
                         <input type="text" id="input-campo-2" required placeholder="Ex: Quilograma" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
                     </div>
+
                     <div class="md:col-span-3 flex items-center justify-end space-x-3">
                         <button type="button" onclick="limparFormulario()" id="btn-cancelar-edicao" class="hidden px-4 py-2 bg-slate-800 text-slate-300 rounded-xl cursor-pointer">Cancelar</button>
                         <button type="submit" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar Registo</button>
@@ -86,12 +97,12 @@
 
             <!-- Tabela de Listagem -->
             <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
-                <h3 class="text-sm font-bold text-amber-400" id="tabela-titulo">Lista de Unidades Cadastradas</h3>
+                <h3 class="text-sm font-bold text-amber-400" id="tabela-titulo">Lista de Registos</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr class="border-b border-slate-800 text-slate-400" id="tabela-cabecalho">
-                                <th class="p-3">Sigla</th>
+                                <th class="p-3">Nome</th>
                                 <th class="p-3">Descrição</th>
                                 <th class="p-3 text-right">Ações</th>
                             </tr>
@@ -112,11 +123,12 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let abaAtual = 'unidades'; // unidades, cat_produtos, cat_fornecedores
+        let abaAtual = 'unidades'; // unidades, cat_produtos, sub_produtos, cat_fornecedores
+        let categoriasCache = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
-            carregarDadosAtuais();
+            carregarCategoriasCache().then(() => carregarDadosAtuais());
         });
 
         function verificarSessao() {
@@ -134,39 +146,54 @@
             window.location.href = 'login.html';
         }
 
+        async function carregarCategoriasCache() {
+            const { data } = await supabaseClient.from('categorias_produtos').select('*');
+            categoriasCache = data || [];
+            const selectPai = document.getElementById('input-campo-0');
+            selectPai.innerHTML = categoriasCache.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        }
+
         function mudarAba(aba) {
             abaAtual = aba;
             limparFormulario();
 
-            // Atualiza botões
-            ['unidades', 'cat_produtos', 'cat_fornecedores'].forEach(a => {
+            ['unidades', 'cat_produtos', 'sub_produtos', 'cat_fornecedores'].forEach(a => {
                 const btn = document.getElementById(`btn-aba-${a}`);
                 if (a === aba) {
-                    btn.className = "px-4 py-2 rounded-lg font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+                    btn.className = "px-3.5 py-2 rounded-lg font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
                 } else {
-                    btn.className = "px-4 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer";
+                    btn.className = "px-3.5 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer";
                 }
             });
 
-            // Ajusta labels e cabeçalhos do formulário conforme a aba
-            if (aba === 'unidades') {
-                document.getElementById('form-titulo').innerText = "Adicionar Nova Unidade de Medida";
-                document.getElementById('label-campo-1').innerText = "Sigla (Ex: kg, m²)";
-                document.getElementById('input-campo-1').placeholder = "Ex: kg";
-                document.getElementById('label-campo-2').innerText = "Descrição / Nome Completo";
-                document.getElementById('input-campo-2').placeholder = "Ex: Quilograma";
-            } else if (aba === 'cat_produtos') {
-                document.getElementById('form-titulo').innerText = "Adicionar Nova Categoria de Produtos";
-                document.getElementById('label-campo-1').innerText = "Nome da Categoria";
-                document.getElementById('input-campo-1').placeholder = "Ex: Elétrica";
-                document.getElementById('label-campo-2').innerText = "Detalhes / Descrição";
-                document.getElementById('input-campo-2').placeholder = "Ex: Fios e disjuntores";
-            } else {
-                document.getElementById('form-titulo').innerText = "Adicionar Categoria de Fornecedores";
-                document.getElementById('label-campo-1').innerText = "Nome da Categoria";
-                document.getElementById('input-campo-1').placeholder = "Ex: Empreiteiros";
+            const wrapperPai = document.getElementById('wrapper-campo-0');
+            const wrapper1 = document.getElementById('wrapper-campo-1');
+
+            if (aba === 'sub_produtos') {
+                wrapperPai.classList.remove('hidden');
+                document.getElementById('form-titulo').innerText = "Adicionar Nova Subcategoria";
+                document.getElementById('label-campo-1').innerText = "Nome da Subcategoria (Ex: Aço CA-50)";
+                document.getElementById('input-campo-1').placeholder = "Ex: Aço CA-50";
                 document.getElementById('label-campo-2').innerText = "Descrição";
-                document.getElementById('input-campo-2').placeholder = "Ex: Serviços de obra civil";
+                document.getElementById('input-campo-2').placeholder = "Ex: Barras para armadura";
+            } else {
+                wrapperPai.classList.add('hidden');
+                if (aba === 'unidades') {
+                    document.getElementById('form-titulo').innerText = "Adicionar Nova Unidade de Medida";
+                    document.getElementById('label-campo-1').innerText = "Sigla (Ex: kg, m²)";
+                    document.getElementById('input-campo-1').placeholder = "Ex: kg";
+                    document.getElementById('label-campo-2').innerText = "Descrição Completa";
+                } else if (aba === 'cat_produtos') {
+                    document.getElementById('form-titulo').innerText = "Adicionar Nova Categoria de Produtos";
+                    document.getElementById('label-campo-1').innerText = "Nome da Categoria";
+                    document.getElementById('input-campo-1').placeholder = "Ex: Armaduras";
+                    document.getElementById('label-campo-2').innerText = "Descrição";
+                } else {
+                    document.getElementById('form-titulo').innerText = "Adicionar Categoria de Fornecedores";
+                    document.getElementById('label-campo-1').innerText = "Nome da Categoria";
+                    document.getElementById('input-campo-1').placeholder = "Ex: Empreiteiros";
+                    document.getElementById('label-campo-2').innerText = "Descrição";
+                }
             }
 
             carregarDadosAtuais();
@@ -177,39 +204,82 @@
             const tabelaCabecalho = document.getElementById('tabela-cabecalho');
             const tituloTabela = document.getElementById('tabela-titulo');
 
-            tabelaCorpo.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">A carregar...</td></tr>`;
+            tabelaCorpo.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">A carregar...</td></tr>`;
 
-            let nomeTabela = abaAtual === 'unidades' ? 'unidades_medida' : (abaAtual === 'cat_produtos' ? 'categorias_produtos' : 'categorias_fornecedores');
-            tituloTabela.innerText = abaAtual === 'unidades' ? 'Lista de Unidades de Medida' : (abaAtual === 'cat_produtos' ? 'Categorias de Produtos Cadastradas' : 'Categorias de Fornecedores');
+            let nomeTabela = '';
+            if (abaAtual === 'unidades') nomeTabela = 'unidades_medida';
+            else if (abaAtual === 'cat_produtos') nomeTabela = 'categorias_produtos';
+            else if (abaAtual === 'sub_produtos') nomeTabela = 'subcategorias_produtos';
+            else nomeTabela = 'categorias_fornecedores';
 
-            tabelaCabecalho.innerHTML = `
-                <th class="p-3">${abaAtual === 'unidades' ? 'Sigla' : 'Nome'}</th>
-                <th class="p-3">Descrição</th>
-                <th class="p-3 text-right">Ações</th>
-            `;
+            tituloTabela.innerText = abaAtual === 'sub_produtos' ? 'Lista de Subcategorias Cadastradas' : 'Lista de Registos';
 
-            const { data, error } = await supabaseClient.from(nomeTabela).select('*').order('id', { ascending: true });
+            if (abaAtual === 'sub_produtos') {
+                tabelaCabecalho.innerHTML = `
+                    <th class="p-3">Categoria Pai</th>
+                    <th class="p-3">Subcategoria</th>
+                    <th class="p-3">Descrição</th>
+                    <th class="p-3 text-right">Ações</th>
+                `;
+                
+                // Busca subcategorias com join na categoria pai
+                const { data, error } = await supabaseClient
+                    .from('subcategorias_produtos')
+                    .select('id, nome, descricao, categoria_id, categorias_produtos(nome)')
+                    .order('id', { ascending: true });
 
-            if (error) {
-                tabelaCorpo.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-400">Erro: ${error.message}</td></tr>`;
-                return;
+                if (error) {
+                    tabelaCorpo.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-400">Erro: ${error.message}</td></tr>`;
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    tabelaCorpo.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">Nenhuma subcategoria encontrada.</td></tr>`;
+                    return;
+                }
+
+                tabelaCorpo.innerHTML = data.map(item => `
+                    <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                        <td class="p-3 text-amber-400 font-semibold">${item.categorias_produtos?.nome || 'Geral'}</td>
+                        <td class="p-3 font-medium text-white">${item.nome}</td>
+                        <td class="p-3 text-slate-300">${item.descricao || '-'}</td>
+                        <td class="p-3 text-right space-x-2">
+                            <button onclick="prepararEdicaoSub(${item.id}, ${item.categoria_id}, '${item.nome}', '${item.descricao || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Editar</button>
+                            <button onclick="excluirRegisto(${item.id}, 'subcategorias_produtos')" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } else {
+                tabelaCabecalho.innerHTML = `
+                    <th class="p-3">${abaAtual === 'unidades' ? 'Sigla' : 'Nome'}</th>
+                    <th class="p-3">Descrição</th>
+                    <th class="p-3 text-right">Ações</th>
+                `;
+
+                const { data, error } = await supabaseClient.from(nomeTabela).select('*').order('id', { ascending: true });
+
+                if (error) {
+                    tabelaCorpo.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-400">Erro: ${error.message}</td></tr>`;
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    tabelaCorpo.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Nenhum registo encontrado.</td></tr>`;
+                    return;
+                }
+
+                tabelaCorpo.innerHTML = data.map(item => `
+                    <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                        <td class="p-3 font-medium text-white">${abaAtual === 'unidades' ? item.sigla : item.nome}</td>
+                        <td class="p-3 text-slate-300">${item.descricao || '-'}</td>
+                        <td class="p-3 text-right space-x-2">
+                            <button onclick="prepararEdicao(${item.id}, '${(abaAtual === 'unidades' ? item.sigla : item.nome)}', '${item.descricao || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Editar</button>
+                            <button onclick="excluirRegisto(${item.id}, '${nomeTabela}')" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
             }
-
-            if (!data || data.length === 0) {
-                tabelaCorpo.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Nenhum registo encontrado.</td></tr>`;
-                return;
-            }
-
-            tabelaCorpo.innerHTML = data.map(item => `
-                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                    <td class="p-3 font-medium text-white">${abaAtual === 'unidades' ? item.sigla : item.nome}</td>
-                    <td class="p-3 text-slate-300">${item.descricao || '-'}</td>
-                    <td class="p-3 text-right space-x-2">
-                        <button onclick="prepararEdicao(${item.id}, '${(abaAtual === 'unidades' ? item.sigla : item.nome)}', '${item.descricao || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Editar</button>
-                        <button onclick="excluirRegisto(${item.id})" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
-                    </td>
-                </tr>
-            `).join('');
         }
 
         async function salvarCadastro(e) {
@@ -218,24 +288,37 @@
             const val1 = document.getElementById('input-campo-1').value.trim();
             const val2 = document.getElementById('input-campo-2').value.trim();
 
-            let nomeTabela = abaAtual === 'unidades' ? 'unidades_medida' : (abaAtual === 'cat_produtos' ? 'categorias_produtos' : 'categorias_fornecedores');
-            let payload = abaAtual === 'unidades' ? { sigla: val1, descricao: val2 } : { nome: val1, descricao: val2 };
+            let nomeTabela = '';
+            let payload = {};
+
+            if (abaAtual === 'unidades') {
+                nomeTabela = 'unidades_medida';
+                payload = { sigla: val1, descricao: val2 };
+            } else if (abaAtual === 'cat_produtos') {
+                nomeTabela = 'categorias_produtos';
+                payload = { nome: val1, descricao: val2 };
+            } else if (abaAtual === 'sub_produtos') {
+                nomeTabela = 'subcategorias_produtos';
+                const catPaiId = document.getElementById('input-campo-0').value;
+                payload = { categoria_id: catPaiId, nome: val1, descricao: val2 };
+            } else {
+                nomeTabela = 'categorias_fornecedores';
+                payload = { nome: val1, descricao: val2 };
+            }
 
             let res;
             if (id) {
-                // Atualizar
                 res = await supabaseClient.from(nomeTabela).update(payload).eq('id', id);
             } else {
-                // Inserir novo
                 res = await supabaseClient.from(nomeTabela).insert([payload]);
             }
 
             if (res.error) {
                 alert('Erro ao salvar: ' + res.error.message);
             } else {
-                alert('Registo salvo com sucesso!');
+                alert('Registo guardado com sucesso!');
                 limparFormulario();
-                carregarDadosAtuais();
+                carregarCategoriasCache().then(() => carregarDadosAtuais());
             }
         }
 
@@ -243,7 +326,15 @@
             document.getElementById('item-id').value = id;
             document.getElementById('input-campo-1').value = campo1;
             document.getElementById('input-campo-2').value = campo2;
-            document.getElementById('form-titulo').innerText = "Editar Registo Selecionado";
+            document.getElementById('btn-cancelar-edicao').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function prepararEdicaoSub(id, catId, nome, desc) {
+            document.getElementById('item-id').value = id;
+            document.getElementById('input-campo-0').value = catId;
+            document.getElementById('input-campo-1').value = nome;
+            document.getElementById('input-campo-2').value = desc;
             document.getElementById('btn-cancelar-edicao').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -253,17 +344,11 @@
             document.getElementById('input-campo-1').value = '';
             document.getElementById('input-campo-2').value = '';
             document.getElementById('btn-cancelar-edicao').classList.add('hidden');
-            
-            if (abaAtual === 'unidades') document.getElementById('form-titulo').innerText = "Adicionar Nova Unidade de Medida";
-            else if (abaAtual === 'cat_produtos') document.getElementById('form-titulo').innerText = "Adicionar Nova Categoria de Produtos";
-            else document.getElementById('form-titulo').innerText = "Adicionar Categoria de Fornecedores";
         }
 
-        async function excluirRegisto(id) {
+        async function excluirRegisto(id, tabela) {
             if (!confirm('Tem a certeza que deseja excluir este registo?')) return;
-            let nomeTabela = abaAtual === 'unidades' ? 'unidades_medida' : (abaAtual === 'cat_produtos' ? 'categorias_produtos' : 'categorias_fornecedores');
-            
-            const { error } = await supabaseClient.from(nomeTabela).delete().eq('id', id);
+            const { error } = await supabaseClient.from(tabela).delete().eq('id', id);
             if (error) {
                 alert('Erro ao excluir: ' + error.message);
             } else {
