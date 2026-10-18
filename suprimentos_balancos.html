@@ -28,38 +28,50 @@
 
     <!-- Layout Principal -->
     <div class="flex flex-1">
-        <!-- Sidebar do Módulo Suprimentos -->
-        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6">
-            <div>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Suprimentos</p>
-                <nav class="space-y-1 text-xs">
-                    <a href="suprimentos_balancos.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
-                        <span>📦</span>
-                        <span>Balanços</span>
-                    </a>
-                    <a href="#" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                        <span>🛒</span>
-                        <span>Compras</span>
-                    </a>
-                    <a href="#" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                        <span>📉</span>
-                        <span>Consumo</span>
-                    </a>
-                    <a href="#" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                        <span>📥</span>
-                        <span>Entradas</span>
-                    </a>
-                    <a href="#" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                        <span>🏷️</span>
-                        <span>Produtos & Locais</span>
-                    </a>
-                </nav>
+        <!-- Sidebar de Navegação Unificada -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏢</span>
+                            <span>Matriz & Utilizadores</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Produtos & Insumos</span>
+                        </a>
+                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>📦</span>
+                            <span>Balanços de Estoque</span>
+                        </a>
+                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Cadastros Gerais</span>
+                        </a>
+                    </nav>
+                </div>
             </div>
-            <div class="pt-4 border-t border-slate-800">
-                <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl text-xs transition">
-                    <span>⬅️</span>
-                    <span>Voltar ao Dashboard</span>
-                </a>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
             </div>
         </aside>
 
@@ -193,9 +205,7 @@
         </main>
     </div>
 
-    <!-- Script de Gestão de Balanços -->
     <script>
-        // Dados simulados de balanços
         let balancosData = [
             { id: 2176, local: 'Vila real', setor: 'Geral', alteracao: '18/05/2026 11:09', previsao: '19/03/2026', status: 'Atrasado' },
             { id: 2175, local: '1201', setor: 'Geral', alteracao: '-', previsao: '05/03/2026', status: 'Atrasado' },
@@ -204,7 +214,6 @@
             { id: 1948, local: 'Vila real', setor: 'Geral', alteracao: '03/12/2025 11:23', previsao: '03/09/2025', status: 'Realizado' },
         ];
 
-        // Itens do balanço detalhado
         let itensBalancoExemplo = [
             { codigo: '3.2.1', nome: 'Cimento Portland CP-1 50kg', cat: 'Concretos e Argamassas', atual: 57, real: 55 },
             { codigo: '3.2.2', nome: 'Cimento Portland CP-2 50kg', cat: 'Concretos e Argamassas', atual: 93, real: 90 },
