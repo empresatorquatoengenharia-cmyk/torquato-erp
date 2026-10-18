@@ -28,26 +28,62 @@
 
     <!-- Layout Principal -->
     <div class="flex flex-1">
-        <!-- Sidebar de Navegação -->
-        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6">
-            <div>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Governança Corporativa</p>
-                <nav class="space-y-1">
-                    <button onclick="mudarSecao('matriz')" id="menu-matriz" class="w-full flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl text-xs shadow-md cursor-pointer transition text-left">
-                        <span>🏢</span>
-                        <span>Dados da Empresa Matriz</span>
-                    </button>
-                    <button onclick="mudarSecao('utilizadores')" id="menu-utilizadores" class="w-full flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl text-xs transition cursor-pointer text-left">
-                        <span>👥</span>
-                        <span>Gestão de Utilizadores</span>
-                    </button>
-                </nav>
+        <!-- Sidebar de Navegação Unificada -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>🏢</span>
+                            <span>Matriz & Utilizadores</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Produtos & Insumos</span>
+                        </a>
+                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📦</span>
+                            <span>Balanços de Estoque</span>
+                        </a>
+                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Cadastros Gerais</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
             </div>
         </aside>
 
         <!-- Conteúdo Central -->
         <main class="flex-1 p-8 max-w-5xl">
             
+            <!-- SEÇÃO INTERNA DE ABAS (Matriz vs Utilizadores) -->
+            <div class="mb-6 flex space-x-2 bg-slate-900 border border-slate-800 p-2 rounded-2xl w-fit">
+                <button onclick="mudarSecao('matriz')" id="menu-matriz" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Dados da Matriz</button>
+                <button onclick="mudarSecao('utilizadores')" id="menu-utilizadores" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Gestão de Utilizadores</button>
+            </div>
+
             <!-- SEÇÃO 1: EMPRESA MATRIZ -->
             <section id="secao-matriz" class="space-y-6">
                 <div class="flex items-center justify-between">
@@ -181,14 +217,11 @@
 
             <input type="hidden" id="modal-user-id">
 
-            <!-- Lista de Módulos / Páginas do ERP -->
             <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
                 <div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Módulos do Sistema</div>
                 
                 <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
-                    <div>
-                        <div class="font-bold text-white text-xs">Dashboard Geral</div>
-                    </div>
+                    <div><div class="font-bold text-white text-xs">Dashboard Geral</div></div>
                     <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
                         <input type="checkbox" value="dashboard" class="chk-pagina accent-amber-500">
                         <span>Permitir Acesso</span>
@@ -196,9 +229,7 @@
                 </div>
 
                 <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
-                    <div>
-                        <div class="font-bold text-white text-xs">Dados da Empresa Matriz</div>
-                    </div>
+                    <div><div class="font-bold text-white text-xs">Dados da Empresa Matriz</div></div>
                     <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
                         <input type="checkbox" value="admin" class="chk-pagina accent-amber-500">
                         <span>Permitir Acesso</span>
@@ -206,31 +237,9 @@
                 </div>
 
                 <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
-                    <div>
-                        <div class="font-bold text-white text-xs">Módulo Financeiro</div>
-                    </div>
+                    <div><div class="font-bold text-white text-xs">Módulo Suprimentos</div></div>
                     <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
-                        <input type="checkbox" value="financeiro" class="chk-pagina accent-amber-500">
-                        <span>Permitir Acesso</span>
-                    </label>
-                </div>
-
-                <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
-                    <div>
-                        <div class="font-bold text-white text-xs">Notas Fiscais & Faturamento</div>
-                    </div>
-                    <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
-                        <input type="checkbox" value="notas" class="chk-pagina accent-amber-500">
-                        <span>Permitir Acesso</span>
-                    </label>
-                </div>
-
-                <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
-                    <div>
-                        <div class="font-bold text-white text-xs">Engenharia & Obras</div>
-                    </div>
-                    <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
-                        <input type="checkbox" value="engenharia" class="chk-pagina accent-amber-500">
+                        <input type="checkbox" value="suprimentos" class="chk-pagina accent-amber-500">
                         <span>Permitir Acesso</span>
                     </label>
                 </div>
@@ -295,13 +304,13 @@
             if (secao === 'matriz') {
                 secMatriz.classList.remove('hidden');
                 secUtil.classList.add('hidden');
-                btnMatriz.className = "w-full flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl text-xs shadow-md cursor-pointer transition text-left";
-                btnUtil.className = "w-full flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl text-xs transition cursor-pointer text-left";
+                btnMatriz.className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+                btnUtil.className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
             } else {
                 secMatriz.classList.add('hidden');
                 secUtil.classList.remove('hidden');
-                btnUtil.className = "w-full flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl text-xs shadow-md cursor-pointer transition text-left";
-                btnMatriz.className = "w-full flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl text-xs transition cursor-pointer text-left";
+                btnUtil.className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+                btnMatriz.className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
             }
         }
 
@@ -394,7 +403,7 @@
                     <td class="p-3 text-slate-400 text-[11px]">${(u.paginas_permitidas || []).join(', ') || 'Nenhuma'}</td>
                     <td class="p-3 text-right space-x-2">
                         <button type="button" onclick="abrirModalPermissoes('${u.email}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 hover:bg-amber-950 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Configurar Acessos</button>
-                        <button type="button" onclick="excluirUtilizador(${u.id})" class="text-red-400 hover:text-red-300 bg-red-950/40 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
+                        <button type="button" onclick="excluirUtilizador(${u.id})" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
                     </td>
                 </tr>
             `).join('');
