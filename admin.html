@@ -1,204 +1,37 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Torquato ERP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body class="bg-slate-950 text-slate-100 font-sans flex flex-col h-screen overflow-hidden">
+async function salvarMatriz() {
+    const razao = document.getElementById('razao_social')?.value || '';
+    const cnpj = document.getElementById('cnpj')?.value || '';
+    const ie = document.getElementById('inscricao_estadual')?.value || '';
+    const im = document.getElementById('inscricao_municipal')?.value || '';
+    const cep = document.getElementById('cep')?.value || '';
+    const estado = document.getElementById('estado')?.value || '';
+    const pais = document.getElementById('pais')?.value || '';
 
-    <header class="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 shrink-0 z-30">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-amber-500 text-slate-950 font-black rounded-lg flex items-center justify-center text-sm shadow">TE</div>
-            <span class="font-bold text-sm tracking-wide text-white">Torquato ERP - Painel Administrativo</span>
-        </div>
-        <div class="flex items-center gap-4 text-xs">
-            <span id="user-info" class="text-amber-400 font-bold">Administrador</span>
-            <button onclick="terminarSessao()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-400 font-bold rounded-lg transition">Sair</button>
-        </div>
-    </header>
+    try {
+        // Tenta upsert (inserir ou atualizar ID 1)
+        const { data, error } = await supabaseClient
+            .from('empresa_matriz')
+            .upsert([
+                { 
+                    id: 1, 
+                    razao_social: razao, 
+                    cnpj: cnpj, 
+                    inscricao_estadual: ie, 
+                    inscricao_municipal: im, 
+                    cep: cep, 
+                    estado: estado, 
+                    pais: pais 
+                }
+            ]);
 
-    <div class="flex flex-1 overflow-hidden">
-        <aside class="w-64 bg-slate-900 border-r border-slate-800 p-4 space-y-2 shrink-0 text-xs">
-            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Governança Corporativa</div>
-            <button onclick="mudarSecao('empresa')" id="btn-empresa" class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold bg-amber-500 text-slate-950 shadow transition">🏢 Dados da Empresa Matriz</button>
-            <button onclick="mudarSecao('usuarios')" id="btn-usuarios" class="w-full text-left px-3.5 py-2.5 rounded-xl font-semibold text-slate-300 hover:bg-slate-800 transition">👥 Gestão de Utilizadores & Acessos</button>
-        </aside>
-
-        <main class="flex-1 bg-slate-950 overflow-y-auto p-8 space-y-6">
-
-            <!-- SEÇÃO 1: EMPRESA MATRIZ -->
-            <div id="secao-empresa" class="secao-conteudo space-y-6">
-                <h1 class="text-2xl font-bold text-white">Cadastro da Empresa Matriz</h1>
-                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl text-xs">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label class="block text-slate-400 font-bold mb-1">Razão Social</label><input type="text" id="emp-razao" value="Torquato Engenharia Ltda" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
-                        <div><label class="block text-slate-400 font-bold mb-1">CNPJ</label><input type="text" id="emp-cnpj" value="42.087.951/0001-90" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
-                        <div><label class="block text-slate-400 font-bold mb-1">Inscrição Estadual</label><input type="text" id="emp-ie" placeholder="Inscrição Estadual" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
-                        <div><label class="block text-slate-400 font-bold mb-1">Inscrição Municipal</label><input type="text" id="emp-im" placeholder="Inscrição Municipal" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
-                        <div><label class="block text-slate-400 font-bold mb-1">CEP</label><input type="text" id="emp-cep" value="39480-000" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
-                        <div><label class="block text-slate-400 font-bold mb-1">Estado</label><input type="text" id="emp-estado" value="Minas Gerais (MG)" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
-                        <div><label class="block text-slate-400 font-bold mb-1">País</label><input type="text" id="emp-pais" value="Brasil" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
-                    </div>
-                    <button onclick="salvarEmpresa()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow">Salvar Dados da Matriz</button>
-                </div>
-            </div>
-
-            <!-- SEÇÃO 2: UTILIZADORES -->
-            <div id="secao-usuarios" class="secao-conteudo space-y-6 hidden">
-                <h1 class="text-2xl font-bold text-white">Gestão de Utilizadores & Permissões</h1>
-                
-                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl text-xs">
-                    <h3 class="font-bold text-sm text-white uppercase">Registar Novo Utilizador</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div><label class="block text-slate-400 font-bold mb-1">Nome Completo</label><input type="text" id="user-nome" placeholder="Ex: João Engenheiro" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
-                        <div><label class="block text-slate-400 font-bold mb-1">E-mail de Login</label><input type="email" id="user-email" placeholder="joao@torquato.com" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
-                        <div><label class="block text-slate-400 font-bold mb-1">Palavra-passe</label><input type="password" id="user-senha" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
-                    </div>
-
-                    <div class="space-y-2 pt-2">
-                        <label class="block text-slate-300 font-bold">Páginas Permitidas:</label>
-                        <div class="flex flex-wrap gap-4 text-slate-300">
-                            <label><input type="checkbox" name="paginas" value="dashboard" checked> Dashboard</label>
-                            <label><input type="checkbox" name="paginas" value="financeiro" checked> Financeiro</label>
-                            <label><input type="checkbox" name="paginas" value="notas" checked> Notas Fiscais</label>
-                            <label><input type="checkbox" name="paginas" value="engenharia"> Engenharia & RDO</label>
-                            <label><input type="checkbox" name="paginas" value="compras"> Compras</label>
-                            <label><input type="checkbox" name="paginas" value="admin"> Admin (Completo)</label>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2 pt-2">
-                        <label class="block text-slate-300 font-bold">Operações Permitidas:</label>
-                        <div class="flex flex-wrap gap-4 text-slate-300">
-                            <label><input type="checkbox" name="operacoes" value="criar" checked> Criar / Registar</label>
-                            <label><input type="checkbox" name="operacoes" value="editar" checked> Editar</label>
-                            <label><input type="checkbox" name="operacoes" value="excluir"> Excluir</label>
-                            <label><input type="checkbox" name="operacoes" value="aprovar"> Aprovar Pagamentos</label>
-                        </div>
-                    </div>
-
-                    <button onclick="salvarUtilizador()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow mt-2">Criar Utilizador</button>
-                </div>
-
-                <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl text-xs">
-                    <h3 class="font-bold text-sm text-white uppercase mb-4">Utilizadores Registados</h3>
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-950 text-slate-400 uppercase">
-                            <tr>
-                                <th class="p-3">Nome</th>
-                                <th class="p-3">E-mail</th>
-                                <th class="p-3">Páginas</th>
-                                <th class="p-3">Operações</th>
-                                <th class="p-3 text-center">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-utilizadores" class="divide-y divide-slate-800">
-                            <tr><td colspan="5" class="p-6 text-center text-slate-500">A carregar utilizadores...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <script>
-        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        const userSessao = JSON.parse(localStorage.getItem('torquato_user'));
-        if (!userSessao) {
-            window.location.href = 'login.html';
+        if (error) {
+            console.error('Erro detalhado do Supabase:', error);
+            alert(`Erro ao salvar: ${error.message} (${error.details || error.hint || ''})`);
         } else {
-            document.getElementById('user-info').innerText = `${userSessao.nome}`;
+            alert('Dados da Matriz salvos com sucesso!');
         }
-
-        function terminarSessao() {
-            localStorage.removeItem('torquato_user');
-            window.location.href = 'login.html';
-        }
-
-        function mudarSecao(secao) {
-            document.querySelectorAll('.secao-conteudo').forEach(el => el.classList.add('hidden'));
-            document.getElementById('secao-' + secao).classList.remove('hidden');
-
-            document.getElementById('btn-empresa').className = "w-full text-left px-3.5 py-2.5 rounded-xl font-semibold text-slate-300 hover:bg-slate-800 transition";
-            document.getElementById('btn-usuarios').className = "w-full text-left px-3.5 py-2.5 rounded-xl font-semibold text-slate-300 hover:bg-slate-800 transition";
-            document.getElementById('btn-' + secao).className = "w-full text-left px-3.5 py-2.5 rounded-xl font-bold bg-amber-500 text-slate-950 shadow transition";
-
-            if(secao === 'usuarios') carregarUtilizadores();
-        }
-
-        async function salvarEmpresa() {
-            const razao_social = document.getElementById('emp-razao').value;
-            const cnpj = document.getElementById('emp-cnpj').value;
-            const inscricao_estadual = document.getElementById('emp-ie').value;
-            const inscricao_municipal = document.getElementById('emp-im').value;
-            const cep = document.getElementById('emp-cep').value;
-            const estado = document.getElementById('emp-estado').value;
-            const pais = document.getElementById('emp-pais').value;
-
-            const { error } = await supabaseClient.from('empresas_erp').insert([{ razao_social, cnpj, inscricao_estadual, inscricao_municipal, cep, estado, pais }]);
-            if (error) alert('Erro ao salvar dados.');
-            else alert('Dados da Empresa Matriz salvos com sucesso!');
-        }
-
-        async function salvarUtilizador() {
-            const nome = document.getElementById('user-nome').value;
-            const email = document.getElementById('user-email').value;
-            const senha = document.getElementById('user-senha').value;
-            const paginas = Array.from(document.querySelectorAll('input[name="paginas"]:checked')).map(el => el.value);
-            const operacoes = Array.from(document.querySelectorAll('input[name="operacoes"]:checked')).map(el => el.value);
-
-            if (!nome || !email || !senha) {
-                alert('Preencha os campos obrigatórios.');
-                return;
-            }
-
-            const { error } = await supabaseClient.from('usuarios_erp').insert([{ nome, email, senha, paginas_permitidas: paginas, operacoes_permitidas: operacoes }]);
-            if (error) alert('Erro ao criar utilizador (E-mail já existe?).');
-            else {
-                alert('Utilizador criado com sucesso!');
-                document.getElementById('user-nome').value = '';
-                document.getElementById('user-email').value = '';
-                document.getElementById('user-senha').value = '';
-                carregarUtilizadores();
-            }
-        }
-
-        async function carregarUtilizadores() {
-            const tbody = document.getElementById('tabela-utilizadores');
-            const { data, error } = await supabaseClient.from('usuarios_erp').select('*');
-            if (error) { tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-rose-400">Erro ao carregar.</td></tr>`; return; }
-
-            tbody.innerHTML = '';
-            if (data && data.length > 0) {
-                data.forEach(u => {
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-950/50">
-                            <td class="p-3 font-bold text-white">${u.nome}</td>
-                            <td class="p-3 text-slate-300">${u.email}</td>
-                            <td class="p-3 text-amber-400">${u.paginas_permitidas ? u.paginas_permitidas.join(', ') : '-'}</td>
-                            <td class="p-3 text-emerald-400">${u.operacoes_permitidas ? u.operacoes_permitidas.join(', ') : '-'}</td>
-                            <td class="p-3 text-center"><button onclick="excluirUtilizador('${u.id}')" class="text-rose-400 hover:underline">Excluir</button></td>
-                        </tr>
-                    `;
-                });
-            } else {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Nenhum utilizador registado.</td></tr>`;
-            }
-        }
-
-        async function excluirUtilizador(id) {
-            if (confirm('Deseja excluir este utilizador?')) {
-                await supabaseClient.from('usuarios_erp').delete().eq('id', id);
-                carregarUtilizadores();
-            }
-        }
-    </script>
-</body>
-</html>
+    } catch (err) {
+        console.error('Erro inesperado:', err);
+        alert('Erro ao conectar ao banco de dados: ' + err.message);
+    }
+}
