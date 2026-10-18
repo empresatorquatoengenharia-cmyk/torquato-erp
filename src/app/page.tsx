@@ -23,7 +23,10 @@ import {
   BarChart3,
   Lock,
   Briefcase,
-  Edit2
+  Edit2,
+  Upload,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -48,12 +51,13 @@ export default function TorquatoFullERP() {
   const [financialsReceber, setFinancialsReceber] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Modais de Criação
+  // Modais Administração & Financeiro
   const [showEmpresaModal, setShowEmpresaModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showContratoModal, setShowContratoModal] = useState(false);
+  const [showFinanceiroModal, setShowFinanceiroModal] = useState(false);
 
-  // Modais de Edição Avançada
+  // Modais de Edição Administração
   const [showEditEmpresaModal, setShowEditEmpresaModal] = useState(false);
   const [editingEmpresa, setEditingEmpresa] = useState<any>(null);
 
@@ -83,6 +87,14 @@ export default function TorquatoFullERP() {
   const [contFornecedor, setContFornecedor] = useState('');
   const [contValor, setContValor] = useState('');
   const [contStatus, setContStatus] = useState('Ativo');
+
+  // Forms Financeiro
+  const [finDescricao, setFinDescricao] = useState('');
+  const [finValor, setFinValor] = useState('');
+  const [finTipo, setFinTipo] = useState('pagar');
+  const [finVencimento, setFinVencimento] = useState('');
+  const [finCategoria, setFinCategoria] = useState('Material de Obra');
+  const [finStatus, setFinStatus] = useState('Pendente');
 
   useEffect(() => {
     loadAllData();
@@ -146,6 +158,23 @@ export default function TorquatoFullERP() {
     }]);
     setShowContratoModal(false);
     setContTitulo(''); setContFornecedor(''); setContValor('');
+    loadAllData();
+  }
+
+  async function handleSaveFinanceiro(e: React.FormEvent) {
+    e.preventDefault();
+    if (!finDescricao || !finValor) return;
+    const tableTarget = finTipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
+    await supabase.from(tableTarget).insert([{
+      descricao: finDescricao,
+      valor: parseFloat(finValor),
+      vencimento: finVencimento || new Date().toISOString().split('T')[0],
+      categoria: finCategoria,
+      status: finStatus,
+      empresa: selectedCompany
+    }]);
+    setShowFinanceiroModal(false);
+    setFinDescricao(''); setFinValor('');
     loadAllData();
   }
 
@@ -251,18 +280,6 @@ export default function TorquatoFullERP() {
               </button>
 
               <button
-                onClick={() => setActiveModule('dashboard')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  activeModule === 'dashboard' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <LayoutDashboard className="w-4 h-4" /> Dashboard Executivo
-                </div>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-
-              <button
                 onClick={() => setActiveModule('financeiro')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
                   activeModule === 'financeiro' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
@@ -270,6 +287,18 @@ export default function TorquatoFullERP() {
               >
                 <div className="flex items-center gap-3">
                   <DollarSign className="w-4 h-4" /> Financeiro Completo
+                </div>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                onClick={() => setActiveModule('dashboard')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+                  activeModule === 'dashboard' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <LayoutDashboard className="w-4 h-4" /> Dashboard Executivo
                 </div>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -302,7 +331,7 @@ export default function TorquatoFullERP() {
             <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
               <div>
                 <p className="font-bold text-slate-200">Torquato ERP</p>
-                <p className="text-[10px] text-slate-500">Módulo Administração</p>
+                <p className="text-[10px] text-slate-500">Módulo Ativo</p>
               </div>
               <LogOut className="w-4 h-4 cursor-pointer hover:text-rose-400 transition" />
             </div>
@@ -311,6 +340,7 @@ export default function TorquatoFullERP() {
           {/* CONTEÚDO PRINCIPAL */}
           <main className="flex-1 bg-slate-950 overflow-y-auto p-8 text-slate-200">
             
+            {/* MÓDULO ADMINISTRAÇÃO */}
             {activeModule === 'administracao' && (
               <div className="space-y-8">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
@@ -455,7 +485,76 @@ export default function TorquatoFullERP() {
               </div>
             )}
 
-            {activeModule !== 'administracao' && (
+            {/* MÓDULO FINANCEIRO COMPLETO */}
+            {activeModule === 'financeiro' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <DollarSign className="w-6 h-6 text-emerald-500" /> Gestão Financeira Corporativa
+                    </h1>
+                    <p className="text-xs text-slate-400 mt-1">Contas a pagar, contas a receber, fluxo de caixa e anexação de comprovantes/NFs</p>
+                  </div>
+                  <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg">
+                    + Novo Lançamento Financeiro
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* CONTAS A PAGAR */}
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                      <TrendingDown className="w-4 h-4 text-rose-400" /> Contas a Pagar ({selectedCompany})
+                    </h3>
+                    <div className="space-y-2">
+                      {financialsPagar.length === 0 ? (
+                        <p className="text-xs text-slate-500 text-center py-4">Nenhuma conta a pagar registrada.</p>
+                      ) : (
+                        financialsPagar.map((item: any) => (
+                          <div key={item.id} className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                            <div>
+                              <p className="font-bold text-white">{item.descricao}</p>
+                              <p className="text-[10px] text-slate-400">Vencimento: {item.vencimento} • {item.categoria}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-rose-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                              <span className="px-2 py-0.5 rounded text-[9px] bg-rose-500/10 text-rose-400 font-bold uppercase">{item.status}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* CONTAS A RECEBER */}
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-emerald-400" /> Contas a Receber ({selectedCompany})
+                    </h3>
+                    <div className="space-y-2">
+                      {financialsReceber.length === 0 ? (
+                        <p className="text-xs text-slate-500 text-center py-4">Nenhuma conta a receber registrada.</p>
+                      ) : (
+                        financialsReceber.map((item: any) => (
+                          <div key={item.id} className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                            <div>
+                              <p className="font-bold text-white">{item.descricao}</p>
+                              <p className="text-[10px] text-slate-400">Previsão: {item.vencimento} • {item.categoria}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-emerald-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                              <span className="px-2 py-0.5 rounded text-[9px] bg-emerald-500/10 text-emerald-400 font-bold uppercase">{item.status}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeModule !== 'administracao' && activeModule !== 'financeiro' && (
               <div className="space-y-6">
                 <h1 className="text-2xl font-bold text-white capitalize">{activeModule}</h1>
                 <p className="text-xs text-slate-400">Módulo integrado ao ERP Corporativo.</p>
@@ -479,7 +578,7 @@ export default function TorquatoFullERP() {
           </div>
         )}
 
-        {/* MODAL EDITAR EMPRESA (Razão Social e CNPJ) */}
+        {/* MODAL EDITAR EMPRESA */}
         {showEditEmpresaModal && editingEmpresa && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
@@ -526,11 +625,11 @@ export default function TorquatoFullERP() {
           </div>
         )}
 
-        {/* MODAL EDITAR USUÁRIO & PERMISSÕES GRANULARES POR PÁGINA */}
+        {/* MODAL EDITAR USUÁRIO & PERMISSÕES GRANULARES */}
         {showEditUserModal && editingUser && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-800 text-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Usuário, Alçadas & Permissões por Página</h3><button onClick={() => setShowEditUserModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Usuário & Permissões por Página</h3><button onClick={() => setShowEditUserModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
               <form onSubmit={handleUpdateUser} className="space-y-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nome Completo</label>
@@ -646,6 +745,31 @@ export default function TorquatoFullERP() {
                   <button type="button" onClick={() => setShowEditContratoModal(false)} className="px-4 py-2 border border-slate-800 text-slate-400 rounded-xl text-xs">Cancelar</button>
                   <button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar Alterações</button>
                 </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL NOVO LANÇAMENTO FINANCEIRO */}
+        {showFinanceiroModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Lançamento Financeiro</h3><button onClick={() => setShowFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleSaveFinanceiro} className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => setFinTipo('pagar')} className={`p-2.5 rounded-xl text-xs font-bold border transition ${finTipo === 'pagar' ? 'bg-rose-500/20 border-rose-500 text-rose-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>Conta a Pagar</button>
+                  <button type="button" onClick={() => setFinTipo('receber')} className={`p-2.5 rounded-xl text-xs font-bold border transition ${finTipo === 'receber' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>Conta a Receber</button>
+                </div>
+                <input type="text" required placeholder="Descrição do Lançamento" value={finDescricao} onChange={(e) => setFinDescricao(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" step="0.01" required placeholder="Valor (R$)" value={finValor} onChange={(e) => setFinValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-bold" />
+                <input type="date" required value={finVencimento} onChange={(e) => setFinVencimento(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <select value={finCategoria} onChange={(e) => setFinCategoria(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                  <option value="Material de Obra">Material de Obra</option>
+                  <option value="Mão de Obra">Mão de Obra</option>
+                  <option value="Maquinário & Equipamentos">Maquinário & Equipamentos</option>
+                  <option value="Despesas Administrativas">Despesas Administrativas</option>
+                </select>
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar Lançamento</button></div>
               </form>
             </div>
           </div>
