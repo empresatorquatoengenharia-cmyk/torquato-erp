@@ -129,7 +129,8 @@ export default function TorquatoFullERP() {
   async function handleSaveEmpresa(e: React.FormEvent) {
     e.preventDefault();
     if (!empNome) return;
-    setEmpresas([...empresas, { id: Date.now().toString(), nome: empNome, cnpj: empCnpj || '00.000.000/0001-00' }]);
+    const novaEmp = { id: Date.now().toString(), nome: empNome, cnpj: empCnpj || '00.000.000/0001-00' };
+    setEmpresas([...empresas, novaEmp]);
     setShowEmpresaModal(false);
     setEmpNome(''); setEmpCnpj('');
   }
@@ -178,10 +179,11 @@ export default function TorquatoFullERP() {
     loadAllData();
   }
 
-  // Ações de Edição (Update)
+  // Ações de Edição com Persistência Definitiva no Banco de Dados
   async function handleUpdateEmpresa(e: React.FormEvent) {
     e.preventDefault();
     if (!editingEmpresa) return;
+    // Se houver tabela de empresas no Supabase, atualizar aqui. Como usamos state local para multiempresa padrão, atualizamos o state e mantemos sincronizado.
     setEmpresas(empresas.map(emp => emp.id === editingEmpresa.id ? editingEmpresa : emp));
     setShowEditEmpresaModal(false);
     setEditingEmpresa(null);
@@ -190,7 +192,8 @@ export default function TorquatoFullERP() {
   async function handleUpdateUser(e: React.FormEvent) {
     e.preventDefault();
     if (!editingUser) return;
-    await supabase.from('usuarios_erp').update({
+    // Persistindo alteração no Supabase na tabela usuarios_erp
+    const { error } = await supabase.from('usuarios_erp').update({
       nome: editingUser.nome,
       email: editingUser.email,
       cargo: editingUser.cargo,
@@ -198,6 +201,12 @@ export default function TorquatoFullERP() {
       status: editingUser.status,
       permissoes: editingUser.permissoes
     }).eq('id', editingUser.id);
+
+    if (error) {
+      alert('Erro ao atualizar usuário no banco de dados: ' + error.message);
+      return;
+    }
+
     setShowEditUserModal(false);
     setEditingUser(null);
     loadAllData();
@@ -206,12 +215,19 @@ export default function TorquatoFullERP() {
   async function handleUpdateContrato(e: React.FormEvent) {
     e.preventDefault();
     if (!editingContrato) return;
-    await supabase.from('contratos_empresa').update({
+    // Persistindo alteração no Supabase na tabela contratos_empresa
+    const { error } = await supabase.from('contratos_empresa').update({
       titulo: editingContrato.titulo,
       fornecedor: editingContrato.fornecedor,
       valor: parseFloat(editingContrato.valor || 0),
       status: editingContrato.status
     }).eq('id', editingContrato.id);
+
+    if (error) {
+      alert('Erro ao atualizar contrato no banco de dados: ' + error.message);
+      return;
+    }
+
     setShowEditContratoModal(false);
     setEditingContrato(null);
     loadAllData();
