@@ -30,28 +30,50 @@
 
     <!-- Layout Principal -->
     <div class="flex flex-1">
-        <!-- Sidebar de Navegação -->
-        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6">
-            <div>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Navegação do Sistema</p>
-                <nav class="space-y-1">
-                    <a href="dashboard.html" class="w-full flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl text-xs shadow-md transition">
-                        <span>📊</span>
-                        <span>Dashboard Geral</span>
-                    </a>
-                    <a href="admin.html" class="w-full flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl text-xs transition">
-                        <span>🏢</span>
-                        <span>Governança & Matriz</span>
-                    </a>
-                    <a href="#" class="w-full flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl text-xs transition">
-                        <span>💰</span>
-                        <span>Módulo Financeiro</span>
-                    </a>
-                    <a href="#" class="w-full flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl text-xs transition">
-                        <span>🏗️</span>
-                        <span>Engenharia & Obras</span>
-                    </a>
-                </nav>
+        <!-- Sidebar de Navegação Unificada -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏢</span>
+                            <span>Matriz & Utilizadores</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Produtos & Insumos</span>
+                        </a>
+                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📦</span>
+                            <span>Balanços de Estoque</span>
+                        </a>
+                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Cadastros Gerais</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
             </div>
         </aside>
 
@@ -238,7 +260,6 @@
 
     <!-- Script de Inicialização e Gráficos -->
     <script>
-        // Verificação de Sessão
         window.addEventListener('DOMContentLoaded', () => {
             const usuarioJSON = localStorage.getItem('torquato_user');
             if (!usuarioJSON) {
@@ -276,11 +297,9 @@
             alert(`Filtrando dados de ${inicio} até ${fim}`);
         }
 
-        // Configuração dos Gráficos com Chart.js
         function inicializarGraficos() {
             const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
             
-            // Gráfico Contas a Pagar
             const ctxPagar = document.getElementById('graficoPagar').getContext('2d');
             new Chart(ctxPagar, {
                 type: 'bar',
@@ -306,7 +325,6 @@
                 }
             });
 
-            // Gráfico Contas a Receber
             const ctxReceber = document.getElementById('graficoReceber').getContext('2d');
             new Chart(ctxReceber, {
                 type: 'line',
