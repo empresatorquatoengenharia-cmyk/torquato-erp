@@ -17,12 +17,10 @@ import {
   ChevronRight,
   Search,
   Bell,
-  SlidersHorizontal,
-  LayoutDashboard,
-  FileSpreadsheet
+  LayoutDashboard
 } from 'lucide-react';
 
-// Inicialização do cliente Supabase
+// Supabase Client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -38,7 +36,7 @@ export default function KoperStyleDashboard() {
   const [financials, setFinancials] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Estados dos Modais
+  // Modais
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showFinModal, setShowFinModal] = useState(false);
 
@@ -84,7 +82,6 @@ export default function KoperStyleDashboard() {
     setLoading(false);
   }
 
-  // Ações de formulários
   async function handleSubmitRequest(e: React.FormEvent) {
     e.preventDefault();
     if (!title || !projectId) return alert('Preencha título e obra!');
@@ -112,7 +109,7 @@ export default function KoperStyleDashboard() {
 
   async function handleSubmitFinancial(e: React.FormEvent) {
     e.preventDefault();
-    if (!finDesc || !finProject || !finValue) return alert('Preencha os campos obrigatórios!');
+    if (!finDesc || !finProject || !finValue) return alert('Preencha os campos!');
     setLoading(true);
 
     const { error } = await supabase.from('financeiro_lancamentos').insert([
@@ -149,327 +146,289 @@ export default function KoperStyleDashboard() {
     .reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
 
   return (
-    <div className="flex flex-col h-screen bg-slate-900 text-slate-100 font-sans">
-      {/* 1. HEADER TOPO FIXO (ESTILO KOPER ERP) */}
-      <header className="h-16 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-6 z-20">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Building2 className="w-7 h-7 text-amber-500" />
-            <div>
-              <span className="font-bold text-base text-white tracking-wide">TORQUATO</span>
-              <span className="text-xs font-semibold text-amber-500 block -mt-1">ERP ENGENHARIA</span>
+    <>
+      {/* Importação direta dos Estilos Tailwind CSS */}
+      <script src="https://cdn.tailwindcss.com"></script>
+
+      <div className="flex flex-col h-screen bg-slate-900 text-slate-100 font-sans">
+        {/* HEADER TOPO FIXO KOPER */}
+        <header className="h-16 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-6 z-20">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-7 h-7 text-amber-500" />
+              <div>
+                <span className="font-bold text-base text-white tracking-wide">TORQUATO</span>
+                <span className="text-xs font-semibold text-amber-500 block -mt-1">ERP ENGENHARIA</span>
+              </div>
+            </div>
+
+            <div className="hidden md:flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
+              <HardHat className="w-4 h-4 text-amber-500" />
+              <span className="text-slate-400">Obra Ativa:</span>
+              <select 
+                value={selectedProject} 
+                onChange={(e) => setSelectedProject(e.target.value)}
+                className="bg-transparent text-white font-medium focus:outline-none cursor-pointer"
+              >
+                <option value="todas" className="bg-slate-900">Todas as Obras (Visão Geral)</option>
+                {projects.map(p => (
+                  <option key={p.id} value={p.id} className="bg-slate-900">{p.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Filtro de Obra Ativa no Topo */}
-          <div className="hidden md:flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
-            <HardHat className="w-4 h-4 text-amber-500" />
-            <span className="text-slate-400">Obra Ativa:</span>
-            <select 
-              value={selectedProject} 
-              onChange={(e) => setSelectedProject(e.target.value)}
-              className="bg-transparent text-white font-medium focus:outline-none cursor-pointer"
-            >
-              <option value="todas" className="bg-slate-900">Todas as Obras (Visão Geral)</option>
-              {projects.map(p => (
-                <option key={p.id} value={p.id} className="bg-slate-900">{p.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Busca Global e Usuário */}
-        <div className="flex items-center gap-4">
-          <div className="relative hidden sm:block">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
-            <input 
-              type="text" 
-              placeholder="Buscar contrato, insumo ou lançamento..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-slate-900 text-xs text-slate-200 pl-9 pr-4 py-2 rounded-lg border border-slate-800 focus:outline-none focus:border-amber-500 w-64"
-            />
-          </div>
-
-          <div className="relative">
-            <Bell className="w-5 h-5 text-slate-400 hover:text-white cursor-pointer transition" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full"></span>
-          </div>
-
-          <div className="flex items-center gap-3 pl-4 border-l border-slate-800">
-            <div className="w-8 h-8 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-xs">
-              TE
-            </div>
-            <div className="hidden lg:block text-xs">
-              <p className="font-semibold text-white leading-tight">Torquato Engenharia</p>
-              <p className="text-slate-400 text-[10px]">Administrador</p>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* 2. SIDEBAR LATERAL DE NAVEGAÇÃO KOPER */}
-        <aside className="w-60 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-3">
-          <nav className="space-y-1">
-            <div className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-              Módulos Principais
+          <div className="flex items-center gap-4">
+            <div className="relative hidden sm:block">
+              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <input 
+                type="text" 
+                placeholder="Buscar contrato, insumo ou lançamento..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-slate-900 text-xs text-slate-200 pl-9 pr-4 py-2 rounded-lg border border-slate-800 focus:outline-none focus:border-amber-500 w-64"
+              />
             </div>
 
-            <button
-              onClick={() => setActiveModule('overview')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition ${
-                activeModule === 'overview' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:bg-slate-900 hover:text-white'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <LayoutDashboard className="w-4 h-4" /> Visão Geral
+            <div className="flex items-center gap-3 pl-4 border-l border-slate-800">
+              <div className="w-8 h-8 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-xs">
+                TE
               </div>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              onClick={() => setActiveModule('compras')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition ${
-                activeModule === 'compras' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:bg-slate-900 hover:text-white'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <ShoppingCart className="w-4 h-4" /> Suprimentos / Compras
+              <div className="hidden lg:block text-xs">
+                <p className="font-semibold text-white leading-tight">Torquato Engenharia</p>
+                <p className="text-slate-400 text-[10px]">Administrador</p>
               </div>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              onClick={() => setActiveModule('financeiro')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition ${
-                activeModule === 'financeiro' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:bg-slate-900 hover:text-white'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <DollarSign className="w-4 h-4" /> Financeiro & Obras
-              </div>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              onClick={() => setActiveModule('engenharia')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition ${
-                activeModule === 'engenharia' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:bg-slate-900 hover:text-white'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <HardHat className="w-4 h-4" /> Engenharia & RDO
-              </div>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              onClick={() => setActiveModule('almoxarifado')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition ${
-                activeModule === 'almoxarifado' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:bg-slate-900 hover:text-white'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Boxes className="w-4 h-4" /> Estoque & Insumos
-              </div>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </nav>
-
-          <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-            <span>Torquato v1.0</span>
-            <LogOut className="w-4 h-4 cursor-pointer hover:text-rose-400 transition" />
+            </div>
           </div>
-        </aside>
+        </header>
 
-        {/* 3. ÁREA DE CONTEÚDO PAINEL KOPER */}
-        <main className="flex-1 bg-slate-900 overflow-y-auto p-6 text-slate-200">
-          
-          {/* MÓDULO VISÃO GERAL */}
-          {activeModule === 'overview' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-                <div>
-                  <h1 className="text-xl font-bold text-white">Painel de Controle — Torquato ERP</h1>
-                  <p className="text-xs text-slate-400 mt-1">Visão consolidada das obras, compras e fluxo financeiro</p>
+        <div className="flex flex-1 overflow-hidden">
+          {/* SIDEBAR NAVEGAÇÃO KOPER */}
+          <aside className="w-60 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-3">
+            <nav className="space-y-1">
+              <div className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                Módulos Principais
+              </div>
+
+              <button
+                onClick={() => setActiveModule('overview')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition ${
+                  activeModule === 'overview' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <LayoutDashboard className="w-4 h-4" /> Visão Geral
                 </div>
-              </div>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
 
-              {/* CARDS ESTILO KOPER */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-semibold text-slate-400">OBRAS EM ANDAMENTO</span>
-                    <HardHat className="w-4 h-4 text-amber-500" />
+              <button
+                onClick={() => setActiveModule('compras')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition ${
+                  activeModule === 'compras' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <ShoppingCart className="w-4 h-4" /> Suprimentos / Compras
+                </div>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                onClick={() => setActiveModule('financeiro')}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition ${
+                  activeModule === 'financeiro' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <DollarSign className="w-4 h-4" /> Financeiro & Obras
+                </div>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </nav>
+
+            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+              <span>Torquato v1.0</span>
+              <LogOut className="w-4 h-4 cursor-pointer hover:text-rose-400 transition" />
+            </div>
+          </aside>
+
+          {/* MAIN CONTENT */}
+          <main className="flex-1 bg-slate-900 overflow-y-auto p-6 text-slate-200">
+            {activeModule === 'overview' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                  <div>
+                    <h1 className="text-xl font-bold text-white">Painel de Controle — Torquato ERP</h1>
+                    <p className="text-xs text-slate-400 mt-1">Visão consolidada das obras, compras e fluxo financeiro</p>
                   </div>
-                  <p className="text-2xl font-bold text-white mt-2">{projects.length}</p>
-                  <span className="text-[10px] text-emerald-400 font-medium">Controle de Cronograma</span>
                 </div>
 
-                <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-semibold text-slate-400">COTAÇÕES DE COMPRA</span>
-                    <ShoppingCart className="w-4 h-4 text-blue-500" />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-semibold text-slate-400">OBRAS EM ANDAMENTO</span>
+                      <HardHat className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <p className="text-2xl font-bold text-white mt-2">{projects.length}</p>
                   </div>
-                  <p className="text-2xl font-bold text-white mt-2">{requests.length}</p>
-                  <span className="text-[10px] text-amber-400 font-medium">Aguardando Fornecedor</span>
-                </div>
 
-                <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-semibold text-slate-400">CONTAS A PAGAR</span>
-                    <Clock className="w-4 h-4 text-amber-500" />
+                  <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-semibold text-slate-400">COTAÇÕES DE COMPRA</span>
+                      <ShoppingCart className="w-4 h-4 text-blue-500" />
+                    </div>
+                    <p className="text-2xl font-bold text-white mt-2">{requests.length}</p>
                   </div>
-                  <p className="text-2xl font-bold text-white mt-2">
-                    R$ {totalPendente.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </p>
-                  <span className="text-[10px] text-slate-400">Lançamentos em aberto</span>
-                </div>
 
-                <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-semibold text-slate-400">TOTAL QUITADO</span>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-semibold text-slate-400">CONTAS A PAGAR</span>
+                      <Clock className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <p className="text-2xl font-bold text-white mt-2">
+                      R$ {totalPendente.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
                   </div>
-                  <p className="text-2xl font-bold text-white mt-2">
-                    R$ {totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </p>
-                  <span className="text-[10px] text-emerald-400 font-medium">Baixas realizadas</span>
+
+                  <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-semibold text-slate-400">TOTAL QUITADO</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <p className="text-2xl font-bold text-white mt-2">
+                      R$ {totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* MÓDULO DE COMPRAS */}
-          {activeModule === 'compras' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-                <div>
-                  <h1 className="text-xl font-bold text-white">Gestão de Suprimentos & Compras</h1>
-                  <p className="text-xs text-slate-400 mt-1">Solicitações de cotação e compras para obras (Padrão Koper)</p>
+            {activeModule === 'compras' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                  <div>
+                    <h1 className="text-xl font-bold text-white">Gestão de Suprimentos & Compras</h1>
+                    <p className="text-xs text-slate-400 mt-1">Solicitações de cotação e compras para obras</p>
+                  </div>
+                  <button
+                    onClick={() => setShowPurchaseModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition text-xs"
+                  >
+                    <Plus className="w-4 h-4" /> Nova Solicitação
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowPurchaseModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition text-xs"
-                >
-                  <Plus className="w-4 h-4" /> Nova Solicitação
-                </button>
-              </div>
 
-              {/* Tabela de Compras Koper */}
-              <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
-                    <tr>
-                      <th className="p-4">Solicitação / Insumo</th>
-                      <th className="p-4">Obra / Centro de Custo</th>
-                      <th className="p-4">Urgência</th>
-                      <th className="p-4">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/60">
-                    {requests.length === 0 ? (
+                <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
                       <tr>
-                        <td colSpan={4} className="p-8 text-center text-slate-500">
-                          Nenhuma solicitação cadastrada.
-                        </td>
+                        <th className="p-4">Solicitação / Insumo</th>
+                        <th className="p-4">Obra / Centro de Custo</th>
+                        <th className="p-4">Urgência</th>
+                        <th className="p-4">Status</th>
                       </tr>
-                    ) : (
-                      requests.map((r) => (
-                        <tr key={r.id} className="hover:bg-slate-900/50 transition">
-                          <td className="p-4 font-semibold text-white">{r.title}</td>
-                          <td className="p-4 text-slate-400">{r.projects?.name || 'Geral'}</td>
-                          <td className="p-4">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                              {r.urgency}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                              {r.status}
-                            </span>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60">
+                      {requests.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="p-8 text-center text-slate-500">
+                            Nenhuma solicitação cadastrada.
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* MÓDULO FINANCEIRO */}
-          {activeModule === 'financeiro' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-                <div>
-                  <h1 className="text-xl font-bold text-white">Financeiro & Contas a Pagar</h1>
-                  <p className="text-xs text-slate-400 mt-1">Lançamento e baixa de custos por centro de custo/obra</p>
+                      ) : (
+                        requests.map((r) => (
+                          <tr key={r.id} className="hover:bg-slate-900/50 transition">
+                            <td className="p-4 font-semibold text-white">{r.title}</td>
+                            <td className="p-4 text-slate-400">{r.projects?.name || 'Geral'}</td>
+                            <td className="p-4">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                                {r.urgency}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                {r.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-                <button
-                  onClick={() => setShowFinModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition text-xs"
-                >
-                  <Plus className="w-4 h-4" /> Novo Lançamento
-                </button>
               </div>
+            )}
 
-              {/* Tabela Financeira Koper */}
-              <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
-                    <tr>
-                      <th className="p-4">Descrição</th>
-                      <th className="p-4">Obra</th>
-                      <th className="p-4">Valor (R$)</th>
-                      <th className="p-4">Status</th>
-                      <th className="p-4 text-center">Ação</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/60">
-                    {financials.length === 0 ? (
+            {activeModule === 'financeiro' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                  <div>
+                    <h1 className="text-xl font-bold text-white">Financeiro & Contas a Pagar</h1>
+                    <p className="text-xs text-slate-400 mt-1">Lançamento e baixa de custos por centro de custo/obra</p>
+                  </div>
+                  <button
+                    onClick={() => setShowFinModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition text-xs"
+                  >
+                    <Plus className="w-4 h-4" /> Novo Lançamento
+                  </button>
+                </div>
+
+                <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
                       <tr>
-                        <td colSpan={5} className="p-8 text-center text-slate-500">
-                          Nenhum lançamento financeiro registrado.
-                        </td>
+                        <th className="p-4">Descrição</th>
+                        <th className="p-4">Obra</th>
+                        <th className="p-4">Valor (R$)</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 text-center">Ação</th>
                       </tr>
-                    ) : (
-                      financials.map((f) => (
-                        <tr key={f.id} className="hover:bg-slate-900/50 transition">
-                          <td className="p-4 font-semibold text-white">{f.descricao}</td>
-                          <td className="p-4 text-slate-400">{f.projects?.name || 'Geral'}</td>
-                          <td className="p-4 font-bold text-white">
-                            R$ {Number(f.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </td>
-                          <td className="p-4">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                              f.status === 'pago' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                            }`}>
-                              {f.status === 'pago' ? 'PAGO' : 'PENDENTE'}
-                            </span>
-                          </td>
-                          <td className="p-4 text-center">
-                            <button
-                              onClick={() => handleToggleStatus(f.id, f.status)}
-                              className={`px-3 py-1 rounded text-[10px] font-bold transition ${
-                                f.status === 'pago' ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-emerald-500 text-slate-950 hover:bg-emerald-400'
-                              }`}
-                            >
-                              {f.status === 'pago' ? 'Desfazer' : 'Baixar'}
-                            </button>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60">
+                      {financials.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center text-slate-500">
+                            Nenhum lançamento financeiro registrado.
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        financials.map((f) => (
+                          <tr key={f.id} className="hover:bg-slate-900/50 transition">
+                            <td className="p-4 font-semibold text-white">{f.descricao}</td>
+                            <td className="p-4 text-slate-400">{f.projects?.name || 'Geral'}</td>
+                            <td className="p-4 font-bold text-white">
+                              R$ {Number(f.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                f.status === 'pago' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                              }`}>
+                                {f.status === 'pago' ? 'PAGO' : 'PENDENTE'}
+                              </span>
+                            </td>
+                            <td className="p-4 text-center">
+                              <button
+                                onClick={() => handleToggleStatus(f.id, f.status)}
+                                className={`px-3 py-1 rounded text-[10px] font-bold transition ${
+                                  f.status === 'pago' ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-emerald-500 text-slate-950 hover:bg-emerald-400'
+                                }`}
+                              >
+                                {f.status === 'pago' ? 'Desfazer' : 'Baixar'}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          )}
-
-        </main>
+            )}
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
