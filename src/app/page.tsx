@@ -28,7 +28,9 @@ import {
   Upload,
   CheckCircle2,
   AlertCircle,
-  Check
+  Check,
+  Eye,
+  Paperclip
 } from 'lucide-react';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -50,10 +52,10 @@ export default function TorquatoFullERP() {
   const [financialsReceber, setFinancialsReceber] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Sub-abas do Financeiro (pagar, receber, fluxo)
+  // Sub-abas do Financeiro
   const [finTab, setFinTab] = useState('pagar');
 
-  // Modais Administração & Financeiro
+  // Modais
   const [showEmpresaModal, setShowEmpresaModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showContratoModal, setShowContratoModal] = useState(false);
@@ -72,11 +74,9 @@ export default function TorquatoFullERP() {
   const [showEditFinanceiroModal, setShowEditFinanceiroModal] = useState(false);
   const [editingFinanceiro, setEditingFinanceiro] = useState<any>(null);
 
-  // Forms Criação Empresa
+  // Forms Criação Empresa & Usuários & Contratos
   const [empNome, setEmpNome] = useState('');
   const [empCnpj, setEmpCnpj] = useState('');
-
-  // Forms Criação Usuário
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userCargo, setUserCargo] = useState('Engenheiro');
@@ -88,20 +88,20 @@ export default function TorquatoFullERP() {
     estoque: 'visualizar',
     administracao: 'visualizar'
   });
-
-  // Forms Criação Contrato
   const [contTitulo, setContTitulo] = useState('');
   const [contFornecedor, setContFornecedor] = useState('');
   const [contValor, setContValor] = useState('');
   const [contStatus, setContStatus] = useState('Ativo');
 
-  // Forms Financeiro
+  // Forms Financeiro com Anexo XML / PDF / Comprovante
   const [finDescricao, setFinDescricao] = useState('');
   const [finValor, setFinValor] = useState('');
   const [finTipo, setFinTipo] = useState('pagar');
   const [finVencimento, setFinVencimento] = useState('');
   const [finCategoria, setFinCategoria] = useState('Material de Obra');
   const [finStatus, setFinStatus] = useState('Pendente');
+  const [finAnexoNome, setFinAnexoNome] = useState('');
+  const [finAnexoUrl, setFinAnexoUrl] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -139,41 +139,43 @@ export default function TorquatoFullERP() {
     setLoading(false);
   }
 
+  // Simulador de Upload de Ficheiro (XML, PDF ou Comprovante)
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>, isEditing = false) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Simula a URL e nome do ficheiro anexo
+    const nomeFicheiro = file.name;
+    const urlFicheiro = URL.createObjectURL(file); // ou URL real de armazenamento
+
+    if (isEditing) {
+      setEditingFinanceiro({ ...editingFinanceiro, anexo_nome: nomeFicheiro, anexo_url: urlFicheiro });
+    } else {
+      setFinAnexoNome(nomeFicheiro);
+      setFinAnexoUrl(urlFicheiro);
+    }
+  }
+
   // Ações de Criação
   async function handleSaveEmpresa(e: React.FormEvent) {
     e.preventDefault();
     if (!empNome) return;
-    const { error } = await supabase.from('empresas_erp').insert([{
-      nome: empNome,
-      cnpj: empCnpj || '00.000.000/0001-00'
-    }]);
-
-    if (error) { alert('Erro ao salvar empresa: ' + error.message); return; }
-    setShowEmpresaModal(false);
-    setEmpNome(''); setEmpCnpj('');
-    loadAllData();
+    await supabase.from('empresas_erp').insert([{ nome: empNome, cnpj: empCnpj || '00.000.000/0001-00' }]);
+    setShowEmpresaModal(false); setEmpNome(''); setEmpCnpj(''); loadAllData();
   }
 
   async function handleSaveUser(e: React.FormEvent) {
     e.preventDefault();
     if (!userName || !userEmail) return;
-    await supabase.from('usuarios_erp').insert([{
-      nome: userName, email: userEmail, cargo: userCargo, limite_aprovacao: parseFloat(userLimite), status: 'ativo', permissoes: userPermissoes
-    }]);
-    setShowUserModal(false);
-    setUserName(''); setUserEmail(''); setUserLimite('5000');
-    loadAllData();
+    await supabase.from('usuarios_erp').insert([{ nome: userName, email: userEmail, cargo: userCargo, limite_aprovacao: parseFloat(userLimite), status: 'ativo', permissoes: userPermissoes }]);
+    setShowUserModal(false); setUserName(''); setUserEmail(''); loadAllData();
   }
 
   async function handleSaveContrato(e: React.FormEvent) {
     e.preventDefault();
     if (!contTitulo || !contValor) return;
-    await supabase.from('contratos_empresa').insert([{
-      titulo: contTitulo, fornecedor: contFornecedor, valor: parseFloat(contValor), status: contStatus
-    }]);
-    setShowContratoModal(false);
-    setContTitulo(''); setContFornecedor(''); setContValor('');
-    loadAllData();
+    await supabase.from('contratos_empresa').insert([{ titulo: contTitulo, fornecedor: contFornecedor, valor: parseFloat(contValor), status: contStatus }]);
+    setShowContratoModal(false); setContTitulo(''); setContFornecedor(''); setContValor(''); loadAllData();
   }
 
   async function handleSaveFinanceiro(e: React.FormEvent) {
@@ -186,12 +188,14 @@ export default function TorquatoFullERP() {
       vencimento: finVencimento || new Date().toISOString().split('T')[0],
       categoria: finCategoria,
       status: finStatus,
-      empresa: selectedCompany
+      empresa: selectedCompany,
+      anexo_nome: finAnexoNome || null,
+      anexo_url: finAnexoUrl || null
     }]);
 
     if (error) { alert('Erro ao salvar lançamento: ' + error.message); return; }
     setShowFinanceiroModal(false);
-    setFinDescricao(''); setFinValor('');
+    setFinDescricao(''); setFinValor(''); setFinAnexoNome(''); setFinAnexoUrl('');
     loadAllData();
   }
 
@@ -199,28 +203,21 @@ export default function TorquatoFullERP() {
   async function handleUpdateEmpresa(e: React.FormEvent) {
     e.preventDefault();
     if (!editingEmpresa) return;
-    const { error } = await supabase.from('empresas_erp').update({ nome: editingEmpresa.nome, cnpj: editingEmpresa.cnpj }).eq('id', editingEmpresa.id);
-    if (error) { alert('Erro ao atualizar empresa: ' + error.message); return; }
+    await supabase.from('empresas_erp').update({ nome: editingEmpresa.nome, cnpj: editingEmpresa.cnpj }).eq('id', editingEmpresa.id);
     setShowEditEmpresaModal(false); setEditingEmpresa(null); loadAllData();
   }
 
   async function handleUpdateUser(e: React.FormEvent) {
     e.preventDefault();
     if (!editingUser) return;
-    const { error } = await supabase.from('usuarios_erp').update({
-      nome: editingUser.nome, email: editingUser.email, cargo: editingUser.cargo, limite_aprovacao: parseFloat(editingUser.limite_aprovacao || 0), status: editingUser.status, permissoes: editingUser.permissoes
-    }).eq('id', editingUser.id);
-    if (error) { alert('Erro ao atualizar usuário: ' + error.message); return; }
+    await supabase.from('usuarios_erp').update({ nome: editingUser.nome, email: editingUser.email, cargo: editingUser.cargo, limite_aprovacao: parseFloat(editingUser.limite_aprovacao || 0) }).eq('id', editingUser.id);
     setShowEditUserModal(false); setEditingUser(null); loadAllData();
   }
 
   async function handleUpdateContrato(e: React.FormEvent) {
     e.preventDefault();
     if (!editingContrato) return;
-    const { error } = await supabase.from('contratos_empresa').update({
-      titulo: editingContrato.titulo, fornecedor: editingContrato.fornecedor, valor: parseFloat(editingContrato.valor || 0), status: editingContrato.status
-    }).eq('id', editingContrato.id);
-    if (error) { alert('Erro ao atualizar contrato: ' + error.message); return; }
+    await supabase.from('contratos_empresa').update({ titulo: editingContrato.titulo, fornecedor: editingContrato.fornecedor, valor: parseFloat(editingContrato.valor || 0) }).eq('id', editingContrato.id);
     setShowEditContratoModal(false); setEditingContrato(null); loadAllData();
   }
 
@@ -233,40 +230,28 @@ export default function TorquatoFullERP() {
       valor: parseFloat(editingFinanceiro.valor || 0),
       vencimento: editingFinanceiro.vencimento,
       categoria: editingFinanceiro.categoria,
-      status: editingFinanceiro.status
+      status: editingFinanceiro.status,
+      anexo_nome: editingFinanceiro.anexo_nome,
+      anexo_url: editingFinanceiro.anexo_url
     }).eq('id', editingFinanceiro.id);
 
-    if (error) { alert('Erro ao atualizar lançamento: ' + error.message); return; }
+    if (error) { alert('Erro ao atualizar: ' + error.message); return; }
     setShowEditFinanceiroModal(false); setEditingFinanceiro(null); loadAllData();
   }
 
-  // Ações de Exclusão
-  async function handleDeleteEmpresa(id: string) {
-    if (!confirm('Deseja excluir esta empresa?')) return;
-    await supabase.from('empresas_erp').delete().eq('id', id);
-    loadAllData();
-  }
-
-  async function handleDeleteUser(id: string) {
-    if (!confirm('Deseja excluir este usuário?')) return;
-    await supabase.from('usuarios_erp').delete().eq('id', id);
-    loadAllData();
-  }
-
-  async function handleDeleteContrato(id: string) {
-    if (!confirm('Deseja excluir este contrato?')) return;
-    await supabase.from('contratos_empresa').delete().eq('id', id);
-    loadAllData();
-  }
-
+  // Exclusão
+  async function handleDeleteEmpresa(id: string) { if (confirm('Excluir empresa?')) { await supabase.from('empresas_erp').delete().eq('id', id); loadAllData(); } }
+  async function handleDeleteUser(id: string) { if (confirm('Excluir usuário?')) { await supabase.from('usuarios_erp').delete().eq('id', id); loadAllData(); } }
+  async function handleDeleteContrato(id: string) { if (confirm('Excluir contrato?')) { await supabase.from('contratos_empresa').delete().eq('id', id); loadAllData(); } }
   async function handleDeleteFinanceiro(id: string, tipo: 'pagar' | 'receber') {
-    if (!confirm('Deseja excluir este lançamento financeiro?')) return;
-    const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
-    await supabase.from(tableTarget).delete().eq('id', id);
-    loadAllData();
+    if (confirm('Excluir lançamento?')) {
+      const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
+      await supabase.from(tableTarget).delete().eq('id', id);
+      loadAllData();
+    }
   }
 
-  // Quitar / Baixar Lançamento
+  // Quitar / Baixar
   async function handleToggleQuitar(item: any, tipo: 'pagar' | 'receber') {
     const novoStatus = item.status === 'Pago' || item.status === 'Recebido' ? 'Pendente' : (tipo === 'pagar' ? 'Pago' : 'Recebido');
     const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
@@ -274,7 +259,6 @@ export default function TorquatoFullERP() {
     loadAllData();
   }
 
-  // Cálculos financeiros filtrados pela empresa ativa
   const filteredPagar = financialsPagar.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
   const filteredReceber = financialsReceber.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
 
@@ -398,142 +382,82 @@ export default function TorquatoFullERP() {
                     <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                       <ShieldCheck className="w-6 h-6 text-amber-500" /> Administração & Governança Corporativa
                     </h1>
-                    <p className="text-xs text-slate-400 mt-1">Multiempresa, controle rigoroso de acessos hierárquicos e permissões granulares por página</p>
+                    <p className="text-xs text-slate-400 mt-1">Multiempresa, controle rigoroso de acessos hierárquicos e permissões</p>
                   </div>
                 </div>
 
-                {/* 1. SEÇÃO MULTIEMPRESA */}
+                {/* EMPRESAS */}
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-amber-500" /> Extensão Multiempresa
-                      </h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Gerencie todas as suas empresas e CNPJs em um único login.</p>
-                    </div>
-                    <button onClick={() => setShowEmpresaModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition">
-                      + Cadastrar Nova Empresa
-                    </button>
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Building2 className="w-4 h-4 text-amber-500" /> Extensão Multiempresa</h3>
+                    <button onClick={() => setShowEmpresaModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition">+ Cadastrar Empresa</button>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {empresas.map(emp => (
                       <div key={emp.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
-                        <div>
-                          <p className="font-bold text-white text-sm">{emp.nome}</p>
-                          <p className="text-xs text-slate-400">CNPJ: {emp.cnpj}</p>
-                        </div>
+                        <div><p className="font-bold text-white text-sm">{emp.nome}</p><p className="text-xs text-slate-400">CNPJ: {emp.cnpj}</p></div>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => { setEditingEmpresa(emp); setShowEditEmpresaModal(true); }} className="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition" title="Editar Empresa">
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button onClick={() => handleDeleteEmpresa(emp.id)} className="p-2 bg-slate-800 hover:bg-rose-950 text-rose-400 rounded-lg transition" title="Excluir Empresa">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          <button onClick={() => { setEditingEmpresa(emp); setShowEditEmpresaModal(true); }} className="p-2 bg-slate-800 text-amber-400 rounded-lg"><Edit2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => handleDeleteEmpresa(emp.id)} className="p-2 bg-slate-800 text-rose-400 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* 2. GESTÃO DE ACESSOS */}
+                {/* USUÁRIOS */}
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                        <Lock className="w-4 h-4 text-blue-400" /> Gestão de Acessos & Limites Hierárquicos
-                      </h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Defina alçadas de aprovação e permissões por página.</p>
-                    </div>
-                    <button onClick={() => setShowUserModal(true)} className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition">
-                      + Novo Usuário & Alçada
-                    </button>
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Lock className="w-4 h-4 text-blue-400" /> Gestão de Acessos</h3>
+                    <button onClick={() => setShowUserModal(true)} className="px-3.5 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs">+ Novo Usuário</button>
                   </div>
-
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-950 text-slate-400 uppercase">
-                      <tr>
-                        <th className="p-3">Colaborador</th>
-                        <th className="p-3">E-mail</th>
-                        <th className="p-3">Cargo</th>
-                        <th className="p-3">Limite</th>
-                        <th className="p-3 text-center">Ações</th>
-                      </tr>
+                      <tr><th className="p-3">Colaborador</th><th className="p-3">E-mail</th><th className="p-3">Cargo</th><th className="p-3">Limite</th><th className="p-3 text-center">Ações</th></tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                      {usuarios.length === 0 ? (
-                        <tr><td colSpan={5} className="p-6 text-center text-slate-500">Nenhum usuário cadastrado.</td></tr>
-                      ) : (
-                        usuarios.map((u: any) => (
-                          <tr key={u.id} className="hover:bg-slate-950/50 transition">
-                            <td className="p-3 font-bold text-white">{u.nome}</td>
-                            <td className="p-3 text-slate-400">{u.email}</td>
-                            <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-500 font-bold">{u.cargo}</span></td>
-                            <td className="p-3 font-bold text-emerald-400">R$ {Number(u.limite_aprovacao || 5000).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                            <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                              <button onClick={() => { setEditingUser(u); setShowEditUserModal(true); }} className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded text-xs font-bold inline-flex items-center gap-1">
-                                <Edit2 className="w-3 h-3" /> Editar
-                              </button>
-                              <button onClick={() => handleDeleteUser(u.id)} className="p-1.5 bg-slate-800 hover:bg-rose-950 text-rose-400 rounded text-xs font-bold" title="Excluir">
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
+                      {usuarios.map((u: any) => (
+                        <tr key={u.id} className="hover:bg-slate-950/50">
+                          <td className="p-3 font-bold text-white">{u.nome}</td>
+                          <td className="p-3 text-slate-400">{u.email}</td>
+                          <td className="p-3 text-amber-400">{u.cargo}</td>
+                          <td className="p-3 text-emerald-400">R$ {Number(u.limite_aprovacao || 5000).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                          <td className="p-3 text-center flex items-center justify-center gap-1.5">
+                            <button onClick={() => { setEditingUser(u); setShowEditUserModal(true); }} className="px-2.5 py-1 bg-slate-800 text-amber-400 rounded text-xs"><Edit2 className="w-3 h-3" /></button>
+                            <button onClick={() => handleDeleteUser(u.id)} className="p-1.5 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3 h-3" /></button>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
 
-                {/* 3. CONTRATOS */}
+                {/* CONTRATOS */}
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                        <Briefcase className="w-4 h-4 text-emerald-400" /> Gestão de Contratos & Modelos
-                      </h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Cadastre modelos de contratos.</p>
-                    </div>
-                    <button onClick={() => setShowContratoModal(true)} className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition">
-                      + Cadastrar Contrato
-                    </button>
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Briefcase className="w-4 h-4 text-emerald-400" /> Contratos</h3>
+                    <button onClick={() => setShowContratoModal(true)} className="px-3.5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">+ Cadastrar Contrato</button>
                   </div>
-
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-950 text-slate-400 uppercase">
-                      <tr>
-                        <th className="p-3">Título / Objeto</th>
-                        <th className="p-3">Fornecedor</th>
-                        <th className="p-3">Valor Global</th>
-                        <th className="p-3">Status</th>
-                        <th className="p-3 text-center">Ações</th>
-                      </tr>
+                      <tr><th className="p-3">Título</th><th className="p-3">Fornecedor</th><th className="p-3">Valor</th><th className="p-3">Status</th><th className="p-3 text-center">Ações</th></tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                      {contratos.length === 0 ? (
-                        <tr><td colSpan={5} className="p-6 text-center text-slate-500">Nenhum contrato cadastrado.</td></tr>
-                      ) : (
-                        contratos.map((c: any) => (
-                          <tr key={c.id} className="hover:bg-slate-950/50 transition">
-                            <td className="p-3 font-bold text-white">{c.titulo}</td>
-                            <td className="p-3 text-slate-400">{c.fornecedor || 'Não informado'}</td>
-                            <td className="p-3 font-bold text-amber-400">R$ {Number(c.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                            <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] bg-blue-500/10 text-blue-400 font-bold uppercase">{c.status}</span></td>
-                            <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                              <button onClick={() => { setEditingContrato(c); setShowEditContratoModal(true); }} className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded text-xs font-bold inline-flex items-center gap-1">
-                                <Edit2 className="w-3 h-3" /> Editar
-                              </button>
-                              <button onClick={() => handleDeleteContrato(c.id)} className="p-1.5 bg-slate-800 hover:bg-rose-950 text-rose-400 rounded text-xs font-bold" title="Excluir">
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
+                      {contratos.map((c: any) => (
+                        <tr key={c.id} className="hover:bg-slate-950/50">
+                          <td className="p-3 font-bold text-white">{c.titulo}</td>
+                          <td className="p-3 text-slate-400">{c.fornecedor}</td>
+                          <td className="p-3 text-amber-400">R$ {Number(c.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                          <td className="p-3 text-blue-400">{c.status}</td>
+                          <td className="p-3 text-center flex items-center justify-center gap-1.5">
+                            <button onClick={() => { setEditingContrato(c); setShowEditContratoModal(true); }} className="px-2.5 py-1 bg-slate-800 text-amber-400 rounded text-xs"><Edit2 className="w-3 h-3" /></button>
+                            <button onClick={() => handleDeleteContrato(c.id)} className="p-1.5 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3 h-3" /></button>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
-
               </div>
             )}
 
@@ -552,7 +476,7 @@ export default function TorquatoFullERP() {
                   </button>
                 </div>
 
-                {/* CARDS RESUMO EXECUTIVO (Padrão Koper) */}
+                {/* CARDS RESUMO */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between">
                     <div>
@@ -581,61 +505,59 @@ export default function TorquatoFullERP() {
                   </div>
                 </div>
 
-                {/* ABAS DO FINANCEIRO */}
+                {/* ABAS */}
                 <div className="flex gap-2 border-b border-slate-800 pb-2">
-                  <button onClick={() => setFinTab('pagar')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finTab === 'pagar' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'}`}>
-                    Contas a Pagar ({filteredPagar.length})
-                  </button>
-                  <button onClick={() => setFinTab('receber')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finTab === 'receber' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'}`}>
-                    Contas a Receber ({filteredReceber.length})
-                  </button>
-                  <button onClick={() => setFinTab('fluxo')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finTab === 'fluxo' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-900 text-slate-400 hover:text-white'}`}>
-                    Fluxo de Caixa Gerencial
-                  </button>
+                  <button onClick={() => setFinTab('pagar')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finTab === 'pagar' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Pagar ({filteredPagar.length})</button>
+                  <button onClick={() => setFinTab('receber')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finTab === 'receber' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Receber ({filteredReceber.length})</button>
+                  <button onClick={() => setFinTab('fluxo')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finTab === 'fluxo' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Fluxo de Caixa</button>
                 </div>
 
-                {/* TABELA CONTAS A PAGAR */}
+                {/* TABELA PAGAR */}
                 {finTab === 'pagar' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                      <TrendingDown className="w-4 h-4 text-rose-400" /> Relação de Contas a Pagar
-                    </h3>
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingDown className="w-4 h-4 text-rose-400" /> Contas a Pagar & Notas Fiscais / Comprovantes</h3>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
                         <tr>
-                          <th className="p-3">Descrição / Fornecedor</th>
+                          <th className="p-3">Descrição</th>
                           <th className="p-3">Categoria</th>
                           <th className="p-3">Vencimento</th>
                           <th className="p-3">Valor</th>
+                          <th className="p-3">Documento (XML / PDF / Comprovante)</th>
                           <th className="p-3">Status</th>
                           <th className="p-3 text-center">Ações / Quitação</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
                         {filteredPagar.length === 0 ? (
-                          <tr><td colSpan={6} className="p-6 text-center text-slate-500">Nenhuma conta a pagar registrada para esta empresa.</td></tr>
+                          <tr><td colSpan={7} className="p-6 text-center text-slate-500">Nenhuma conta a pagar registrada.</td></tr>
                         ) : (
                           filteredPagar.map((item: any) => (
-                            <tr key={item.id} className="hover:bg-slate-950/50 transition">
+                            <tr key={item.id} className="hover:bg-slate-950/50">
                               <td className="p-3 font-bold text-white">{item.descricao}</td>
                               <td className="p-3 text-slate-400">{item.categoria}</td>
                               <td className="p-3 text-slate-300">{item.vencimento}</td>
                               <td className="p-3 font-bold text-rose-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                               <td className="p-3">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                                {item.anexo_url ? (
+                                  <a href={item.anexo_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg text-[11px] font-bold hover:bg-amber-500/20 transition">
+                                    <Paperclip className="w-3 h-3" /> {item.anexo_nome || 'Ver Anexo (XML/PDF)'}
+                                  </a>
+                                ) : (
+                                  <span className="text-slate-500 text-[11px]">Nenhum anexo</span>
+                                )}
+                              </td>
+                              <td className="p-3">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
                                   {item.status || 'Pendente'}
                                 </span>
                               </td>
                               <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                                <button onClick={() => handleToggleQuitar(item, 'pagar')} className={`px-2.5 py-1 rounded text-xs font-bold inline-flex items-center gap-1 ${item.status === 'Pago' ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-emerald-600 text-white hover:bg-emerald-500'}`} title="Quitar / Pagar">
+                                <button onClick={() => handleToggleQuitar(item, 'pagar')} className={`px-2 py-1 rounded text-xs font-bold inline-flex items-center gap-1 ${item.status === 'Pago' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}>
                                   <Check className="w-3 h-3" /> {item.status === 'Pago' ? 'Estornar' : 'Pagar'}
                                 </button>
-                                <button onClick={() => { setEditingFinanceiro({ ...item, tipo: 'pagar' }); setShowEditFinanceiroModal(true); }} className="p-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded" title="Editar">
-                                  <Edit2 className="w-3 h-3" />
-                                </button>
-                                <button onClick={() => handleDeleteFinanceiro(item.id, 'pagar')} className="p-1.5 bg-slate-800 hover:bg-rose-950 text-rose-400 rounded" title="Excluir">
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
+                                <button onClick={() => { setEditingFinanceiro({ ...item, tipo: 'pagar' }); setShowEditFinanceiroModal(true); }} className="p-1 bg-slate-800 text-amber-400 rounded" title="Editar"><Edit2 className="w-3 h-3" /></button>
+                                <button onClick={() => handleDeleteFinanceiro(item.id, 'pagar')} className="p-1 bg-slate-800 text-rose-400 rounded" title="Excluir"><Trash2 className="w-3 h-3" /></button>
                               </td>
                             </tr>
                           ))
@@ -645,48 +567,52 @@ export default function TorquatoFullERP() {
                   </div>
                 )}
 
-                {/* TABELA CONTAS A RECEBER */}
+                {/* TABELA RECEBER */}
                 {finTab === 'receber' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-emerald-400" /> Relação de Contas a Receber
-                    </h3>
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-400" /> Contas a Receber & Notas Fiscais</h3>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
                         <tr>
-                          <th className="p-3">Descrição / Cliente</th>
+                          <th className="p-3">Descrição</th>
                           <th className="p-3">Categoria</th>
                           <th className="p-3">Previsão</th>
                           <th className="p-3">Valor</th>
+                          <th className="p-3">Documento (NF / Fatura)</th>
                           <th className="p-3">Status</th>
-                          <th className="p-3 text-center">Ações / Recebimento</th>
+                          <th className="p-3 text-center">Ações</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
                         {filteredReceber.length === 0 ? (
-                          <tr><td colSpan={6} className="p-6 text-center text-slate-500">Nenhuma conta a receber registrada para esta empresa.</td></tr>
+                          <tr><td colSpan={7} className="p-6 text-center text-slate-500">Nenhuma conta a receber registrada.</td></tr>
                         ) : (
                           filteredReceber.map((item: any) => (
-                            <tr key={item.id} className="hover:bg-slate-950/50 transition">
+                            <tr key={item.id} className="hover:bg-slate-950/50">
                               <td className="p-3 font-bold text-white">{item.descricao}</td>
                               <td className="p-3 text-slate-400">{item.categoria}</td>
                               <td className="p-3 text-slate-300">{item.vencimento}</td>
                               <td className="p-3 font-bold text-emerald-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                               <td className="p-3">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Recebido' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                                {item.anexo_url ? (
+                                  <a href={item.anexo_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-[11px] font-bold hover:bg-emerald-500/20 transition">
+                                    <Paperclip className="w-3 h-3" /> {item.anexo_nome || 'Ver Fatura'}
+                                  </a>
+                                ) : (
+                                  <span className="text-slate-500 text-[11px]">Nenhum anexo</span>
+                                )}
+                              </td>
+                              <td className="p-3">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Recebido' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
                                   {item.status || 'Pendente'}
                                 </span>
                               </td>
                               <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                                <button onClick={() => handleToggleQuitar(item, 'receber')} className={`px-2.5 py-1 rounded text-xs font-bold inline-flex items-center gap-1 ${item.status === 'Recebido' ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-emerald-600 text-white hover:bg-emerald-500'}`} title="Receber">
+                                <button onClick={() => handleToggleQuitar(item, 'receber')} className={`px-2 py-1 rounded text-xs font-bold inline-flex items-center gap-1 ${item.status === 'Recebido' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}>
                                   <Check className="w-3 h-3" /> {item.status === 'Recebido' ? 'Estornar' : 'Receber'}
                                 </button>
-                                <button onClick={() => { setEditingFinanceiro({ ...item, tipo: 'receber' }); setShowEditFinanceiroModal(true); }} className="p-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded" title="Editar">
-                                  <Edit2 className="w-3 h-3" />
-                                </button>
-                                <button onClick={() => handleDeleteFinanceiro(item.id, 'receber')} className="p-1.5 bg-slate-800 hover:bg-rose-950 text-rose-400 rounded" title="Excluir">
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
+                                <button onClick={() => { setEditingFinanceiro({ ...item, tipo: 'receber' }); setShowEditFinanceiroModal(true); }} className="p-1 bg-slate-800 text-amber-400 rounded"><Edit2 className="w-3 h-3" /></button>
+                                <button onClick={() => handleDeleteFinanceiro(item.id, 'receber')} className="p-1 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3 h-3" /></button>
                               </td>
                             </tr>
                           ))
@@ -696,141 +622,38 @@ export default function TorquatoFullERP() {
                   </div>
                 )}
 
-                {/* FLUXO DE CAIXA GERENCIAL */}
+                {/* FLUXO DE CAIXA */}
                 {finTab === 'fluxo' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4 text-amber-500" /> Fluxo de Caixa Consolidado ({selectedCompany})
-                    </h3>
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><BarChart3 className="w-4 h-4 text-amber-500" /> Fluxo de Caixa Consolidado</h3>
                     <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3 text-xs">
-                      <div className="flex justify-between py-2 border-b border-slate-800">
-                        <span className="text-slate-400">Total de Entradas Previstas / Realizadas:</span>
-                        <span className="font-bold text-emerald-400">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-slate-800">
-                        <span className="text-slate-400">Total de Saídas / Despesas:</span>
-                        <span className="font-bold text-rose-400">R$ {totalPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="flex justify-between py-2 text-sm font-black">
-                        <span className="text-white">Resultado Operacional Líquido:</span>
-                        <span className={saldoLiquido >= 0 ? 'text-amber-400' : 'text-rose-400'}>
-                          R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
+                      <div className="flex justify-between py-2 border-b border-slate-800"><span className="text-slate-400">Total de Entradas:</span><span className="font-bold text-emerald-400">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between py-2 border-b border-slate-800"><span className="text-slate-400">Total de Saídas:</span><span className="font-bold text-rose-400">R$ {totalPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between py-2 text-sm font-black"><span className="text-white">Resultado Líquido:</span><span className={saldoLiquido >= 0 ? 'text-amber-400' : 'text-rose-400'}>R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
                     </div>
                   </div>
                 )}
-
               </div>
             )}
 
             {activeModule !== 'administracao' && activeModule !== 'financeiro' && (
               <div className="space-y-6">
                 <h1 className="text-2xl font-bold text-white capitalize">{activeModule}</h1>
-                <p className="text-xs text-slate-400">Módulo integrado ao ERP Corporativo.</p>
+                <p className="text-xs text-slate-400">Módulo integrado.</p>
               </div>
             )}
-
           </main>
         </div>
 
-        {/* MODAL CADASTRAR EMPRESA */}
-        {showEmpresaModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Cadastrar Nova Empresa</h3><button onClick={() => setShowEmpresaModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleSaveEmpresa} className="space-y-3">
-                <input type="text" required placeholder="Razão Social" value={empNome} onChange={(e) => setEmpNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" placeholder="CNPJ" value={empCnpj} onChange={(e) => setEmpCnpj(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar Empresa</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL EDITAR EMPRESA */}
-        {showEditEmpresaModal && editingEmpresa && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Empresa</h3><button onClick={() => setShowEditEmpresaModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleUpdateEmpresa} className="space-y-3">
-                <input type="text" required value={editingEmpresa.nome} onChange={(e) => setEditingEmpresa({ ...editingEmpresa, nome: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" required value={editingEmpresa.cnpj} onChange={(e) => setEditingEmpresa({ ...editingEmpresa, cnpj: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar Alterações</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL NOVO USUÁRIO */}
-        {showUserModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Usuário</h3><button onClick={() => setShowUserModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleSaveUser} className="space-y-3">
-                <input type="text" required placeholder="Nome Completo" value={userName} onChange={(e) => setUserName(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="email" required placeholder="E-mail" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" required placeholder="Limite de Gastos" value={userLimite} onChange={(e) => setUserLimite(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs">Salvar</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL EDITAR USUÁRIO */}
-        {showEditUserModal && editingUser && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Usuário</h3><button onClick={() => setShowEditUserModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleUpdateUser} className="space-y-3">
-                <input type="text" required value={editingUser.nome} onChange={(e) => setEditingUser({ ...editingUser, nome: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="email" required value={editingUser.email} onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" required value={editingUser.limite_aprovacao} onChange={(e) => setEditingUser({ ...editingUser, limite_aprovacao: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs">Salvar Alterações</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL CADASTRAR CONTRATO */}
-        {showContratoModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Cadastrar Contrato</h3><button onClick={() => setShowContratoModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleSaveContrato} className="space-y-3">
-                <input type="text" required placeholder="Título / Objeto" value={contTitulo} onChange={(e) => setContTitulo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" placeholder="Fornecedor" value={contFornecedor} onChange={(e) => setContFornecedor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" step="0.01" required placeholder="Valor (R$)" value={contValor} onChange={(e) => setContValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL EDITAR CONTRATO */}
-        {showEditContratoModal && editingContrato && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Contrato</h3><button onClick={() => setShowEditContratoModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleUpdateContrato} className="space-y-3">
-                <input type="text" required value={editingContrato.titulo} onChange={(e) => setEditingContrato({ ...editingContrato, titulo: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" value={editingContrato.fornecedor || ''} onChange={(e) => setEditingContrato({ ...editingContrato, fornecedor: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" step="0.01" required value={editingContrato.valor} onChange={(e) => setEditingContrato({ ...editingContrato, valor: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar Alterações</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL NOVO LANÇAMENTO FINANCEIRO */}
+        {/* MODAL NOVO LANÇAMENTO FINANCEIRO COM ANEXO */}
         {showFinanceiroModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Lançamento Financeiro</h3><button onClick={() => setShowFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Lançamento com Anexo (XML/PDF)</h3><button onClick={() => setShowFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
               <form onSubmit={handleSaveFinanceiro} className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setFinTipo('pagar')} className={`p-2.5 rounded-xl text-xs font-bold border transition ${finTipo === 'pagar' ? 'bg-rose-500/20 border-rose-500 text-rose-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>Conta a Pagar</button>
-                  <button type="button" onClick={() => setFinTipo('receber')} className={`p-2.5 rounded-xl text-xs font-bold border transition ${finTipo === 'receber' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>Conta a Receber</button>
+                  <button type="button" onClick={() => setFinTipo('pagar')} className={`p-2.5 rounded-xl text-xs font-bold border transition ${finTipo === 'pagar' ? 'bg-rose-500/25 border-rose-500 text-rose-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>Conta a Pagar</button>
+                  <button type="button" onClick={() => setFinTipo('receber')} className={`p-2.5 rounded-xl text-xs font-bold border transition ${finTipo === 'receber' ? 'bg-emerald-500/25 border-emerald-500 text-emerald-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>Conta a Receber</button>
                 </div>
                 <input type="text" required placeholder="Descrição" value={finDescricao} onChange={(e) => setFinDescricao(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="number" step="0.01" required placeholder="Valor (R$)" value={finValor} onChange={(e) => setFinValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
@@ -840,19 +663,26 @@ export default function TorquatoFullERP() {
                   <option value="Mão de Obra">Mão de Obra</option>
                   <option value="Equipamentos">Equipamentos</option>
                   <option value="Despesas Administrativas">Despesas Administrativas</option>
-                  <option value="Medição de Obra / Faturamento">Medição de Obra / Faturamento</option>
                 </select>
+
+                {/* CAMPO DE ANEXO XML / PDF / COMPROVANTE */}
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                  <label className="block text-xs font-bold text-amber-400 uppercase">Anexar Nota Fiscal (XML/PDF) ou Comprovante</label>
+                  <input type="file" accept=".xml,.pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, false)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer" />
+                  {finAnexoNome && <p className="text-[11px] text-emerald-400">Selecionado: {finAnexoNome}</p>}
+                </div>
+
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar Lançamento</button></div>
               </form>
             </div>
           </div>
         )}
 
-        {/* MODAL EDITAR LANÇAMENTO FINANCEIRO */}
+        {/* MODAL EDITAR LANÇAMENTO FINANCEIRO COM ANEXO */}
         {showEditFinanceiroModal && editingFinanceiro && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Lançamento Financeiro</h3><button onClick={() => setShowEditFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Lançamento & Anexos</h3><button onClick={() => setShowEditFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
               <form onSubmit={handleUpdateFinanceiro} className="space-y-3">
                 <input type="text" required value={editingFinanceiro.descricao} onChange={(e) => setEditingFinanceiro({ ...editingFinanceiro, descricao: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="number" step="0.01" required value={editingFinanceiro.valor} onChange={(e) => setEditingFinanceiro({ ...editingFinanceiro, valor: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
@@ -862,12 +692,96 @@ export default function TorquatoFullERP() {
                   <option value="Mão de Obra">Mão de Obra</option>
                   <option value="Equipamentos">Equipamentos</option>
                   <option value="Despesas Administrativas">Despesas Administrativas</option>
-                  <option value="Medição de Obra / Faturamento">Medição de Obra / Faturamento</option>
                 </select>
+
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                  <label className="block text-xs font-bold text-amber-400 uppercase">Substituir / Anexar Documento (XML/PDF)</label>
+                  <input type="file" accept=".xml,.pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, true)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer" />
+                  {editingFinanceiro.anexo_nome && <p className="text-[11px] text-emerald-400">Atual: {editingFinanceiro.anexo_nome}</p>}
+                </div>
+
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
                   <button type="button" onClick={() => setShowEditFinanceiroModal(false)} className="px-4 py-2 border border-slate-800 text-slate-400 rounded-xl text-xs">Cancelar</button>
                   <button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar Alterações</button>
                 </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAIS ADMIN (Empresas, Usuários, Contratos) */}
+        {showEmpresaModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
+              <h3 className="font-bold text-white">Cadastrar Empresa</h3>
+              <form onSubmit={handleSaveEmpresa} className="space-y-3">
+                <input type="text" required placeholder="Razão Social" value={empNome} onChange={(e) => setEmpNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" placeholder="CNPJ" value={empCnpj} onChange={(e) => setEmpCnpj(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+        {showEditEmpresaModal && editingEmpresa && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
+              <h3 className="font-bold text-white">Editar Empresa</h3>
+              <form onSubmit={handleUpdateEmpresa} className="space-y-3">
+                <input type="text" required value={editingEmpresa.nome} onChange={(e) => setEditingEmpresa({ ...editingEmpresa, nome: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" required value={editingEmpresa.cnpj} onChange={(e) => setEditingEmpresa({ ...editingEmpresa, cnpj: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+        {showUserModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
+              <h3 className="font-bold text-white">Novo Usuário</h3>
+              <form onSubmit={handleSaveUser} className="space-y-3">
+                <input type="text" required placeholder="Nome" value={userName} onChange={(e) => setUserName(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="email" required placeholder="E-mail" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" required placeholder="Limite" value={userLimite} onChange={(e) => setUserLimite(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs">Salvar</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+        {showEditUserModal && editingUser && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
+              <h3 className="font-bold text-white">Editar Usuário</h3>
+              <form onSubmit={handleUpdateUser} className="space-y-3">
+                <input type="text" required value={editingUser.nome} onChange={(e) => setEditingUser({ ...editingUser, nome: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="email" required value={editingUser.email} onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" required value={editingUser.limite_aprovacao} onChange={(e) => setEditingUser({ ...editingUser, limite_aprovacao: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs">Salvar</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+        {showContratoModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
+              <h3 className="font-bold text-white">Cadastrar Contrato</h3>
+              <form onSubmit={handleSaveContrato} className="space-y-3">
+                <input type="text" required placeholder="Título" value={contTitulo} onChange={(e) => setContTitulo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" placeholder="Fornecedor" value={contFornecedor} onChange={(e) => setContFornecedor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" step="0.01" required placeholder="Valor" value={contValor} onChange={(e) => setContValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+        {showEditContratoModal && editingContrato && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
+              <h3 className="font-bold text-white">Editar Contrato</h3>
+              <form onSubmit={handleUpdateContrato} className="space-y-3">
+                <input type="text" required value={editingContrato.titulo} onChange={(e) => setEditingContrato({ ...editingContrato, titulo: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" value={editingContrato.fornecedor || ''} onChange={(e) => setEditingContrato({ ...editingContrato, fornecedor: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" step="0.01" required value={editingContrato.valor} onChange={(e) => setEditingContrato({ ...editingContrato, valor: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar</button></div>
               </form>
             </div>
           </div>
