@@ -24,6 +24,7 @@ import {
   Lock,
   Briefcase,
   Edit2,
+  Trash2,
   Upload,
   CheckCircle2,
   AlertCircle
@@ -195,7 +196,7 @@ export default function TorquatoFullERP() {
     loadAllData();
   }
 
-  // Ações de Edição com Persistência Definitiva no Supabase
+  // Ações de Edição
   async function handleUpdateEmpresa(e: React.FormEvent) {
     e.preventDefault();
     if (!editingEmpresa) return;
@@ -253,6 +254,37 @@ export default function TorquatoFullERP() {
 
     setShowEditContratoModal(false);
     setEditingContrato(null);
+    loadAllData();
+  }
+
+  // Ações de Exclusão (Delete) com Confirmação
+  async function handleDeleteEmpresa(id: string) {
+    if (!confirm('Tem certeza que deseja excluir esta empresa?')) return;
+    const { error } = await supabase.from('empresas_erp').delete().eq('id', id);
+    if (error) {
+      alert('Erro ao excluir empresa: ' + error.message);
+      return;
+    }
+    loadAllData();
+  }
+
+  async function handleDeleteUser(id: string) {
+    if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
+    const { error } = await supabase.from('usuarios_erp').delete().eq('id', id);
+    if (error) {
+      alert('Erro ao excluir usuário: ' + error.message);
+      return;
+    }
+    loadAllData();
+  }
+
+  async function handleDeleteContrato(id: string) {
+    if (!confirm('Tem certeza que deseja excluir este contrato?')) return;
+    const { error } = await supabase.from('contratos_empresa').delete().eq('id', id);
+    if (error) {
+      alert('Erro ao excluir contrato: ' + error.message);
+      return;
+    }
     loadAllData();
   }
 
@@ -391,7 +423,7 @@ export default function TorquatoFullERP() {
                   </div>
                 </div>
 
-                {/* 1. SEÇÃO MULTIEMPRESA COM EDIÇÃO */}
+                {/* 1. SEÇÃO MULTIEMPRESA COM EDIÇÃO E EXCLUSÃO */}
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex justify-between items-center">
                     <div>
@@ -413,9 +445,11 @@ export default function TorquatoFullERP() {
                           <p className="text-xs text-slate-400">CNPJ: {emp.cnpj}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg text-[10px] font-bold uppercase border border-emerald-500/20">Ativa</span>
                           <button onClick={() => { setEditingEmpresa(emp); setShowEditEmpresaModal(true); }} className="p-2 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition" title="Editar Empresa">
                             <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => handleDeleteEmpresa(emp.id)} className="p-2 bg-slate-800 hover:bg-rose-950 text-rose-400 rounded-lg transition" title="Excluir Empresa">
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
@@ -423,7 +457,7 @@ export default function TorquatoFullERP() {
                   </div>
                 </div>
 
-                {/* 2. SEÇÃO GESTÃO DE ACESSOS COM PERMISSÕES GRANULARES */}
+                {/* 2. SEÇÃO GESTÃO DE ACESSOS COM EDIÇÃO E EXCLUSÃO */}
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex justify-between items-center">
                     <div>
@@ -463,9 +497,12 @@ export default function TorquatoFullERP() {
                               Eng: <span className="text-amber-400 font-bold">{u.permissoes?.engenharia || 'movimentar'}</span> | 
                               Comp: <span className="text-amber-400 font-bold">{u.permissoes?.compras || 'movimentar'}</span>
                             </td>
-                            <td className="p-3 text-center">
-                              <button onClick={() => { setEditingUser(u); setShowEditUserModal(true); }} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded text-xs font-bold inline-flex items-center gap-1">
+                            <td className="p-3 text-center flex items-center justify-center gap-1.5">
+                              <button onClick={() => { setEditingUser(u); setShowEditUserModal(true); }} className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded text-xs font-bold inline-flex items-center gap-1">
                                 <Edit2 className="w-3 h-3" /> Editar
+                              </button>
+                              <button onClick={() => handleDeleteUser(u.id)} className="p-1.5 bg-slate-800 hover:bg-rose-950 text-rose-400 rounded text-xs font-bold" title="Excluir Usuário">
+                                <Trash2 className="w-3 h-3" />
                               </button>
                             </td>
                           </tr>
@@ -475,7 +512,7 @@ export default function TorquatoFullERP() {
                   </table>
                 </div>
 
-                {/* 3. SEÇÃO GESTÃO DE CONTRATOS */}
+                {/* 3. SEÇÃO GESTÃO DE CONTRATOS COM EDIÇÃO E EXCLUSÃO */}
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex justify-between items-center">
                     <div>
@@ -509,9 +546,12 @@ export default function TorquatoFullERP() {
                             <td className="p-3 text-slate-400">{c.fornecedor || 'Não informado'}</td>
                             <td className="p-3 font-bold text-amber-400">R$ {Number(c.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                             <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] bg-blue-500/10 text-blue-400 font-bold uppercase">{c.status}</span></td>
-                            <td className="p-3 text-center">
-                              <button onClick={() => { setEditingContrato(c); setShowEditContratoModal(true); }} className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded text-xs font-bold inline-flex items-center gap-1">
+                            <td className="p-3 text-center flex items-center justify-center gap-1.5">
+                              <button onClick={() => { setEditingContrato(c); setShowEditContratoModal(true); }} className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded text-xs font-bold inline-flex items-center gap-1">
                                 <Edit2 className="w-3 h-3" /> Editar
+                              </button>
+                              <button onClick={() => handleDeleteContrato(c.id)} className="p-1.5 bg-slate-800 hover:bg-rose-950 text-rose-400 rounded text-xs font-bold" title="Excluir Contrato">
+                                <Trash2 className="w-3 h-3" />
                               </button>
                             </td>
                           </tr>
@@ -617,7 +657,7 @@ export default function TorquatoFullERP() {
           </div>
         )}
 
-        {/* MODAL EDITAR EMPRESA (Persistente no Banco) */}
+        {/* MODAL EDITAR EMPRESA */}
         {showEditEmpresaModal && editingEmpresa && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
