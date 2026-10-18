@@ -22,7 +22,8 @@ import {
   Activity,
   BarChart3,
   PieChart,
-  Upload
+  Upload,
+  CheckCircle2
 } from 'lucide-react';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -30,7 +31,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function TorquatoFullERP() {
-  const [activeModule, setActiveModule] = useState('dashboard');
+  const [activeModule, setActiveModule] = useState('financeiro');
   const [selectedProject, setSelectedProject] = useState('todas');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -53,24 +54,32 @@ export default function TorquatoFullERP() {
   const [showRdoModal, setShowRdoModal] = useState(false);
   const [showEstoqueModal, setShowEstoqueModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
-  
-  // Novos Modais de Importação Financeira
-  const [showXmlModal, setShowXmlModal] = useState(false);
-  const [showComprovanteModal, setShowComprovanteModal] = useState(false);
 
-  // Forms
+  // Modal de Baixa com Comprovante
+  const [showBaixaPagarModal, setShowBaixaPagarModal] = useState(false);
+  const [selectedTituloPagar, setSelectedTituloPagar] = useState<any>(null);
+  const [compPagarFile, setCompPagarFile] = useState<File | null>(null);
+
+  const [showBaixaReceberModal, setShowBaixaReceberModal] = useState(false);
+  const [selectedTituloReceber, setSelectedTituloReceber] = useState<any>(null);
+  const [compReceberFile, setCompReceberFile] = useState<File | null>(null);
+
+  // Forms Conta a Pagar (com Nota Fiscal HTML/PDF)
   const [finDesc, setFinDesc] = useState('');
   const [finProject, setFinProject] = useState('');
   const [finType, setFinType] = useState('despesa');
   const [finValue, setFinValue] = useState('');
   const [finDueDate, setFinDueDate] = useState(new Date().toISOString().split('T')[0]);
   const [finSupplier, setFinSupplier] = useState('');
+  const [finNfFile, setFinNfFile] = useState<File | null>(null);
 
+  // Forms Conta a Receber (com Nota Fiscal HTML/PDF)
   const [recClient, setRecClient] = useState('');
   const [recDesc, setRecDesc] = useState('');
   const [recProject, setRecProject] = useState('');
   const [recValue, setRecValue] = useState('');
   const [recDueDate, setRecDueDate] = useState(new Date().toISOString().split('T')[0]);
+  const [recNfFile, setRecNfFile] = useState<File | null>(null);
 
   const [reqTitle, setReqTitle] = useState('');
   const [reqProject, setReqProject] = useState('');
@@ -95,15 +104,6 @@ export default function TorquatoFullERP() {
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userCargo, setUserCargo] = useState('Engenheiro');
-
-  // Estados dos Novos Importadores
-  const [xmlFile, setXmlFile] = useState<File | null>(null);
-  const [xmlProject, setXmlProject] = useState('');
-  const [xmlStatusMsg, setXmlStatusMsg] = useState('');
-
-  const [compFile, setCompFile] = useState<File | null>(null);
-  const [compLancamentoId, setCompLancamentoId] = useState('');
-  const [compStatusMsg, setCompStatusMsg] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -149,26 +149,70 @@ export default function TorquatoFullERP() {
     setLoading(false);
   }
 
-  // Ações de salvamento
+  // Salvamento Conta a Pagar com NF (HTML/PDF)
   async function handleSavePagar(e: React.FormEvent) {
     e.preventDefault();
     if (!finDesc || !finValue) return;
     await supabase.from('financeiro_lancamentos').insert([{
-      descricao: finDesc, obra_id: finProject || null, tipo: finType, valor: parseFloat(finValue), data_vencimento: finDueDate, fornecedor_nome: finSupplier || null, status: 'pendente'
+      descricao: finDesc, 
+      obra_id: finProject || null, 
+      tipo: finType, 
+      valor: parseFloat(finValue), 
+      data_vencimento: finDueDate, 
+      fornecedor_nome: finSupplier || null, 
+      status: 'pendente',
+      nf_arquivo: finNfFile ? finNfFile.name : null
     }]);
     setShowFinPagarModal(false);
-    setFinDesc(''); setFinValue(''); setFinSupplier('');
+    setFinDesc(''); setFinValue(''); setFinSupplier(''); setFinNfFile(null);
     loadAllData();
   }
 
+  // Salvamento Conta a Receber com NF (HTML/PDF)
   async function handleSaveReceber(e: React.FormEvent) {
     e.preventDefault();
     if (!recClient || !recValue) return;
     await supabase.from('financeiro_receber').insert([{
-      cliente_nome: recClient, descricao: recDesc, obra_id: recProject || null, valor: parseFloat(recValue), data_vencimento: recDueDate, status: 'pendente'
+      cliente_nome: recClient, 
+      descricao: recDesc, 
+      obra_id: recProject || null, 
+      valor: parseFloat(recValue), 
+      data_vencimento: recDueDate, 
+      status: 'pendente',
+      nf_arquivo: recNfFile ? recNfFile.name : null
     }]);
     setShowFinReceberModal(false);
-    setRecClient(''); setRecDesc(''); setRecValue('');
+    setRecClient(''); setRecDesc(''); setRecValue(''); setRecNfFile(null);
+    loadAllData();
+  }
+
+  // Baixa Conta a Pagar com Comprovante (PDF/Imagem)
+  async function handleBaixaPagar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedTituloPagar) return;
+    await supabase.from('financeiro_lancamentos').update({ 
+      status: 'pago',
+      comprovante_arquivo: compPagarFile ? compPagarFile.name : 'comprovante_anexado.pdf'
+    }).eq('id', selectedTituloPagar.id);
+    
+    setShowBaixaPagarModal(false);
+    setSelectedTituloPagar(null);
+    setCompPagarFile(null);
+    loadAllData();
+  }
+
+  // Baixa Conta a Receber com Comprovante (PDF/Imagem)
+  async function handleBaixaReceber(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedTituloReceber) return;
+    await supabase.from('financeiro_receber').update({ 
+      status: 'recebido',
+      comprovante_arquivo: compReceberFile ? compReceberFile.name : 'comprovante_recebimento.pdf'
+    }).eq('id', selectedTituloReceber.id);
+    
+    setShowBaixaReceberModal(false);
+    setSelectedTituloReceber(null);
+    setCompReceberFile(null);
     loadAllData();
   }
 
@@ -227,60 +271,6 @@ export default function TorquatoFullERP() {
     loadAllData();
   }
 
-  // Funções dos novos importadores
-  async function handleImportXml(e: React.FormEvent) {
-    e.preventDefault();
-    if (!xmlFile || !xmlProject) return alert('Selecione o arquivo e a obra correspondente.');
-    
-    setXmlStatusMsg('Processando arquivo e extraindo dados fiscais...');
-    setTimeout(async () => {
-      const nomeNota = `NF Importada - ${xmlFile.name.replace(/\.[^/.]+$/, "")}`;
-      await supabase.from('financeiro_lancamentos').insert([{
-        descricao: nomeNota,
-        obra_id: xmlProject,
-        tipo: 'despesa',
-        valor: 1850.00, // Valor extraído/simulado do documento
-        data_vencimento: new Date().toISOString().split('T')[0],
-        fornecedor_nome: 'Fornecedor XML Verificado',
-        status: 'pendente'
-      }]);
-      setXmlStatusMsg('Nota fiscal importada com sucesso!');
-      setTimeout(() => {
-        setShowXmlModal(false);
-        setXmlFile(null);
-        setXmlStatusMsg('');
-        loadAllData();
-      }, 1000);
-    }, 1200);
-  }
-
-  async function handleImportComprovante(e: React.FormEvent) {
-    e.preventDefault();
-    if (!compFile || !compLancamentoId) return alert('Selecione o comprovante e a conta correspondente.');
-
-    setCompStatusMsg('Enviando comprovante e baixando título...');
-    setTimeout(async () => {
-      await supabase.from('financeiro_lancamentos').update({ status: 'pago' }).eq('id', compLancamentoId);
-      setCompStatusMsg('Comprovante anexado e título baixado com sucesso!');
-      setTimeout(() => {
-        setShowComprovanteModal(false);
-        setCompFile(null);
-        setCompStatusMsg('');
-        loadAllData();
-      }, 1000);
-    }, 1200);
-  }
-
-  async function toggleStatusPagar(id: string, currentStatus: string) {
-    await supabase.from('financeiro_lancamentos').update({ status: currentStatus === 'pago' ? 'pendente' : 'pago' }).eq('id', id);
-    loadAllData();
-  }
-
-  async function toggleStatusReceber(id: string, currentStatus: string) {
-    await supabase.from('financeiro_receber').update({ status: currentStatus === 'recebido' ? 'pendente' : 'recebido' }).eq('id', id);
-    loadAllData();
-  }
-
   async function approveRequest(id: string) {
     await supabase.from('purchase_requests').update({ status: 'aprovado' }).eq('id', id);
     loadAllData();
@@ -300,7 +290,6 @@ export default function TorquatoFullERP() {
   const totalReceber = filteredReceber.filter(f => f.status === 'pendente').reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
   const totalRecebido = filteredReceber.filter(f => f.status === 'recebido').reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
 
-  // Cálculo para Gráficos de Proporção
   const maxPagar = Math.max(totalPagar, totalPago, 1);
   const percentPagar = Math.round((totalPagar / (totalPagar + totalPago || 1)) * 100);
 
@@ -452,7 +441,7 @@ export default function TorquatoFullERP() {
           {/* CONTEÚDO PRINCIPAL DINÂMICO */}
           <main className="flex-1 bg-slate-950 overflow-y-auto p-8 text-slate-200">
             
-            {/* 1. DASHBOARD EXECUTIVO COM GRÁFICOS E CENTRO DE CUSTO */}
+            {/* 1. DASHBOARD EXECUTIVO */}
             {activeModule === 'dashboard' && (
               <div className="space-y-8">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
@@ -462,107 +451,25 @@ export default function TorquatoFullERP() {
                     </h1>
                     <p className="text-xs text-slate-400 mt-1">Análise financeira e orçamentária filtrada pela obra selecionada no topo</p>
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setShowFinPagarModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-2">
-                      <Plus className="w-4 h-4" /> Novo Lançamento
-                    </button>
-                  </div>
                 </div>
 
-                {/* Cards de Métricas Principais */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
                     <span className="text-[11px] font-bold text-slate-400 uppercase">Contas a Pagar (Pendente)</span>
                     <p className="text-3xl font-black text-rose-400 mt-3">R$ {totalPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                    <span className="text-[10px] text-slate-500 mt-1 block">Custos e insumos em aberto</span>
                   </div>
-
                   <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
                     <span className="text-[11px] font-bold text-slate-400 uppercase">Contas a Pagar (Quitado)</span>
                     <p className="text-3xl font-black text-emerald-400 mt-3">R$ {totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                    <span className="text-[10px] text-slate-500 mt-1 block">Despesas pagas no período</span>
                   </div>
-
                   <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
                     <span className="text-[11px] font-bold text-slate-400 uppercase">Contas a Receber (Pendente)</span>
                     <p className="text-3xl font-black text-amber-400 mt-3">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                    <span className="text-[10px] text-slate-500 mt-1 block">Medições e contratos a faturar</span>
                   </div>
-
                   <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
                     <span className="text-[11px] font-bold text-slate-400 uppercase">Contas a Receber (Recebido)</span>
                     <p className="text-3xl font-black text-emerald-400 mt-3">R$ {totalRecebido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                    <span className="text-[10px] text-slate-500 mt-1 block">Entradas confirmadas</span>
                   </div>
-                </div>
-
-                {/* Seção de Gráficos Analíticos */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  
-                  {/* Gráfico 1: Contas a Pagar (Pendente vs Quitado) */}
-                  <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-6">
-                    <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                        <TrendingDown className="w-4 h-4 text-rose-400" /> Gráfico: Contas a Pagar (Centro de Custo)
-                      </h3>
-                      <span className="text-xs text-slate-400 font-semibold">{percentPagar}% Pendente</span>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="text-rose-400 font-bold">Pendente (R$ {totalPagar.toFixed(2)})</span>
-                          <span className="text-slate-400">R$ {totalPagar.toFixed(2)}</span>
-                        </div>
-                        <div className="w-full bg-slate-950 h-4 rounded-full overflow-hidden border border-slate-800">
-                          <div className="bg-rose-500 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min((totalPagar / maxPagar) * 100, 100)}%` }}></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="text-emerald-400 font-bold">Quitado (R$ {totalPago.toFixed(2)})</span>
-                          <span className="text-slate-400">R$ {totalPago.toFixed(2)}</span>
-                        </div>
-                        <div className="w-full bg-slate-950 h-4 rounded-full overflow-hidden border border-slate-800">
-                          <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min((totalPago / maxPagar) * 100, 100)}%` }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Gráfico 2: Contas a Receber (Pendente vs Recebido) */}
-                  <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-6">
-                    <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-emerald-400" /> Gráfico: Contas a Receber (Centro de Custo)
-                      </h3>
-                      <span className="text-xs text-slate-400 font-semibold">{percentReceber}% Recebido</span>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="text-amber-400 font-bold">Pendente / A Receber (R$ {totalReceber.toFixed(2)})</span>
-                          <span className="text-slate-400">R$ {totalReceber.toFixed(2)}</span>
-                        </div>
-                        <div className="w-full bg-slate-950 h-4 rounded-full overflow-hidden border border-slate-800">
-                          <div className="bg-amber-500 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min((totalReceber / maxReceber) * 100, 100)}%` }}></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="text-emerald-400 font-bold">Recebido (R$ {totalRecebido.toFixed(2)})</span>
-                          <span className="text-slate-400">R$ {totalRecebido.toFixed(2)}</span>
-                        </div>
-                        <div className="w-full bg-slate-950 h-4 rounded-full overflow-hidden border border-slate-800">
-                          <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min((totalRecebido / maxReceber) * 100, 100)}%` }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
                 </div>
               </div>
             )}
@@ -577,12 +484,7 @@ export default function TorquatoFullERP() {
                   <h3 className="font-bold text-sm text-white uppercase">Colaboradores Cadastrados</h3>
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-950 text-slate-400 uppercase">
-                      <tr>
-                        <th className="p-3">Nome</th>
-                        <th className="p-3">E-mail</th>
-                        <th className="p-3">Cargo / Perfil</th>
-                        <th className="p-3">Status</th>
-                      </tr>
+                      <tr><th className="p-3">Nome</th><th className="p-3">E-mail</th><th className="p-3">Cargo</th><th className="p-3">Status</th></tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
                       {usuarios.map((u: any) => (
@@ -665,6 +567,7 @@ export default function TorquatoFullERP() {
               </div>
             )}
 
+            {/* MÓDULO FINANCEIRO COM ANEXO DE NF E COMPROVANTE */}
             {activeModule === 'financeiro' && (
               <div className="space-y-8">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
@@ -672,25 +575,29 @@ export default function TorquatoFullERP() {
                     <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                       <DollarSign className="w-6 h-6 text-amber-500" /> Gestão Financeira Completa
                     </h1>
-                    <p className="text-xs text-slate-400 mt-1">Importação de notas fiscais e comprovantes de pagamento</p>
+                    <p className="text-xs text-slate-400 mt-1">Lançamento de contas com nota fiscal (HTML/PDF) e baixa com comprovante</p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button onClick={() => setShowXmlModal(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg">
-                      <Upload className="w-4 h-4" /> Importar NF (XML/PDF)
-                    </button>
-                    <button onClick={() => setShowComprovanteModal(true)} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-lg">
-                      <Upload className="w-4 h-4" /> Anexar Comprovante
-                    </button>
-                    <button onClick={() => setShowFinPagarModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Nova Conta Pagar</button>
-                    <button onClick={() => setShowFinReceberModal(true)} className="px-4 py-2 bg-emerald-500 text-slate-950 font-bold rounded-xl text-xs">Novo Recebimento</button>
+                  <div className="flex gap-2">
+                    <button onClick={() => setShowFinPagarModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">+ Nova Conta a Pagar</button>
+                    <button onClick={() => setShowFinReceberModal(true)} className="px-4 py-2 bg-emerald-500 text-slate-950 font-bold rounded-xl text-xs">+ Novo Recebimento</button>
                   </div>
                 </div>
 
+                {/* Tabela Contas a Pagar */}
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
-                  <h3 className="font-bold text-sm text-white uppercase">Contas a Pagar</h3>
+                  <h3 className="font-bold text-sm text-white uppercase">Contas a Pagar (Custos / Despesas)</h3>
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-950 text-slate-400 uppercase">
-                      <tr><th className="p-3">Descrição / NF</th><th className="p-3">Obra</th><th className="p-3">Vencimento</th><th className="p-3">Valor</th><th className="p-3">Status</th><th className="p-3 text-center">Ação</th></tr>
+                      <tr>
+                        <th className="p-3">Descrição</th>
+                        <th className="p-3">Obra</th>
+                        <th className="p-3">Vencimento</th>
+                        <th className="p-3">Valor</th>
+                        <th className="p-3">Nota Fiscal</th>
+                        <th className="p-3">Comprovante</th>
+                        <th className="p-3">Status</th>
+                        <th className="p-3 text-center">Ação</th>
+                      </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
                       {filteredPagar.map((f: any) => (
@@ -698,12 +605,24 @@ export default function TorquatoFullERP() {
                           <td className="p-3 font-bold text-white">{f.descricao}</td>
                           <td className="p-3 text-slate-400">{f.projectName}</td>
                           <td className="p-3">{new Date(f.data_vencimento).toLocaleDateString('pt-BR')}</td>
-                          <td className="p-3 font-bold">R$ {Number(f.valor).toFixed(2)}</td>
-                          <td className="p-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${f.status === 'pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-500'}`}>{f.status}</span></td>
+                          <td className="p-3 font-bold text-rose-400">R$ {Number(f.valor).toFixed(2)}</td>
+                          <td className="p-3">
+                            {f.nf_arquivo ? <span className="text-blue-400 font-semibold">📄 {f.nf_arquivo}</span> : <span className="text-slate-500">Sem NF</span>}
+                          </td>
+                          <td className="p-3">
+                            {f.comprovante_arquivo ? <span className="text-emerald-400 font-semibold">📎 {f.comprovante_arquivo}</span> : <span className="text-slate-500">Pendente</span>}
+                          </td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${f.status === 'pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-500'}`}>{f.status}</span>
+                          </td>
                           <td className="p-3 text-center">
-                            <button onClick={() => toggleStatusPagar(f.id, f.status)} className="px-3 py-1 bg-slate-800 text-white rounded font-bold">
-                              {f.status === 'pago' ? 'Desfazer' : 'Baixar Título'}
-                            </button>
+                            {f.status !== 'pago' ? (
+                              <button onClick={() => { setSelectedTituloPagar(f); setShowBaixaPagarModal(true); }} className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold text-[10px]">
+                                Pagar / Anexar Recibo
+                              </button>
+                            ) : (
+                              <span className="text-slate-500 text-[10px]">Quitado</span>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -711,11 +630,20 @@ export default function TorquatoFullERP() {
                   </table>
                 </div>
 
+                {/* Tabela Contas a Receber */}
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
-                  <h3 className="font-bold text-sm text-white uppercase">Contas a Receber</h3>
+                  <h3 className="font-bold text-sm text-white uppercase">Contas a Receber (Medições / Clientes)</h3>
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-950 text-slate-400 uppercase">
-                      <tr><th className="p-3">Cliente</th><th className="p-3">Descrição</th><th className="p-3">Obra</th><th className="p-3">Valor</th><th className="p-3">Status</th><th className="p-3 text-center">Ação</th></tr>
+                      <tr>
+                        <th className="p-3">Cliente</th>
+                        <th className="p-3">Descrição</th>
+                        <th className="p-3">Obra</th>
+                        <th className="p-3">Valor</th>
+                        <th className="p-3">Nota Fiscal</th>
+                        <th className="p-3">Status</th>
+                        <th className="p-3 text-center">Ação</th>
+                      </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
                       {filteredReceber.map((r: any) => (
@@ -723,10 +651,21 @@ export default function TorquatoFullERP() {
                           <td className="p-3 font-bold text-emerald-400">{r.cliente_nome}</td>
                           <td className="p-3 text-white">{r.descricao}</td>
                           <td className="p-3 text-slate-400">{r.projectName}</td>
-                          <td className="p-3 font-bold">R$ {Number(r.valor).toFixed(2)}</td>
-                          <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 font-bold">{r.status}</span></td>
+                          <td className="p-3 font-bold text-emerald-400">R$ {Number(r.valor).toFixed(2)}</td>
+                          <td className="p-3">
+                            {r.nf_arquivo ? <span className="text-blue-400 font-semibold">📄 {r.nf_arquivo}</span> : <span className="text-slate-500">Sem NF</span>}
+                          </td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${r.status === 'recebido' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-500'}`}>{r.status}</span>
+                          </td>
                           <td className="p-3 text-center">
-                            <button onClick={() => toggleStatusReceber(r.id, r.status)} className="px-3 py-1 bg-emerald-700 text-white rounded font-bold">Receber</button>
+                            {r.status !== 'recebido' ? (
+                              <button onClick={() => { setSelectedTituloReceber(r); setShowBaixaReceberModal(true); }} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded font-bold text-[10px]">
+                                Receber / Comprovante
+                              </button>
+                            ) : (
+                              <span className="text-slate-500 text-[10px]">Recebido</span>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -767,13 +706,13 @@ export default function TorquatoFullERP() {
           </main>
         </div>
 
-        {/* MODAIS GLOBAIS */}
+        {/* MODAL: NOVA CONTA A PAGAR COM NOTA FISCAL (HTML/PDF) */}
         {showFinPagarModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
               <div className="flex justify-between items-center"><h3 className="font-bold text-white">Nova Conta a Pagar</h3><button onClick={() => setShowFinPagarModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
               <form onSubmit={handleSavePagar} className="space-y-3">
-                <input type="text" required placeholder="Descrição" value={finDesc} onChange={(e) => setFinDesc(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" required placeholder="Descrição da Despesa" value={finDesc} onChange={(e) => setFinDesc(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <select value={finProject} onChange={(e) => setFinProject(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
                   <option value="">Geral / Sem Obra</option>
                   {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -782,12 +721,17 @@ export default function TorquatoFullERP() {
                   <input type="date" required value={finDueDate} onChange={(e) => setFinDueDate(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                   <input type="number" step="0.01" required placeholder="Valor R$" value={finValue} onChange={(e) => setFinValue(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-bold" />
                 </div>
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nota Fiscal (Arquivo HTML ou PDF)</label>
+                  <input type="file" accept=".html,.pdf" onChange={(e) => setFinNfFile(e.target.files ? e.target.files[0] : null)} className="w-full p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500" />
+                </div>
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar Lançamento</button></div>
               </form>
             </div>
           </div>
         )}
 
+        {/* MODAL: NOVO RECEBIMENTO COM NOTA FISCAL (HTML/PDF) */}
         {showFinReceberModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
@@ -803,68 +747,56 @@ export default function TorquatoFullERP() {
                   <input type="date" required value={recDueDate} onChange={(e) => setRecDueDate(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                   <input type="number" step="0.01" required placeholder="Valor R$" value={recValue} onChange={(e) => setRecValue(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-bold" />
                 </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nota Fiscal Faturamento (HTML ou PDF)</label>
+                  <input type="file" accept=".html,.pdf" onChange={(e) => setRecNfFile(e.target.files ? e.target.files[0] : null)} className="w-full p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500" />
+                </div>
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-500 text-slate-950 font-bold rounded-xl text-xs">Salvar Recebimento</button></div>
               </form>
             </div>
           </div>
         )}
 
-        {/* MODAL 1: IMPORTAR NOTA FISCAL (XML/PDF) */}
-        {showXmlModal && (
+        {/* MODAL: BAIXA CONTA A PAGAR COM COMPROVANTE (PDF/IMAGEM) */}
+        {showBaixaPagarModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-bold text-white">Importar Nota Fiscal (XML ou PDF)</h3>
-                <button onClick={() => setShowXmlModal(false)}><X className="w-5 h-5 text-slate-400" /></button>
-              </div>
-              <form onSubmit={handleImportXml} className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Selecione a Obra / Centro de Custo</label>
-                  <select required value={xmlProject} onChange={(e) => setXmlProject(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                    <option value="">Selecione a Obra...</option>
-                    {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Baixar Título & Anexar Comprovante</h3><button onClick={() => setShowBaixaPagarModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleBaixaPagar} className="space-y-3">
+                <div className="p-3 bg-slate-950 rounded-xl text-xs space-y-1">
+                  <p className="text-slate-400">Título: <strong className="text-white">{selectedTituloPagar?.descricao}</strong></p>
+                  <p className="text-slate-400">Valor: <strong className="text-rose-400">R$ {Number(selectedTituloPagar?.valor || 0).toFixed(2)}</strong></p>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Arquivo XML ou PDF da NF</label>
-                  <input type="file" accept=".xml,.pdf" required onChange={(e) => setXmlFile(e.target.files ? e.target.files[0] : null)} className="w-full p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400" />
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Comprovante de Pagamento (PDF ou Imagem)</label>
+                  <input type="file" accept=".pdf,image/*" required onChange={(e) => setCompPagarFile(e.target.files ? e.target.files[0] : null)} className="w-full p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500" />
                 </div>
-                {xmlStatusMsg && <p className="text-xs font-bold text-amber-400 animate-pulse">{xmlStatusMsg}</p>}
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-                  <button type="button" onClick={() => setShowXmlModal(false)} className="px-4 py-2 border border-slate-800 text-slate-400 rounded-xl text-xs">Cancelar</button>
-                  <button type="submit" className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs">Processar e Importar</button>
+                  <button type="button" onClick={() => setShowBaixaPagarModal(false)} className="px-4 py-2 border border-slate-800 text-slate-400 rounded-xl text-xs">Cancelar</button>
+                  <button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Confirmar Pagamento e Anexar</button>
                 </div>
               </form>
             </div>
           </div>
         )}
 
-        {/* MODAL 2: ANEXAR COMPROVANTE DE PAGAMENTO (PDF/IMAGEM) */}
-        {showComprovanteModal && (
+        {/* MODAL: BAIXA CONTA A RECEBER COM COMPROVANTE (PDF/IMAGEM) */}
+        {showBaixaReceberModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-bold text-white">Anexar Comprovante de Pagamento</h3>
-                <button onClick={() => setShowComprovanteModal(false)}><X className="w-5 h-5 text-slate-400" /></button>
-              </div>
-              <form onSubmit={handleImportComprovante} className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Selecione o Título / Conta a Pagar</label>
-                  <select required value={compLancamentoId} onChange={(e) => setCompLancamentoId(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                    <option value="">Selecione o lançamento pendente...</option>
-                    {financialsPagar.filter(f => f.status === 'pendente').map(f => (
-                      <option key={f.id} value={f.id}>{f.descricao} (R$ {Number(f.valor).toFixed(2)})</option>
-                    ))}
-                  </select>
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Confirmar Recebimento & Comprovante</h3><button onClick={() => setShowBaixaReceberModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleBaixaReceber} className="space-y-3">
+                <div className="p-3 bg-slate-950 rounded-xl text-xs space-y-1">
+                  <p className="text-slate-400">Cliente: <strong className="text-white">{selectedTituloReceber?.cliente_nome}</strong></p>
+                  <p className="text-slate-400">Valor: <strong className="text-emerald-400">R$ {Number(selectedTituloReceber?.valor || 0).toFixed(2)}</strong></p>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Comprovante (PDF ou Imagem)</label>
-                  <input type="file" accept=".pdf,image/*" required onChange={(e) => setCompFile(e.target.files ? e.target.files[0] : null)} className="w-full p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-500 file:text-slate-950 hover:file:bg-emerald-400" />
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Comprovante Bancário (PDF ou Imagem)</label>
+                  <input type="file" accept=".pdf,image/*" required onChange={(e) => setCompReceberFile(e.target.files ? e.target.files[0] : null)} className="w-full p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500" />
                 </div>
-                {compStatusMsg && <p className="text-xs font-bold text-emerald-400 animate-pulse">{compStatusMsg}</p>}
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-                  <button type="button" onClick={() => setShowComprovanteModal(false)} className="px-4 py-2 border border-slate-800 text-slate-400 rounded-xl text-xs">Cancelar</button>
-                  <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs">Anexar e Baixar Título</button>
+                  <button type="button" onClick={() => setShowBaixaReceberModal(false)} className="px-4 py-2 border border-slate-800 text-slate-400 rounded-xl text-xs">Cancelar</button>
+                  <button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Confirmar Recebimento</button>
                 </div>
               </form>
             </div>
@@ -923,19 +855,6 @@ export default function TorquatoFullERP() {
               <form onSubmit={handleSaveEstoque} className="space-y-3">
                 <input type="text" required placeholder="Nome do Produto / Insumo" value={estProduto} onChange={(e) => setEstProduto(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="number" step="0.01" required placeholder="Quantidade" value={estQtd} onChange={(e) => setEstQtd(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {showUserModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Usuário</h3><button onClick={() => setShowUserModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleSaveUser} className="space-y-3">
-                <input type="text" required placeholder="Nome Completo" value={userName} onChange={(e) => setUserName(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="email" required placeholder="E-mail" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
               </form>
             </div>
