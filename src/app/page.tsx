@@ -482,6 +482,7 @@ export default function TorquatoFullERP() {
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-amber-400 font-bold rounded-xl text-xs transition border border-slate-700">+ Conta Bancária</button>
+                    <button onClick={() => setShowTributoModal(true)} className="px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition">+ Gerar Tributo</button>
                     <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2">
                       <Plus className="w-4 h-4" /> Novo Lançamento
                     </button>
