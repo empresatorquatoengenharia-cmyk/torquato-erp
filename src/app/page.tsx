@@ -30,7 +30,12 @@ import {
   AlertCircle,
   Check,
   Eye,
-  Paperclip
+  Paperclip,
+  CreditCard,
+  Wallet,
+  FileSpreadsheet,
+  Receipt,
+  Scale
 } from 'lucide-react';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -50,27 +55,31 @@ export default function TorquatoFullERP() {
   const [contratos, setContratos] = useState<any[]>([]);
   const [financialsPagar, setFinancialsPagar] = useState<any[]>([]);
   const [financialsReceber, setFinancialsReceber] = useState<any[]>([]);
+  const [contasBancarias, setContasBancarias] = useState<any[]>([]);
+  const [cartoesCredito, setCartoesCredito] = useState<any[]>([]);
+  const [boletos, setBoletos] = useState<any[]>([]);
+  const [tributos, setTributos] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Sub-abas do Financeiro
-  const [finTab, setFinTab] = useState('pagar');
+  // Sub-abas do Financeiro estilo Koper
+  const [finSubTab, setFinSubTab] = useState('pagar');
 
-  // Modais
+  // Modais Gerais
   const [showEmpresaModal, setShowEmpresaModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showContratoModal, setShowContratoModal] = useState(false);
   const [showFinanceiroModal, setShowFinanceiroModal] = useState(false);
+  const [showBancoModal, setShowBancoModal] = useState(false);
+  const [showBoletoModal, setShowBoletoModal] = useState(false);
+  const [showTributoModal, setShowTributoModal] = useState(false);
 
   // Modais de Edição
   const [showEditEmpresaModal, setShowEditEmpresaModal] = useState(false);
   const [editingEmpresa, setEditingEmpresa] = useState<any>(null);
-
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
-
   const [showEditContratoModal, setShowEditContratoModal] = useState(false);
   const [editingContrato, setEditingContrato] = useState<any>(null);
-
   const [showEditFinanceiroModal, setShowEditFinanceiroModal] = useState(false);
   const [editingFinanceiro, setEditingFinanceiro] = useState<any>(null);
 
@@ -81,29 +90,40 @@ export default function TorquatoFullERP() {
   const [userEmail, setUserEmail] = useState('');
   const [userCargo, setUserCargo] = useState('Engenheiro');
   const [userLimite, setUserLimite] = useState('5000');
-  const [userPermissoes, setUserPermissoes] = useState({
-    financeiro: 'movimentar',
-    engenharia: 'movimentar',
-    compras: 'movimentar',
-    estoque: 'visualizar',
-    administracao: 'visualizar'
-  });
+  const [userPermissoes, setUserPermissoes] = useState({ financeiro: 'movimentar', engenharia: 'movimentar', compras: 'movimentar', estoque: 'visualizar', administracao: 'visualizar' });
   const [contTitulo, setContTitulo] = useState('');
   const [contFornecedor, setContFornecedor] = useState('');
   const [contValor, setContValor] = useState('');
   const [contStatus, setContStatus] = useState('Ativo');
 
-  // Forms Financeiro com NF e Comprovante separados
+  // Forms Financeiro Koper (com NF e Comprovante separados)
   const [finDescricao, setFinDescricao] = useState('');
   const [finValor, setFinValor] = useState('');
   const [finTipo, setFinTipo] = useState('pagar');
   const [finVencimento, setFinVencimento] = useState('');
   const [finCategoria, setFinCategoria] = useState('Material de Obra');
   const [finStatus, setFinStatus] = useState('Pendente');
+  const [finEtiqueta, setFinEtiqueta] = useState('Geral');
   const [finNfNome, setFinNfNome] = useState('');
   const [finNfUrl, setFinNfUrl] = useState('');
   const [finCompNome, setFinCompNome] = useState('');
   const [finCompUrl, setFinCompUrl] = useState('');
+
+  // Forms Bancos, Boletos e Tributos
+  const [bancoNome, setBancoNome] = useState('');
+  const [bancoAgencia, setBancoAgencia] = useState('');
+  const [bancoConta, setBancoConta] = useState('');
+  const [bancoSaldo, setBancoSaldo] = useState('');
+
+  const [bolNumero, setBolNumero] = useState('');
+  const [bolSacado, setBolSacado] = useState('');
+  const [bolValor, setBolValor] = useState('');
+  const [bolVencimento, setBolVencimento] = useState('');
+
+  const [tribImposto, setTribImposto] = useState('ISS / PIS / COFINS');
+  const [tribCompetencia, setTribCompetencia] = useState('2026/10');
+  const [tribValor, setTribValor] = useState('');
+  const [tribVencimento, setTribVencimento] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -111,25 +131,18 @@ export default function TorquatoFullERP() {
 
   async function loadAllData() {
     setLoading(true);
-    
     const { data: empData } = await supabase.from('empresas_erp').select('*').order('created_at', { ascending: true });
     if (empData && empData.length > 0) {
       setEmpresas(empData);
       if (!selectedCompany) setSelectedCompany(empData[0].nome);
     }
-
     const { data: projData } = await supabase.from('projects').select('*');
     if (projData) setProjects(projData);
 
-    const { data: userData } = await supabase.from('usuarios_erp').select('*').order('created_at', { ascending: false });
-    if (userData) {
-      setUsuarios(userData.map((u: any) => ({
-        ...u,
-        permissoes: u.permissoes || { financeiro: 'movimentar', engenharia: 'movimentar', compras: 'movimentar', estoque: 'visualizar', administracao: 'visualizar' }
-      })));
-    }
+    const { data: userData } = await supabase.from('usuarios_erp').select('*');
+    if (userData) setUsuarios(userData);
 
-    const { data: contData } = await supabase.from('contratos_empresa').select('*').order('created_at', { ascending: false });
+    const { data: contData } = await supabase.from('contratos_empresa').select('*');
     if (contData) setContratos(contData);
 
     const { data: pagData } = await supabase.from('financeiro_lancamentos').select('*').order('vencimento', { ascending: true });
@@ -138,35 +151,38 @@ export default function TorquatoFullERP() {
     const { data: recData } = await supabase.from('financeiro_receber').select('*').order('vencimento', { ascending: true });
     if (recData) setFinancialsReceber(recData);
 
+    const { data: bancoData } = await supabase.from('contas_bancarias').select('*');
+    if (bancoData) setContasBancarias(bancoData);
+
+    const { data: cartaoData } = await supabase.from('cartoes_credito').select('*');
+    if (cartaoData) setCartoesCredito(cartaoData);
+
+    const { data: bolData } = await supabase.from('boletos_erp').select('*');
+    if (bolData) setBoletos(bolData);
+
+    const { data: tribData } = await supabase.from('tributos_erp').select('*');
+    if (tribData) setTributos(tribData);
+
     setLoading(false);
   }
 
-  // Manipuladores de Upload (NF ou Comprovante)
+  // Upload separado NF / Comprovante
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>, tipoArquivo: 'nf' | 'comprovante', isEditing = false) {
     const file = e.target.files?.[0];
     if (!file) return;
-    
     const nomeFicheiro = file.name;
     const urlFicheiro = URL.createObjectURL(file);
 
     if (isEditing) {
-      if (tipoArquivo === 'nf') {
-        setEditingFinanceiro({ ...editingFinanceiro, nf_nome: nomeFicheiro, nf_url: urlFicheiro });
-      } else {
-        setEditingFinanceiro({ ...editingFinanceiro, comprovante_nome: nomeFicheiro, comprovante_url: urlFicheiro });
-      }
+      if (tipoArquivo === 'nf') setEditingFinanceiro({ ...editingFinanceiro, nf_nome: nomeFicheiro, nf_url: urlFicheiro });
+      else setEditingFinanceiro({ ...editingFinanceiro, comprovante_nome: nomeFicheiro, comprovante_url: urlFicheiro });
     } else {
-      if (tipoArquivo === 'nf') {
-        setFinNfNome(nomeFicheiro);
-        setFinNfUrl(urlFicheiro);
-      } else {
-        setFinCompNome(nomeFicheiro);
-        setFinCompUrl(urlFicheiro);
-      }
+      if (tipoArquivo === 'nf') { setFinNfNome(nomeFicheiro); setFinNfUrl(urlFicheiro); }
+      else { setFinCompNome(nomeFicheiro); setFinCompUrl(urlFicheiro); }
     }
   }
 
-  // Ações de Criação
+  // Ações de Inserção
   async function handleSaveEmpresa(e: React.FormEvent) {
     e.preventDefault();
     if (!empNome) return;
@@ -192,68 +208,54 @@ export default function TorquatoFullERP() {
     e.preventDefault();
     if (!finDescricao || !finValor) return;
     const tableTarget = finTipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
-    const { error } = await supabase.from(tableTarget).insert([{
+    await supabase.from(tableTarget).insert([{
       descricao: finDescricao,
       valor: parseFloat(finValor),
       vencimento: finVencimento || new Date().toISOString().split('T')[0],
       categoria: finCategoria,
       status: finStatus,
       empresa: selectedCompany,
+      etiqueta: finEtiqueta,
       nf_nome: finNfNome || null,
       nf_url: finNfUrl || null,
       comprovante_nome: finCompNome || null,
       comprovante_url: finCompUrl || null
     }]);
-
-    if (error) { alert('Erro ao salvar lançamento: ' + error.message); return; }
     setShowFinanceiroModal(false);
     setFinDescricao(''); setFinValor(''); setFinNfNome(''); setFinNfUrl(''); setFinCompNome(''); setFinCompUrl('');
     loadAllData();
   }
 
-  // Ações de Edição
-  async function handleUpdateEmpresa(e: React.FormEvent) {
+  async function handleSaveBanco(e: React.FormEvent) {
     e.preventDefault();
-    if (!editingEmpresa) return;
-    await supabase.from('empresas_erp').update({ nome: editingEmpresa.nome, cnpj: editingEmpresa.cnpj }).eq('id', editingEmpresa.id);
-    setShowEditEmpresaModal(false); setEditingEmpresa(null); loadAllData();
+    if (!bancoNome) return;
+    await supabase.from('contas_bancarias').insert([{ banco: bancoNome, agencia: bancoAgencia, conta: bancoConta, saldo: parseFloat(bancoSaldo || 0), empresa: selectedCompany }]);
+    setShowBancoModal(false); setBancoNome(''); setBancoAgencia(''); setBancoConta(''); setBancoSaldo(''); loadAllData();
   }
 
-  async function handleUpdateUser(e: React.FormEvent) {
+  async function handleSaveBoleto(e: React.FormEvent) {
     e.preventDefault();
-    if (!editingUser) return;
-    await supabase.from('usuarios_erp').update({ nome: editingUser.nome, email: editingUser.email, cargo: editingUser.cargo, limite_aprovacao: parseFloat(editingUser.limite_aprovacao || 0) }).eq('id', editingUser.id);
-    setShowEditUserModal(false); setEditingUser(null); loadAllData();
+    if (!bolNumero || !bolValor) return;
+    await supabase.from('boletos_erp').insert([{ nosso_numero: bolNumero, sacado: bolSacado, valor: parseFloat(bolValor), vencimento: bolVencimento, status: 'Em Aberto', empresa: selectedCompany }]);
+    setShowBoletoModal(false); setBolNumero(''); setBolSacado(''); setBolValor(''); loadAllData();
   }
 
-  async function handleUpdateContrato(e: React.FormEvent) {
+  async function handleSaveTributo(e: React.FormEvent) {
     e.preventDefault();
-    if (!editingContrato) return;
-    await supabase.from('contratos_empresa').update({ titulo: editingContrato.titulo, fornecedor: editingContrato.fornecedor, valor: parseFloat(editingContrato.valor || 0) }).eq('id', editingContrato.id);
-    setShowEditContratoModal(false); setEditingContrato(null); loadAllData();
+    if (!tribImposto || !tribValor) return;
+    await supabase.from('tributos_erp').insert([{ imposto: tribImposto, competencia: tribCompetencia, valor: parseFloat(tribValor), vencimento: tribVencimento, status: 'Previsto', empresa: selectedCompany }]);
+    setShowTributoModal(false); setTribImposto('ISS / PIS / COFINS'); setTribValor(''); loadAllData();
   }
 
-  async function handleUpdateFinanceiro(e: React.FormEvent) {
-    e.preventDefault();
-    if (!editingFinanceiro) return;
-    const tableTarget = editingFinanceiro.tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
-    const { error } = await supabase.from(tableTarget).update({
-      descricao: editingFinanceiro.descricao,
-      valor: parseFloat(editingFinanceiro.valor || 0),
-      vencimento: editingFinanceiro.vencimento,
-      categoria: editingFinanceiro.categoria,
-      status: editingFinanceiro.status,
-      nf_nome: editingFinanceiro.nf_nome,
-      nf_url: editingFinanceiro.nf_url,
-      comprovante_nome: editingFinanceiro.comprovante_nome,
-      comprovante_url: editingFinanceiro.comprovante_url
-    }).eq('id', editingFinanceiro.id);
-
-    if (error) { alert('Erro ao atualizar: ' + error.message); return; }
-    setShowEditFinanceiroModal(false); setEditingFinanceiro(null); loadAllData();
+  // Quitar / Baixar
+  async function handleToggleQuitar(item: any, tipo: 'pagar' | 'receber') {
+    const novoStatus = item.status === 'Pago' || item.status === 'Recebido' ? 'Pendente' : (tipo === 'pagar' ? 'Pago' : 'Recebido');
+    const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
+    await supabase.from(tableTarget).update({ status: novoStatus }).eq('id', item.id);
+    loadAllData();
   }
 
-  // Exclusão
+  // Deleções
   async function handleDeleteEmpresa(id: string) { if (confirm('Excluir empresa?')) { await supabase.from('empresas_erp').delete().eq('id', id); loadAllData(); } }
   async function handleDeleteUser(id: string) { if (confirm('Excluir usuário?')) { await supabase.from('usuarios_erp').delete().eq('id', id); loadAllData(); } }
   async function handleDeleteContrato(id: string) { if (confirm('Excluir contrato?')) { await supabase.from('contratos_empresa').delete().eq('id', id); loadAllData(); } }
@@ -265,19 +267,16 @@ export default function TorquatoFullERP() {
     }
   }
 
-  // Quitar / Baixar
-  async function handleToggleQuitar(item: any, tipo: 'pagar' | 'receber') {
-    const novoStatus = item.status === 'Pago' || item.status === 'Recebido' ? 'Pendente' : (tipo === 'pagar' ? 'Pago' : 'Recebido');
-    const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
-    await supabase.from(tableTarget).update({ status: novoStatus }).eq('id', item.id);
-    loadAllData();
-  }
-
+  // Filtros Globais da Empresa Ativa
   const filteredPagar = financialsPagar.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
   const filteredReceber = financialsReceber.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
+  const filteredBancos = contasBancarias.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
+  const filteredBoletos = boletos.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
+  const filteredTributos = tributos.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
 
   const totalPagar = filteredPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0);
   const totalReceber = filteredReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+  const totalSaldosBancos = filteredBancos.reduce((acc, item) => acc + Number(item.saldo || 0), 0);
   const saldoLiquido = totalReceber - totalPagar;
 
   return (
@@ -292,7 +291,7 @@ export default function TorquatoFullERP() {
               <div className="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center text-slate-950 font-black shadow-lg">TE</div>
               <div>
                 <span className="font-bold text-sm tracking-wide text-white block">TORQUATO ENGENHARIA</span>
-                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block -mt-1">ERP Corporativo</span>
+                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block -mt-1">ERP Corporativo (Padrão Koper)</span>
               </div>
             </div>
 
@@ -341,7 +340,7 @@ export default function TorquatoFullERP() {
                   activeModule === 'financeiro' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
-                <div className="flex items-center gap-3"><DollarSign className="w-4 h-4" /> Financeiro Koper ERP</div>
+                <div className="flex items-center gap-3"><DollarSign className="w-4 h-4" /> Módulo Financeiro Koper</div>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
 
@@ -410,72 +409,15 @@ export default function TorquatoFullERP() {
                     {empresas.map(emp => (
                       <div key={emp.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
                         <div><p className="font-bold text-white text-sm">{emp.nome}</p><p className="text-xs text-slate-400">CNPJ: {emp.cnpj}</p></div>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => { setEditingEmpresa(emp); setShowEditEmpresaModal(true); }} className="p-2 bg-slate-800 text-amber-400 rounded-lg"><Edit2 className="w-3.5 h-3.5" /></button>
-                          <button onClick={() => handleDeleteEmpresa(emp.id)} className="p-2 bg-slate-800 text-rose-400 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
-                        </div>
+                        <button onClick={() => handleDeleteEmpresa(emp.id)} className="p-2 bg-slate-800 text-rose-400 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     ))}
                   </div>
                 </div>
-
-                {/* USUÁRIOS */}
-                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Lock className="w-4 h-4 text-blue-400" /> Gestão de Acessos</h3>
-                    <button onClick={() => setShowUserModal(true)} className="px-3.5 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs">+ Novo Usuário</button>
-                  </div>
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-950 text-slate-400 uppercase">
-                      <tr><th className="p-3">Colaborador</th><th className="p-3">E-mail</th><th className="p-3">Cargo</th><th className="p-3">Limite</th><th className="p-3 text-center">Ações</th></tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800">
-                      {usuarios.map((u: any) => (
-                        <tr key={u.id} className="hover:bg-slate-950/50">
-                          <td className="p-3 font-bold text-white">{u.nome}</td>
-                          <td className="p-3 text-slate-400">{u.email}</td>
-                          <td className="p-3 text-amber-400">{u.cargo}</td>
-                          <td className="p-3 text-emerald-400">R$ {Number(u.limite_aprovacao || 5000).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                          <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                            <button onClick={() => { setEditingUser(u); setShowEditUserModal(true); }} className="px-2.5 py-1 bg-slate-800 text-amber-400 rounded text-xs"><Edit2 className="w-3 h-3" /></button>
-                            <button onClick={() => handleDeleteUser(u.id)} className="p-1.5 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3 h-3" /></button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* CONTRATOS */}
-                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Briefcase className="w-4 h-4 text-emerald-400" /> Contratos</h3>
-                    <button onClick={() => setShowContratoModal(true)} className="px-3.5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">+ Cadastrar Contrato</button>
-                  </div>
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-950 text-slate-400 uppercase">
-                      <tr><th className="p-3">Título</th><th className="p-3">Fornecedor</th><th className="p-3">Valor</th><th className="p-3">Status</th><th className="p-3 text-center">Ações</th></tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800">
-                      {contratos.map((c: any) => (
-                        <tr key={c.id} className="hover:bg-slate-950/50">
-                          <td className="p-3 font-bold text-white">{c.titulo}</td>
-                          <td className="p-3 text-slate-400">{c.fornecedor}</td>
-                          <td className="p-3 text-amber-400">R$ {Number(c.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                          <td className="p-3 text-blue-400">{c.status}</td>
-                          <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                            <button onClick={() => { setEditingContrato(c); setShowEditContratoModal(true); }} className="px-2.5 py-1 bg-slate-800 text-amber-400 rounded text-xs"><Edit2 className="w-3 h-3" /></button>
-                            <button onClick={() => handleDeleteContrato(c.id)} className="p-1.5 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3 h-3" /></button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
               </div>
             )}
 
-            {/* MÓDULO FINANCEIRO KOPER ERP */}
+            {/* MÓDULO FINANCEIRO KOPER ERP COMPLETO */}
             {activeModule === 'financeiro' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
@@ -485,16 +427,27 @@ export default function TorquatoFullERP() {
                     </h1>
                     <p className="text-xs text-slate-400 mt-1">Empresa ativa: <span className="text-amber-400 font-bold">{selectedCompany}</span></p>
                   </div>
-                  <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2">
-                    <Plus className="w-4 h-4" /> Novo Lançamento Financeiro
-                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-amber-400 font-bold rounded-xl text-xs transition border border-slate-700">+ Conta Bancária</button>
+                    <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2">
+                      <Plus className="w-4 h-4" /> Novo Lançamento
+                    </button>
+                  </div>
                 </div>
 
-                {/* CARDS RESUMO */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* CARDS RESUMO EXECUTIVO PADRÃO KOPER */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Contas a Pagar</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Saldos Bancários</p>
+                      <h3 className="text-xl font-black text-amber-400 mt-1">R$ {totalSaldosBancos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                    </div>
+                    <div className="p-3 bg-amber-500/10 rounded-xl text-amber-400 border border-amber-500/20"><Wallet className="w-6 h-6" /></div>
+                  </div>
+
+                  <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Contas a Pagar</p>
                       <h3 className="text-xl font-black text-rose-400 mt-1">R$ {totalPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
                     </div>
                     <div className="p-3 bg-rose-500/10 rounded-xl text-rose-400 border border-rose-500/20"><TrendingDown className="w-6 h-6" /></div>
@@ -502,7 +455,7 @@ export default function TorquatoFullERP() {
 
                   <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Contas a Receber</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Contas a Receber</p>
                       <h3 className="text-xl font-black text-emerald-400 mt-1">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
                     </div>
                     <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/20"><TrendingUp className="w-6 h-6" /></div>
@@ -510,7 +463,7 @@ export default function TorquatoFullERP() {
 
                   <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Saldo Líquido Projetado</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Saldo Líquido</p>
                       <h3 className={`text-xl font-black mt-1 ${saldoLiquido >= 0 ? 'text-amber-400' : 'text-rose-400'}`}>
                         R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </h3>
@@ -519,28 +472,33 @@ export default function TorquatoFullERP() {
                   </div>
                 </div>
 
-                {/* ABAS */}
-                <div className="flex gap-2 border-b border-slate-800 pb-2">
-                  <button onClick={() => setFinTab('pagar')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finTab === 'pagar' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Pagar ({filteredPagar.length})</button>
-                  <button onClick={() => setFinTab('receber')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finTab === 'receber' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Receber ({filteredReceber.length})</button>
-                  <button onClick={() => setFinTab('fluxo')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finTab === 'fluxo' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Fluxo de Caixa</button>
+                {/* ABAS DO KOPER ERP FINANCEIRO */}
+                <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-2">
+                  <button onClick={() => setFinSubTab('pagar')} className={`px-3 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'pagar' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Pagar ({filteredPagar.length})</button>
+                  <button onClick={() => setFinSubTab('receber')} className={`px-3 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'receber' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Receber ({filteredReceber.length})</button>
+                  <button onClick={() => setFinSubTab('bancos')} className={`px-3 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'bancos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas Bancárias & Extrato ({filteredBancos.length})</button>
+                  <button onClick={() => setFinSubTab('boletos')} className={`px-3 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'boletos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Gestão de Boletos ({filteredBoletos.length})</button>
+                  <button onClick={() => setFinSubTab('tributos')} className={`px-3 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'tributos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Gestão Tributária ({filteredTributos.length})</button>
+                  <button onClick={() => setFinSubTab('fluxo')} className={`px-3 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'fluxo' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Fluxo de Caixa Gerencial</button>
                 </div>
 
-                {/* TABELA PAGAR */}
-                {finTab === 'pagar' && (
+                {/* 1. CONTAS A PAGAR */}
+                {finSubTab === 'pagar' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingDown className="w-4 h-4 text-rose-400" /> Contas a Pagar & Documentos</h3>
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingDown className="w-4 h-4 text-rose-400" /> Contas a Pagar & Comprovantes / Notas Fiscais</h3>
+                    </div>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
                         <tr>
-                          <th className="p-3">Descrição</th>
-                          <th className="p-3">Categoria</th>
+                          <th className="p-3">Descrição / Fornecedor</th>
+                          <th className="p-3">Etiqueta</th>
                           <th className="p-3">Vencimento</th>
                           <th className="p-3">Valor</th>
                           <th className="p-3">Nota Fiscal (XML/PDF)</th>
                           <th className="p-3">Comprovante de Pagamento</th>
                           <th className="p-3">Status</th>
-                          <th className="p-3 text-center">Ações / Quitação</th>
+                          <th className="p-3 text-center">Ações</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
@@ -550,43 +508,19 @@ export default function TorquatoFullERP() {
                           filteredPagar.map((item: any) => (
                             <tr key={item.id} className="hover:bg-slate-950/50">
                               <td className="p-3 font-bold text-white">{item.descricao}</td>
-                              <td className="p-3 text-slate-400">{item.categoria}</td>
+                              <td className="p-3"><span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded text-[10px] font-bold">{item.etiqueta || 'Geral'}</span></td>
                               <td className="p-3 text-slate-300">{item.vencimento}</td>
                               <td className="p-3 font-bold text-rose-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                              
-                              {/* NOTA FISCAL */}
                               <td className="p-3">
-                                {item.nf_url ? (
-                                  <a href={item.nf_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg text-[11px] font-bold hover:bg-amber-500/20 transition">
-                                    <Paperclip className="w-3 h-3" /> {item.nf_nome || 'Ver NF'}
-                                  </a>
-                                ) : (
-                                  <span className="text-slate-500 text-[11px]">Sem NF</span>
-                                )}
+                                {item.nf_url ? <a href={item.nf_url} target="_blank" rel="noreferrer" className="text-amber-400 font-bold underline flex items-center gap-1"><Paperclip className="w-3 h-3" /> {item.nf_nome || 'Ver NF'}</a> : <span className="text-slate-500">Sem NF</span>}
                               </td>
-
-                              {/* COMPROVANTE DE PAGAMENTO */}
                               <td className="p-3">
-                                {item.comprovante_url ? (
-                                  <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-[11px] font-bold hover:bg-emerald-500/20 transition">
-                                    <CheckCircle2 className="w-3 h-3" /> {item.comprovante_nome || 'Ver Comprovante'}
-                                  </a>
-                                ) : (
-                                  <span className="text-slate-500 text-[11px]">Sem Comprovante</span>
-                                )}
+                                {item.comprovante_url ? <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="text-emerald-400 font-bold underline flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> {item.comprovante_nome || 'Ver Comp.'}</a> : <span className="text-slate-500">Sem Comprovante</span>}
                               </td>
-
-                              <td className="p-3">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                                  {item.status || 'Pendente'}
-                                </span>
-                              </td>
+                              <td className="p-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>{item.status || 'Pendente'}</span></td>
                               <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                                <button onClick={() => handleToggleQuitar(item, 'pagar')} className={`px-2 py-1 rounded text-xs font-bold inline-flex items-center gap-1 ${item.status === 'Pago' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}>
-                                  <Check className="w-3 h-3" /> {item.status === 'Pago' ? 'Estornar' : 'Pagar'}
-                                </button>
-                                <button onClick={() => { setEditingFinanceiro({ ...item, tipo: 'pagar' }); setShowEditFinanceiroModal(true); }} className="p-1 bg-slate-800 text-amber-400 rounded" title="Editar"><Edit2 className="w-3 h-3" /></button>
-                                <button onClick={() => handleDeleteFinanceiro(item.id, 'pagar')} className="p-1 bg-slate-800 text-rose-400 rounded" title="Excluir"><Trash2 className="w-3 h-3" /></button>
+                                <button onClick={() => handleToggleQuitar(item, 'pagar')} className={`px-2 py-1 rounded text-xs font-bold ${item.status === 'Pago' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}><Check className="w-3 h-3" /> {item.status === 'Pago' ? 'Estornar' : 'Pagar'}</button>
+                                <button onClick={() => handleDeleteFinanceiro(item.id, 'pagar')} className="p-1 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3 h-3" /></button>
                               </td>
                             </tr>
                           ))
@@ -596,64 +530,36 @@ export default function TorquatoFullERP() {
                   </div>
                 )}
 
-                {/* TABELA RECEBER */}
-                {finTab === 'receber' && (
+                {/* 2. CONTAS A RECEBER */}
+                {finSubTab === 'receber' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-400" /> Contas a Receber & Documentos</h3>
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-400" /> Contas a Receber & Extrato por Cliente</h3>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
                         <tr>
-                          <th className="p-3">Descrição</th>
-                          <th className="p-3">Categoria</th>
-                          <th className="p-3">Previsão</th>
+                          <th className="p-3">Descrição / Cliente</th>
+                          <th className="p-3">Etiqueta</th>
+                          <th className="p-3">Vencimento</th>
                           <th className="p-3">Valor</th>
-                          <th className="p-3">Nota Fiscal / Fatura</th>
-                          <th className="p-3">Comprovante de Recebimento</th>
+                          <th className="p-3">Nota Fiscal</th>
                           <th className="p-3">Status</th>
                           <th className="p-3 text-center">Ações</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
                         {filteredReceber.length === 0 ? (
-                          <tr><td colSpan={8} className="p-6 text-center text-slate-500">Nenhuma conta a receber registrada.</td></tr>
+                          <tr><td colSpan={7} className="p-6 text-center text-slate-500">Nenhuma conta a receber registrada.</td></tr>
                         ) : (
                           filteredReceber.map((item: any) => (
                             <tr key={item.id} className="hover:bg-slate-950/50">
                               <td className="p-3 font-bold text-white">{item.descricao}</td>
-                              <td className="p-3 text-slate-400">{item.categoria}</td>
+                              <td className="p-3"><span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded text-[10px] font-bold">{item.etiqueta || 'Geral'}</span></td>
                               <td className="p-3 text-slate-300">{item.vencimento}</td>
                               <td className="p-3 font-bold text-emerald-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                              
-                              <td className="p-3">
-                                {item.nf_url ? (
-                                  <a href={item.nf_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg text-[11px] font-bold hover:bg-amber-500/20 transition">
-                                    <Paperclip className="w-3 h-3" /> {item.nf_nome || 'Ver NF'}
-                                  </a>
-                                ) : (
-                                  <span className="text-slate-500 text-[11px]">Sem NF</span>
-                                )}
-                              </td>
-
-                              <td className="p-3">
-                                {item.comprovante_url ? (
-                                  <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-[11px] font-bold hover:bg-emerald-500/20 transition">
-                                    <CheckCircle2 className="w-3 h-3" /> {item.comprovante_nome || 'Ver Comprovante'}
-                                  </a>
-                                ) : (
-                                  <span className="text-slate-500 text-[11px]">Sem Comprovante</span>
-                                )}
-                              </td>
-
-                              <td className="p-3">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Recebido' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
-                                  {item.status || 'Pendente'}
-                                </span>
-                              </td>
+                              <td className="p-3">{item.nf_url ? <a href={item.nf_url} target="_blank" rel="noreferrer" className="text-amber-400 underline">Ver NF</a> : <span className="text-slate-500">Sem NF</span>}</td>
+                              <td className="p-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Recebido' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>{item.status || 'Pendente'}</span></td>
                               <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                                <button onClick={() => handleToggleQuitar(item, 'receber')} className={`px-2 py-1 rounded text-xs font-bold inline-flex items-center gap-1 ${item.status === 'Recebido' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}>
-                                  <Check className="w-3 h-3" /> {item.status === 'Recebido' ? 'Estornar' : 'Receber'}
-                                </button>
-                                <button onClick={() => { setEditingFinanceiro({ ...item, tipo: 'receber' }); setShowEditFinanceiroModal(true); }} className="p-1 bg-slate-800 text-amber-400 rounded"><Edit2 className="w-3 h-3" /></button>
+                                <button onClick={() => handleToggleQuitar(item, 'receber')} className={`px-2 py-1 rounded text-xs font-bold ${item.status === 'Recebido' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}><Check className="w-3 h-3" /> {item.status === 'Recebido' ? 'Estornar' : 'Receber'}</button>
                                 <button onClick={() => handleDeleteFinanceiro(item.id, 'receber')} className="p-1 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3 h-3" /></button>
                               </td>
                             </tr>
@@ -664,61 +570,126 @@ export default function TorquatoFullERP() {
                   </div>
                 )}
 
-                {/* FLUXO DE CAIXA */}
-                {finTab === 'fluxo' && (
+                {/* 3. CONTAS BANCÁRIAS E CONCILIAÇÃO */}
+                {finSubTab === 'bancos' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><BarChart3 className="w-4 h-4 text-amber-500" /> Fluxo de Caixa Consolidado</h3>
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Wallet className="w-4 h-4 text-amber-500" /> Contas Bancárias & Conciliação</h3>
+                      <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">+ Nova Conta Bancária</button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {filteredBancos.map((b: any) => (
+                        <div key={b.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
+                          <div>
+                            <p className="font-bold text-white text-sm">{b.banco}</p>
+                            <p className="text-xs text-slate-400">Ag: {b.agencia} • CC: {b.conta}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-black text-amber-400 text-sm">R$ {Number(b.saldo || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                            <span className="text-[10px] text-emerald-400 font-bold uppercase">Conciliado</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. GESTÃO DE BOLETOS */}
+                {finSubTab === 'boletos' && (
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><FileText className="w-4 h-4 text-blue-400" /> Controle de Boletos Emitidos & Remessas</h3>
+                      <button onClick={() => setShowBoletoModal(true)} className="px-3 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs">+ Emitir Boleto</button>
+                    </div>
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-950 text-slate-400 uppercase">
+                        <tr><th className="p-3">Nosso Número</th><th className="p-3">Sacado / Cliente</th><th className="p-3">Vencimento</th><th className="p-3">Valor</th><th className="p-3">Status</th></tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800">
+                        {filteredBoletos.map((bol: any) => (
+                          <tr key={bol.id} className="hover:bg-slate-950/50">
+                            <td className="p-3 font-bold text-white">{bol.nosso_numero}</td>
+                            <td className="p-3 text-slate-300">{bol.sacado}</td>
+                            <td className="p-3 text-slate-400">{bol.vencimento}</td>
+                            <td className="p-3 font-bold text-emerald-400">R$ {Number(bol.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td className="p-3"><span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded font-bold">{bol.status}</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* 5. GESTÃO TRIBUTÁRIA */}
+                {finSubTab === 'tributos' && (
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Scale className="w-4 h-4 text-rose-400" /> Gestão Tributária & Impostos</h3>
+                      <button onClick={() => setShowTributoModal(true)} className="px-3 py-2 bg-rose-600 text-white font-bold rounded-xl text-xs">+ Cadastrar Tributo</button>
+                    </div>
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-950 text-slate-400 uppercase">
+                        <tr><th className="p-3">Imposto</th><th className="p-3">Competência</th><th className="p-3">Vencimento</th><th className="p-3">Valor</th><th className="p-3">Status</th></tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800">
+                        {filteredTributos.map((t: any) => (
+                          <tr key={t.id} className="hover:bg-slate-950/50">
+                            <td className="p-3 font-bold text-white">{t.imposto}</td>
+                            <td className="p-3 text-slate-300">{t.competencia}</td>
+                            <td className="p-3 text-slate-400">{t.vencimento}</td>
+                            <td className="p-3 font-bold text-rose-400">R$ {Number(t.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td className="p-3"><span className="px-2 py-0.5 bg-rose-500/10 text-rose-400 rounded font-bold">{t.status}</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* 6. FLUXO DE CAIXA */}
+                {finSubTab === 'fluxo' && (
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><BarChart3 className="w-4 h-4 text-amber-500" /> Fluxo de Caixa Gerencial (Projetado)</h3>
                     <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3 text-xs">
-                      <div className="flex justify-between py-2 border-b border-slate-800"><span className="text-slate-400">Total de Entradas:</span><span className="font-bold text-emerald-400">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
-                      <div className="flex justify-between py-2 border-b border-slate-800"><span className="text-slate-400">Total de Saídas:</span><span className="font-bold text-rose-400">R$ {totalPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
-                      <div className="flex justify-between py-2 text-sm font-black"><span className="text-white">Resultado Líquido:</span><span className={saldoLiquido >= 0 ? 'text-amber-400' : 'text-rose-400'}>R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between py-2 border-b border-slate-800"><span className="text-slate-400">Total Entradas (Receber):</span><span className="font-bold text-emerald-400">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between py-2 border-b border-slate-800"><span className="text-slate-400">Total Saídas (Pagar):</span><span className="font-bold text-rose-400">R$ {totalPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+                      <div className="flex justify-between py-2 text-sm font-black"><span className="text-white">Resultado Operacional Líquido:</span><span className={saldoLiquido >= 0 ? 'text-amber-400' : 'text-rose-400'}>R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
                     </div>
                   </div>
                 )}
               </div>
             )}
 
-            {activeModule !== 'administracao' && activeModule !== 'financeiro' && (
-              <div className="space-y-6">
-                <h1 className="text-2xl font-bold text-white capitalize">{activeModule}</h1>
-                <p className="text-xs text-slate-400">Módulo integrado.</p>
-              </div>
-            )}
           </main>
         </div>
 
-        {/* MODAL NOVO LANÇAMENTO COM NF E COMPROVANTE SEPARADOS */}
+        {/* MODAL NOVO LANÇAMENTO COM NF E COMPROVANTE */}
         {showFinanceiroModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Lançamento & Anexos</h3><button onClick={() => setShowFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Lançamento Financeiro (Koper)</h3><button onClick={() => setShowFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
               <form onSubmit={handleSaveFinanceiro} className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setFinTipo('pagar')} className={`p-2.5 rounded-xl text-xs font-bold border transition ${finTipo === 'pagar' ? 'bg-rose-500/25 border-rose-500 text-rose-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>Conta a Pagar</button>
-                  <button type="button" onClick={() => setFinTipo('receber')} className={`p-2.5 rounded-xl text-xs font-bold border transition ${finTipo === 'receber' ? 'bg-emerald-500/25 border-emerald-500 text-emerald-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>Conta a Receber</button>
+                  <button type="button" onClick={() => setFinTipo('pagar')} className={`p-2.5 rounded-xl text-xs font-bold border ${finTipo === 'pagar' ? 'bg-rose-500/25 border-rose-500 text-rose-400' : 'bg-slate-950 text-slate-400'}`}>Conta a Pagar</button>
+                  <button type="button" onClick={() => setFinTipo('receber')} className={`p-2.5 rounded-xl text-xs font-bold border ${finTipo === 'receber' ? 'bg-emerald-500/25 border-emerald-500 text-emerald-400' : 'bg-slate-950 text-slate-400'}`}>Conta a Receber</button>
                 </div>
-                <input type="text" required placeholder="Descrição" value={finDescricao} onChange={(e) => setFinDescricao(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" required placeholder="Descrição / Fornecedor / Cliente" value={finDescricao} onChange={(e) => setFinDescricao(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="number" step="0.01" required placeholder="Valor (R$)" value={finValor} onChange={(e) => setFinValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="date" required value={finVencimento} onChange={(e) => setFinVencimento(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <select value={finCategoria} onChange={(e) => setFinCategoria(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                  <option value="Material de Obra">Material de Obra</option>
-                  <option value="Mão de Obra">Mão de Obra</option>
-                  <option value="Equipamentos">Equipamentos</option>
-                  <option value="Despesas Administrativas">Despesas Administrativas</option>
-                </select>
+                <input type="text" placeholder="Etiqueta (ex: Obra Centro, Materiais)" value={finEtiqueta} onChange={(e) => setFinEtiqueta(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
 
-                {/* ANEXO 1: NOTA FISCAL (XML / PDF) */}
+                {/* Nota Fiscal XML/PDF */}
                 <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
-                  <label className="block text-xs font-bold text-amber-400 uppercase">1. Nota Fiscal (XML ou PDF)</label>
-                  <input type="file" accept=".xml,.pdf" onChange={(e) => handleFileChange(e, 'nf', false)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer" />
-                  {finNfNome && <p className="text-[11px] text-amber-400">NF Selecionada: {finNfNome}</p>}
+                  <label className="block text-xs font-bold text-amber-400 uppercase">Nota Fiscal (XML ou PDF)</label>
+                  <input type="file" accept=".xml,.pdf" onChange={(e) => handleFileChange(e, 'nf', false)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 cursor-pointer" />
+                  {finNfNome && <p className="text-[11px] text-amber-400">NF: {finNfNome}</p>}
                 </div>
 
-                {/* ANEXO 2: COMPROVANTE DE PAGAMENTO */}
+                {/* Comprovante */}
                 <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
-                  <label className="block text-xs font-bold text-emerald-400 uppercase">2. Comprovante de Pagamento</label>
-                  <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, 'comprovante', false)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer" />
-                  {finCompNome && <p className="text-[11px] text-emerald-400">Comprovante Selecionado: {finCompNome}</p>}
+                  <label className="block text-xs font-bold text-emerald-400 uppercase">Comprovante de Pagamento</label>
+                  <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, 'comprovante', false)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white cursor-pointer" />
+                  {finCompNome && <p className="text-[11px] text-emerald-400">Comprovante: {finCompNome}</p>}
                 </div>
 
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar Lançamento</button></div>
@@ -727,116 +698,49 @@ export default function TorquatoFullERP() {
           </div>
         )}
 
-        {/* MODAL EDITAR LANÇAMENTO COM NF E COMPROVANTE SEPARADOS */}
-        {showEditFinanceiroModal && editingFinanceiro && (
+        {/* MODAL CONTA BANCÁRIA */}
+        {showBancoModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Lançamento & Documentos</h3><button onClick={() => setShowEditFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleUpdateFinanceiro} className="space-y-3">
-                <input type="text" required value={editingFinanceiro.descricao} onChange={(e) => setEditingFinanceiro({ ...editingFinanceiro, descricao: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" step="0.01" required value={editingFinanceiro.valor} onChange={(e) => setEditingFinanceiro({ ...editingFinanceiro, valor: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="date" required value={editingFinanceiro.vencimento} onChange={(e) => setEditingFinanceiro({ ...editingFinanceiro, vencimento: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <select value={editingFinanceiro.categoria} onChange={(e) => setEditingFinanceiro({ ...editingFinanceiro, categoria: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                  <option value="Material de Obra">Material de Obra</option>
-                  <option value="Mão de Obra">Mão de Obra</option>
-                  <option value="Equipamentos">Equipamentos</option>
-                  <option value="Despesas Administrativas">Despesas Administrativas</option>
-                </select>
-
-                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
-                  <label className="block text-xs font-bold text-amber-400 uppercase">Nota Fiscal (XML/PDF)</label>
-                  <input type="file" accept=".xml,.pdf" onChange={(e) => handleFileChange(e, 'nf', true)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer" />
-                  {editingFinanceiro.nf_nome && <p className="text-[11px] text-amber-400">NF Atual: {editingFinanceiro.nf_nome}</p>}
-                </div>
-
-                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
-                  <label className="block text-xs font-bold text-emerald-400 uppercase">Comprovante de Pagamento</label>
-                  <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, 'comprovante', true)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer" />
-                  {editingFinanceiro.comprovante_nome && <p className="text-[11px] text-emerald-400">Comprovante Atual: {editingFinanceiro.comprovante_nome}</p>}
-                </div>
-
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-                  <button type="button" onClick={() => setShowEditFinanceiroModal(false)} className="px-4 py-2 border border-slate-800 text-slate-400 rounded-xl text-xs">Cancelar</button>
-                  <button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar Alterações</button>
-                </div>
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
+              <h3 className="font-bold text-white">Nova Conta Bancária</h3>
+              <form onSubmit={handleSaveBanco} className="space-y-3">
+                <input type="text" required placeholder="Nome do Banco (ex: Itaú, Sicoob)" value={bancoNome} onChange={(e) => setBancoNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" placeholder="Agência" value={bancoAgencia} onChange={(e) => setBancoAgencia(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" placeholder="Conta Corrente" value={bancoConta} onChange={(e) => setBancoConta(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" step="0.01" placeholder="Saldo Inicial (R$)" value={bancoSaldo} onChange={(e) => setBancoSaldo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar Conta</button></div>
               </form>
             </div>
           </div>
         )}
 
-        {/* MODAIS ADMIN */}
-        {showEmpresaModal && (
+        {/* MODAL BOLETO */}
+        {showBoletoModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
-              <h3 className="font-bold text-white">Cadastrar Empresa</h3>
-              <form onSubmit={handleSaveEmpresa} className="space-y-3">
-                <input type="text" required placeholder="Razão Social" value={empNome} onChange={(e) => setEmpNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" placeholder="CNPJ" value={empCnpj} onChange={(e) => setEmpCnpj(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
+              <h3 className="font-bold text-white">Emitir / Cadastrar Boleto</h3>
+              <form onSubmit={handleSaveBoleto} className="space-y-3">
+                <input type="text" required placeholder="Nosso Número" value={bolNumero} onChange={(e) => setBolNumero(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" required placeholder="Sacado (Cliente)" value={bolSacado} onChange={(e) => setBolSacado(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" step="0.01" required placeholder="Valor (R$)" value={bolValor} onChange={(e) => setBolValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="date" required value={bolVencimento} onChange={(e) => setBolVencimento(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs">Salvar Boleto</button></div>
               </form>
             </div>
           </div>
         )}
-        {showEditEmpresaModal && editingEmpresa && (
+
+        {/* MODAL TRIBUTO */}
+        {showTributoModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
-              <h3 className="font-bold text-white">Editar Empresa</h3>
-              <form onSubmit={handleUpdateEmpresa} className="space-y-3">
-                <input type="text" required value={editingEmpresa.nome} onChange={(e) => setEditingEmpresa({ ...editingEmpresa, nome: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" required value={editingEmpresa.cnpj} onChange={(e) => setEditingEmpresa({ ...editingEmpresa, cnpj: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-        {showUserModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
-              <h3 className="font-bold text-white">Novo Usuário</h3>
-              <form onSubmit={handleSaveUser} className="space-y-3">
-                <input type="text" required placeholder="Nome" value={userName} onChange={(e) => setUserName(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="email" required placeholder="E-mail" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" required placeholder="Limite" value={userLimite} onChange={(e) => setUserLimite(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs">Salvar</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-        {showEditUserModal && editingUser && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
-              <h3 className="font-bold text-white">Editar Usuário</h3>
-              <form onSubmit={handleUpdateUser} className="space-y-3">
-                <input type="text" required value={editingUser.nome} onChange={(e) => setEditingUser({ ...editingUser, nome: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="email" required value={editingUser.email} onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" required value={editingUser.limite_aprovacao} onChange={(e) => setEditingUser({ ...editingUser, limite_aprovacao: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs">Salvar</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-        {showContratoModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
-              <h3 className="font-bold text-white">Cadastrar Contrato</h3>
-              <form onSubmit={handleSaveContrato} className="space-y-3">
-                <input type="text" required placeholder="Título" value={contTitulo} onChange={(e) => setContTitulo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" placeholder="Fornecedor" value={contFornecedor} onChange={(e) => setContFornecedor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" step="0.01" required placeholder="Valor" value={contValor} onChange={(e) => setContValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-        {showEditContratoModal && editingContrato && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
-              <h3 className="font-bold text-white">Editar Contrato</h3>
-              <form onSubmit={handleUpdateContrato} className="space-y-3">
-                <input type="text" required value={editingContrato.titulo} onChange={(e) => setEditingContrato({ ...editingContrato, titulo: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" value={editingContrato.fornecedor || ''} onChange={(e) => setEditingContrato({ ...editingContrato, fornecedor: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" step="0.01" required value={editingContrato.valor} onChange={(e) => setEditingContrato({ ...editingContrato, valor: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar</button></div>
+              <h3 className="font-bold text-white">Cadastrar Tributo / Imposto</h3>
+              <form onSubmit={handleSaveTributo} className="space-y-3">
+                <input type="text" required placeholder="Imposto (ex: ISS, INSS, DARF)" value={tribImposto} onChange={(e) => setTribImposto(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" placeholder="Competência (ex: 2026/10)" value={tribCompetencia} onChange={(e) => setTribCompetencia(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" step="0.01" required placeholder="Valor (R$)" value={tribValor} onChange={(e) => setTribValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="date" required value={tribVencimento} onChange={(e) => setTribVencimento(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-rose-600 text-white font-bold rounded-xl text-xs">Salvar Tributo</button></div>
               </form>
             </div>
           </div>
