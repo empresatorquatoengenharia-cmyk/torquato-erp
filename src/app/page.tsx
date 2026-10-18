@@ -6,36 +6,22 @@ import {
   ShoppingCart, 
   DollarSign, 
   HardHat, 
-  Boxes, 
   LogOut,
   Plus,
   ChevronRight,
-  Search,
   LayoutDashboard,
   ShieldCheck,
-  Users,
   X,
   FileText,
-  Truck,
   TrendingUp,
   TrendingDown,
   Activity,
   BarChart3,
-  Lock,
-  Briefcase,
-  Edit2,
   Trash2,
-  Upload,
   CheckCircle2,
-  AlertCircle,
   Check,
-  Eye,
   Paperclip,
-  CreditCard,
   Wallet,
-  FileSpreadsheet,
-  Receipt,
-  Scale,
   Filter
 } from 'lucide-react';
 
@@ -44,37 +30,25 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function TorquatoFullERP() {
-  const [activeModule, setActiveModule] = useState('dashboard'); // Iniciando no Dashboard para teste
+  const [activeModule, setActiveModule] = useState('dashboard');
   const [selectedCompany, setSelectedCompany] = useState('Torquato Engenharia Ltda');
-  const [selectedProject, setSelectedProject] = useState('todas');
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Estados Globais
   const [empresas, setEmpresas] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [usuarios, setUsuarios] = useState<any[]>([]);
-  const [contratos, setContratos] = useState<any[]>([]);
   const [financialsPagar, setFinancialsPagar] = useState<any[]>([]);
   const [financialsReceber, setFinancialsReceber] = useState<any[]>([]);
   const [contasBancarias, setContasBancarias] = useState<any[]>([]);
-  const [cartoesCredito, setCartoesCredito] = useState<any[]>([]);
   const [boletos, setBoletos] = useState<any[]>([]);
   const [tributos, setTributos] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
 
   // Sub-abas Financeiro e Filtros do Dashboard
   const [finSubTab, setFinSubTab] = useState('pagar');
-  const [dashFiltroStatus, setDashFiltroStatus] = useState('todos'); // 'todos', 'pagos', 'pendentes'
+  const [dashFiltroStatus, setDashFiltroStatus] = useState('todos');
   const [dashFiltroCategoria, setDashFiltroCategoria] = useState('todas');
 
-  // Modais Gerais
-  const [showEmpresaModal, setShowEmpresaModal] = useState(false);
-  const [showUserModal, setShowUserModal] = useState(false);
-  const [showContratoModal, setShowContratoModal] = useState(false);
+  // Modais
   const [showFinanceiroModal, setShowFinanceiroModal] = useState(false);
   const [showBancoModal, setShowBancoModal] = useState(false);
-  const [showBoletoModal, setShowBoletoModal] = useState(false);
-  const [showTributoModal, setShowTributoModal] = useState(false);
 
   // Forms Financeiro
   const [finDescricao, setFinDescricao] = useState('');
@@ -89,35 +63,22 @@ export default function TorquatoFullERP() {
   const [finCompNome, setFinCompNome] = useState('');
   const [finCompUrl, setFinCompUrl] = useState('');
 
-  // Forms Bancos e Boletos
+  // Forms Bancos
   const [bancoNome, setBancoNome] = useState('');
   const [bancoAgencia, setBancoAgencia] = useState('');
   const [bancoConta, setBancoConta] = useState('');
   const [bancoSaldo, setBancoSaldo] = useState('');
-  const [bolNumero, setBolNumero] = useState('');
-  const [bolSacado, setBolSacado] = useState('');
-  const [bolValor, setBolValor] = useState('');
-  const [bolVencimento, setBolVencimento] = useState('');
 
   useEffect(() => {
     loadAllData();
   }, []);
 
   async function loadAllData() {
-    setLoading(true);
     const { data: empData } = await supabase.from('empresas_erp').select('*').order('created_at', { ascending: true });
     if (empData && empData.length > 0) {
       setEmpresas(empData);
       if (!selectedCompany) setSelectedCompany(empData[0].nome);
     }
-    const { data: projData } = await supabase.from('projects').select('*');
-    if (projData) setProjects(projData);
-
-    const { data: userData } = await supabase.from('usuarios_erp').select('*');
-    if (userData) setUsuarios(userData);
-
-    const { data: contData } = await supabase.from('contratos_empresa').select('*');
-    if (contData) setContratos(contData);
 
     const { data: pagData } = await supabase.from('financeiro_lancamentos').select('*').order('vencimento', { ascending: true });
     if (pagData) setFinancialsPagar(pagData);
@@ -133,8 +94,6 @@ export default function TorquatoFullERP() {
 
     const { data: tribData } = await supabase.from('tributos_erp').select('*');
     if (tribData) setTributos(tribData);
-
-    setLoading(false);
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>, tipoArquivo: 'nf' | 'comprovante') {
@@ -223,7 +182,7 @@ export default function TorquatoFullERP() {
               <div className="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center text-slate-950 font-black shadow-lg">TE</div>
               <div>
                 <span className="font-bold text-sm tracking-wide text-white block">TORQUATO ENGENHARIA</span>
-                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block -mt-1">ERP Corporativo (Padrão Koper)</span>
+                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block -mt-1">ERP Corporativo</span>
               </div>
             </div>
 
@@ -371,7 +330,6 @@ export default function TorquatoFullERP() {
                       <h3 className="font-bold text-sm text-white uppercase tracking-wider">Filtros Combináveis & Insights Estratégicos</h3>
                     </div>
                     
-                    {/* Botões de Seleção e Filtros */}
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <select 
                         value={dashFiltroStatus} 
@@ -397,7 +355,6 @@ export default function TorquatoFullERP() {
                     </div>
                   </div>
 
-                  {/* TABELA DE RESULTADOS DO DASHBOARD COM OS FILTROS APLICADOS */}
                   <div className="space-y-3">
                     <p className="text-xs font-bold text-slate-400 uppercase">Detalhamento dos Lançamentos Filtrados ({dashboardPagarFiltrado.length} itens)</p>
                     <table className="w-full text-left text-xs">
@@ -446,21 +403,23 @@ export default function TorquatoFullERP() {
                     </h1>
                     <p className="text-xs text-slate-400 mt-1">Empresa ativa: <span className="text-amber-400 font-bold">{selectedCompany}</span></p>
                   </div>
-                  <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2">
-                    <Plus className="w-4 h-4" /> Novo Lançamento
-                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-amber-400 font-bold rounded-xl text-xs transition border border-slate-700">+ Conta Bancária</button>
+                    <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2">
+                      <Plus className="w-4 h-4" /> Novo Lançamento
+                    </button>
+                  </div>
                 </div>
 
-                {/* ABAS DO KOPER ERP FINANCEIRO */}
                 <div className="flex gap-2 border-b border-slate-800 pb-2">
                   <button onClick={() => setFinSubTab('pagar')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'pagar' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Pagar ({filteredPagar.length})</button>
                   <button onClick={() => setFinSubTab('receber')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'receber' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Receber ({filteredReceber.length})</button>
+                  <button onClick={() => setFinSubTab('bancos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'bancos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas Bancárias ({filteredBancos.length})</button>
                 </div>
 
-                {/* TABELA PAGAR */}
                 {finSubTab === 'pagar' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingDown className="w-4 h-4 text-rose-400" /> Contas a Pagar & Comprovantes / Notas Fiscais</h3>
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingDown className="w-4 h-4 text-rose-400" /> Contas a Pagar</h3>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
                         <tr>
@@ -468,7 +427,7 @@ export default function TorquatoFullERP() {
                           <th className="p-3">Categoria</th>
                           <th className="p-3">Vencimento</th>
                           <th className="p-3">Valor</th>
-                          <th className="p-3">Nota Fiscal (XML/PDF)</th>
+                          <th className="p-3">Nota Fiscal</th>
                           <th className="p-3">Comprovante</th>
                           <th className="p-3">Status</th>
                           <th className="p-3 text-center">Ações</th>
@@ -499,41 +458,25 @@ export default function TorquatoFullERP() {
                   </div>
                 )}
 
-                {/* TABELA RECEBER */}
-                {finSubTab === 'receber' && (
+                {finSubTab === 'bancos' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-400" /> Contas a Receber</h3>
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950 text-slate-400 uppercase">
-                        <tr>
-                          <th className="p-3">Descrição</th>
-                          <th className="p-3">Categoria</th>
-                          <th className="p-3">Previsão</th>
-                          <th className="p-3">Valor</th>
-                          <th className="p-3">Status</th>
-                          <th className="p-3 text-center">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800">
-                        {filteredReceber.length === 0 ? (
-                          <tr><td colSpan={6} className="p-6 text-center text-slate-500">Nenhuma conta a receber registrada.</td></tr>
-                        ) : (
-                          filteredReceber.map((item: any) => (
-                            <tr key={item.id} className="hover:bg-slate-950/50">
-                              <td className="p-3 font-bold text-white">{item.descricao}</td>
-                              <td className="p-3 text-slate-400">{item.categoria}</td>
-                              <td className="p-3 text-slate-300">{item.vencimento}</td>
-                              <td className="p-3 font-bold text-emerald-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                              <td className="p-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Recebido' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>{item.status || 'Pendente'}</span></td>
-                              <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                                <button onClick={() => handleToggleQuitar(item, 'receber')} className={`px-2 py-1 rounded text-xs font-bold ${item.status === 'Recebido' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}><Check className="w-3 h-3" /> {item.status === 'Recebido' ? 'Estornar' : 'Receber'}</button>
-                                <button onClick={() => handleDeleteFinanceiro(item.id, 'receber')} className="p-1 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3 h-3" /></button>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Wallet className="w-4 h-4 text-amber-500" /> Contas Bancárias & Conciliação</h3>
+                      <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">+ Nova Conta</button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {filteredBancos.map((b: any) => (
+                        <div key={b.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
+                          <div>
+                            <p className="font-bold text-white text-sm">{b.banco}</p>
+                            <p className="text-xs text-slate-400">Ag: {b.agencia} • CC: {b.conta}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-black text-amber-400 text-sm">R$ {Number(b.saldo || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -549,7 +492,7 @@ export default function TorquatoFullERP() {
           </main>
         </div>
 
-        {/* MODAL NOVO LANÇAMENTO COM NF E COMPROVANTE */}
+        {/* MODAIS */}
         {showFinanceiroModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
@@ -572,16 +515,29 @@ export default function TorquatoFullERP() {
                 <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
                   <label className="block text-xs font-bold text-amber-400 uppercase">Nota Fiscal (XML/PDF)</label>
                   <input type="file" accept=".xml,.pdf" onChange={(e) => handleFileChange(e, 'nf')} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 cursor-pointer" />
-                  {finNfNome && <p className="text-[11px] text-amber-400">NF: {finNfNome}</p>}
                 </div>
 
                 <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
                   <label className="block text-xs font-bold text-emerald-400 uppercase">Comprovante de Pagamento</label>
                   <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, 'comprovante')} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white cursor-pointer" />
-                  {finCompNome && <p className="text-[11px] text-emerald-400">Comprovante: {finCompNome}</p>}
                 </div>
 
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar Lançamento</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {showBancoModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
+              <h3 className="font-bold text-white">Nova Conta Bancária</h3>
+              <form onSubmit={handleSaveBanco} className="space-y-3">
+                <input type="text" required placeholder="Nome do Banco" value={bancoNome} onChange={(e) => setBancoNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" placeholder="Agência" value={bancoAgencia} onChange={(e) => setBancoAgencia(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" placeholder="Conta Corrente" value={bancoConta} onChange={(e) => setBancoConta(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" step="0.01" placeholder="Saldo Inicial (R$)" value={bancoSaldo} onChange={(e) => setBancoSaldo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar Conta</button></div>
               </form>
             </div>
           </div>
