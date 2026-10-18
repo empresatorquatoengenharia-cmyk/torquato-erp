@@ -174,9 +174,9 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-white" id="modal-titulo-usuario">Configurar Permissões</h3>
-                    <p class="text-xs text-slate-400">Selecione as páginas e o nível de acesso (Visualizar vs. Editar).</p>
+                    <p class="text-xs text-slate-400">Selecione as páginas e o nível de acesso.</p>
                 </div>
-                <button onclick="fecharModalPermissoes()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" onclick="fecharModalPermissoes()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <input type="hidden" id="modal-user-id">
@@ -185,74 +185,54 @@
             <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
                 <div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Módulos do Sistema</div>
                 
-                <!-- Módulo 1: Dashboard -->
                 <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
                     <div>
                         <div class="font-bold text-white text-xs">Dashboard Geral</div>
-                        <div class="text-[10px] text-slate-400">Visão geral executiva e métricas</div>
                     </div>
-                    <div class="flex items-center space-x-3">
-                        <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
-                            <input type="checkbox" value="dashboard" class="chk-pagina accent-amber-500">
-                            <span>Permitir Acesso</span>
-                        </label>
-                    </div>
+                    <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
+                        <input type="checkbox" value="dashboard" class="chk-pagina accent-amber-500">
+                        <span>Permitir Acesso</span>
+                    </label>
                 </div>
 
-                <!-- Módulo 2: Empresa Matriz -->
                 <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
                     <div>
                         <div class="font-bold text-white text-xs">Dados da Empresa Matriz</div>
-                        <div class="text-[10px] text-slate-400">Informações institucionais e fiscais</div>
                     </div>
-                    <div class="flex items-center space-x-3">
-                        <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
-                            <input type="checkbox" value="admin" class="chk-pagina accent-amber-500">
-                            <span>Permitir Acesso</span>
-                        </label>
-                    </div>
+                    <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
+                        <input type="checkbox" value="admin" class="chk-pagina accent-amber-500">
+                        <span>Permitir Acesso</span>
+                    </label>
                 </div>
 
-                <!-- Módulo 3: Módulo Financeiro -->
                 <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
                     <div>
                         <div class="font-bold text-white text-xs">Módulo Financeiro</div>
-                        <div class="text-[10px] text-slate-400">Contas, pagamentos e fluxo de caixa</div>
                     </div>
-                    <div class="flex items-center space-x-3">
-                        <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
-                            <input type="checkbox" value="financeiro" class="chk-pagina accent-amber-500">
-                            <span>Permitir Acesso</span>
-                        </label>
-                    </div>
+                    <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
+                        <input type="checkbox" value="financeiro" class="chk-pagina accent-amber-500">
+                        <span>Permitir Acesso</span>
+                    </label>
                 </div>
 
-                <!-- Módulo 4: Gestão de Notas Fiscais -->
                 <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
                     <div>
                         <div class="font-bold text-white text-xs">Notas Fiscais & Faturamento</div>
-                        <div class="text-[10px] text-slate-400">Emissão e consulta de NFS-e</div>
                     </div>
-                    <div class="flex items-center space-x-3">
-                        <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
-                            <input type="checkbox" value="notas" class="chk-pagina accent-amber-500">
-                            <span>Permitir Acesso</span>
-                        </label>
-                    </div>
+                    <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
+                        <input type="checkbox" value="notas" class="chk-pagina accent-amber-500">
+                        <span>Permitir Acesso</span>
+                    </label>
                 </div>
 
-                <!-- Módulo 5: Engenharia e Obras -->
                 <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
                     <div>
                         <div class="font-bold text-white text-xs">Engenharia & Obras</div>
-                        <div class="text-[10px] text-slate-400">Projetos, ARTs e insumos</div>
                     </div>
-                    <div class="flex items-center space-x-3">
-                        <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
-                            <input type="checkbox" value="engenharia" class="chk-pagina accent-amber-500">
-                            <span>Permitir Acesso</span>
-                        </label>
-                    </div>
+                    <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
+                        <input type="checkbox" value="engenharia" class="chk-pagina accent-amber-500">
+                        <span>Permitir Acesso</span>
+                    </label>
                 </div>
 
                 <div class="border-t border-slate-800 pt-3 space-y-2">
@@ -271,8 +251,8 @@
             </div>
 
             <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
-                <button onclick="fecharModalPermissoes()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer">Cancelar</button>
-                <button onclick="guardarPermissoes()" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer">Salvar Permissões</button>
+                <button type="button" onclick="fecharModalPermissoes()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer">Cancelar</button>
+                <button type="button" onclick="guardarPermissoes()" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer">Salvar Permissões</button>
             </div>
         </div>
     </div>
@@ -413,7 +393,7 @@
                     <td class="p-3"><span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded uppercase text-[10px] font-bold">${u.perfil || 'operacional'}</span></td>
                     <td class="p-3 text-slate-400 text-[11px]">${(u.paginas_permitidas || []).join(', ') || 'Nenhuma'}</td>
                     <td class="p-3 text-right space-x-2">
-                        <button type="button" onclick="abrirModalPermissoes(${u.id})" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 hover:bg-amber-950 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Configurar Acessos</button>
+                        <button type="button" onclick="abrirModalPermissoes('${u.email}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 hover:bg-amber-950 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Configurar Acessos</button>
                         <button type="button" onclick="excluirUtilizador(${u.id})" class="text-red-400 hover:text-red-300 bg-red-950/40 hover:bg-red-950 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
                     </td>
                 </tr>
@@ -441,10 +421,10 @@
             }
         }
 
-        function abrirModalPermissoes(id) {
-            const usuario = listaUtilizadoresCache.find(u => Number(u.id) === Number(id));
+        function abrirModalPermissoes(emailUtilizador) {
+            const usuario = listaUtilizadoresCache.find(u => u.email.toLowerCase() === emailUtilizador.toLowerCase());
             if (!usuario) {
-                alert('Utilizador não encontrado no cache.');
+                alert('Utilizador não encontrado.');
                 return;
             }
 
@@ -462,7 +442,7 @@
             document.getElementById('op-visualizar').checked = operacoesPermitidas.includes('visualizar');
             document.getElementById('op-editar').checked = operacoesPermitidas.includes('editar');
 
-            // Mostra o modal retirando a classe hidden
+            // Mostra o modal
             document.getElementById('modal-permissoes').classList.remove('hidden');
         }
 
@@ -494,7 +474,7 @@
 
         async function excluirUtilizador(id) {
             if (!confirm('Tem a certeza que deseja excluir este utilizador?')) return;
-            await supabaseClient.from('usuarios_erp').delete().eq('id', id);
+            await supabaseClient.from('usuarios_erp'].delete().eq('id', id);
             carregarUtilizadores();
         }
     </script>
