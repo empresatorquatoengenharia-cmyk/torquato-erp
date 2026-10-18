@@ -48,7 +48,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function TorquatoFullERP() {
-  const [activeModule, setActiveModule] = useState('suprimentos');
+  const [activeModule, setActiveModule] = useState('dashboard');
   const [selectedCompany, setSelectedCompany] = useState('Torquato Engenharia Ltda');
 
   // Estados Globais
@@ -56,46 +56,51 @@ export default function TorquatoFullERP() {
   const [financialsPagar, setFinancialsPagar] = useState<any[]>([]);
   const [financialsReceber, setFinancialsReceber] = useState<any[]>([]);
   const [contasBancarias, setContasBancarias] = useState<any[]>([]);
+  const [boletos, setBoletos] = useState<any[]>([]);
   const [tributos, setTributos] = useState<any[]>([]);
 
-  // Sub-abas do Módulo Suprimentos
-  const [supSubTab, setSupSubTab] = useState('produtos'); // 'produtos', 'locais', 'entradas', 'equipamentos', 'consumo', 'epis', 'balancos', 'solicitacoes'
-  
-  // Listas de Suprimentos
+  // Sub-abas Suprimentos
+  const [supSubTab, setSupSubTab] = useState('produtos');
   const [produtosSup, setProdutosSup] = useState<any[]>([]);
   const [locaisSup, setLocaisSup] = useState<any[]>([]);
   const [episSup, setEpisSup] = useState<any[]>([]);
-  const [entregasEpi, setEntregasEpi] = useState<any[]>([]);
   const [balancosSup, setBalancosSup] = useState<any[]>([]);
   const [entradasSup, setEntradasSup] = useState<any[]>([]);
   const [equipamentosSup, setEquipamentosSup] = useState<any[]>([]);
   const [consumosSup, setConsumosSup] = useState<any[]>([]);
   const [solicitacoesSup, setSolicitacoesSup] = useState<any[]>([]);
 
-  // Estados de Fichas e Telas Modais
+  // Detalhes e Modais Suprimentos
   const [balancoDetalhe, setBalancoDetalhe] = useState<any>(null);
   const [balancoItens, setBalancoItens] = useState<any[]>([]);
   const [solicitacaoDetalhe, setSolicitacaoDetalhe] = useState<any>(null);
   const [equipDetalhe, setEquipDetalhe] = useState<any>(null);
-  const [consumoDetalhe, setConsumoDetalhe] = useState<any>(null);
-
   const [visaoLocais, setVisaoLocais] = useState<'lista' | 'controle'>('lista');
   const [showNovaEntradaForm, setShowNovaEntradaForm] = useState(false);
   const [showNovoConsumoForm, setShowNovoConsumoForm] = useState(false);
 
-  // Busca e Filtros
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filtroStatusProduto, setFiltroStatusProduto] = useState('Ativo');
+  // Filtros Dashboard & Financeiro
+  const [finSubTab, setFinSubTab] = useState('pagar');
+  const [dashFiltroStatus, setDashFiltroStatus] = useState('todos');
+  const [dashFiltroCategoria, setDashFiltroCategoria] = useState('todas');
+  const [dashFiltroCentroCusto, setDashFiltroCentroCusto] = useState('todos');
+  const [dashFiltroPrazo, setDashFiltroPrazo] = useState('30');
+  const [dashDataInicio, setDashDataInicio] = useState('');
+  const [dashDataFim, setDashDataFim] = useState('');
 
-  // Modais
+  // Busca Suprimentos
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Modais Gerais
   const [showNovoProdutoModal, setShowNovoProdutoModal] = useState(false);
   const [showNovoLocalModal, setShowNovoLocalModal] = useState(false);
-  const [showNovoEpiModal, setShowNovoEpiModal] = useState(false);
-  const [showGerarContratoEpiModal, setShowGerarContratoEpiModal] = useState(false);
   const [showNovoEquipamentoModal, setShowNovoEquipamentoModal] = useState(false);
   const [showFinanceiroModal, setShowFinanceiroModal] = useState(false);
+  const [showBancoModal, setShowBancoModal] = useState(false);
+  const [showTributoModal, setShowTributoModal] = useState(false);
+  const [showEmpresaModal, setShowEmpresaModal] = useState(false);
 
-  // Form State: Cadastro Completo de Produto (Koper)
+  // Form Produto
   const [prodNome, setProdNome] = useState('');
   const [prodEspecificacao, setProdEspecificacao] = useState('');
   const [prodApelido, setProdApelido] = useState('');
@@ -107,11 +112,9 @@ export default function TorquatoFullERP() {
   const [prodValorEstimado, setProdValorEstimado] = useState('');
   const [prodObservacoes, setProdObservacoes] = useState('');
 
-  // Form Local
+  // Form Local & Equipamento
   const [localNome, setLocalNome] = useState('');
   const [localCidade, setLocalCidade] = useState('');
-
-  // Form Equipamento
   const [equipNome, setEquipNome] = useState('');
   const [equipProdutoAssociado, setEquipProdutoAssociado] = useState('');
   const [equipEspec, setEquipEspec] = useState('');
@@ -120,16 +123,35 @@ export default function TorquatoFullERP() {
   const [equipDataAquisicao, setEquipDataAquisicao] = useState('');
   const [equipLocalAlocado, setEquipLocalAlocado] = useState('Casa da Andreia');
 
-  // Form Consumo
+  // Form Consumo & Financeiro
   const [consLocal, setConsLocal] = useState('1201');
   const [consRetiradoPor, setConsRetiradoPor] = useState('Maria Eduarda Pereira Martins');
   const [consComentarios, setConsComentarios] = useState('');
 
-  // Form Financeiro
   const [finDescricao, setFinDescricao] = useState('');
   const [finValor, setFinValor] = useState('');
   const [finTipo, setFinTipo] = useState('pagar');
   const [finVencimento, setFinVencimento] = useState('');
+  const [finCategoria, setFinCategoria] = useState('Material de Obra');
+  const [finCentroCusto, setFinCentroCusto] = useState('Geral / Sede');
+  const [finStatus, setFinStatus] = useState('Pendente');
+  const [finNfNome, setFinNfNome] = useState('');
+  const [finNfUrl, setFinNfUrl] = useState('');
+  const [finCompNome, setFinCompNome] = useState('');
+  const [finCompUrl, setFinCompUrl] = useState('');
+
+  const [bancoNome, setBancoNome] = useState('');
+  const [bancoAgencia, setBancoAgencia] = useState('');
+  const [bancoConta, setBancoConta] = useState('');
+  const [bancoSaldo, setBancoSaldo] = useState('');
+
+  const [tribImposto, setTribImposto] = useState('DAS (Simples Nacional)');
+  const [tribCompetencia, setTribCompetencia] = useState('');
+  const [tribValor, setTribValor] = useState('');
+  const [tribVencimento, setTribVencimento] = useState('');
+
+  const [empNome, setEmpNome] = useState('');
+  const [empCnpj, setEmpCnpj] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -152,7 +174,13 @@ export default function TorquatoFullERP() {
       const { data: bancoData } = await supabase.from('contas_bancarias').select('*');
       if (bancoData) setContasBancarias(bancoData);
 
-      // Suprimentos Tabelas
+      const { data: bolData } = await supabase.from('boletos_erp').select('*');
+      if (bolData) setBoletos(bolData);
+
+      const { data: tribData } = await supabase.from('tributos_erp').select('*').order('vencimento', { ascending: true });
+      if (tribData) setTributos(tribData);
+
+      // Suprimentos
       const { data: prodData } = await supabase.from('suprimentos_produtos').select('*').order('created_at', { ascending: false });
       if (prodData) setProdutosSup(prodData);
 
@@ -161,9 +189,6 @@ export default function TorquatoFullERP() {
 
       const { data: epiData } = await supabase.from('suprimentos_epis').select('*').order('created_at', { ascending: false });
       if (epiData) setEpisSup(epiData);
-
-      const { data: entData } = await supabase.from('suprimentos_epi_entregas').select('*').order('created_at', { ascending: false });
-      if (entData) setEntregasEpi(entData);
 
       const { data: balData } = await supabase.from('suprimentos_balancos').select('*').order('created_at', { ascending: false });
       if (balData) setBalancosSup(balData);
@@ -185,78 +210,107 @@ export default function TorquatoFullERP() {
     }
   }
 
-  // --- HANDLERS DE CADASTRO E SALVAMENTO ---
+  // Anexo de Arquivos no Financeiro
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>, tipoArquivo: 'nf' | 'comprovante') {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    if (tipoArquivo === 'nf') {
+      setFinNfNome(file.name);
+      setFinNfUrl(url);
+    } else {
+      setFinCompNome(file.name);
+      setFinCompUrl(url);
+    }
+  }
+
+  // Handlers de Salvamento
   async function handleSaveProduto(e: React.FormEvent) {
     e.preventDefault();
-    if (!prodNome) {
-      alert('Preencha o nome do produto.');
-      return;
+    if (!prodNome) return;
+    await supabase.from('suprimentos_produtos').insert([{
+      nome: prodNome, especificacao: prodEspecificacao, apelido: prodApelido || '-', tipo: prodTipo,
+      unidade: prodUnidade, marca: prodMarca, categoria: prodCategoria, subcategoria: prodSubcategoria,
+      valor_estimado: parseFloat(prodValorEstimado || '0'), observacoes: prodObservacoes, status: 'Ativo', empresa: selectedCompany
+    }]);
+    setShowNovoProdutoModal(false); setProdNome(''); loadAllData();
+  }
+
+  async function handleSaveFinanceiro(e: React.FormEvent) {
+    e.preventDefault();
+    if (!finDescricao || !finValor) return;
+    const tableTarget = finTipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
+    await supabase.from(tableTarget).insert([{
+      descricao: finDescricao, valor: parseFloat(finValor || '0'), vencimento: finVencimento || new Date().toISOString().split('T')[0],
+      categoria: finCategoria, centro_custo: finCentroCusto, status: finStatus, empresa: selectedCompany,
+      nf_nome: finNfNome || null, nf_url: finNfUrl || null, comprovante_nome: finCompNome || null, comprovante_url: finCompUrl || null
+    }]);
+    setShowFinanceiroModal(false); setFinDescricao(''); setFinValor(''); loadAllData();
+  }
+
+  async function handleSaveBanco(e: React.FormEvent) {
+    e.preventDefault();
+    if (!bancoNome) return;
+    await supabase.from('contas_bancarias').insert([{ banco: bancoNome, agencia: bancoAgencia, conta: bancoConta, saldo: parseFloat(bancoSaldo || '0'), empresa: selectedCompany }]);
+    setShowBancoModal(false); setBancoNome(''); setBancoAgencia(''); setBancoConta(''); setBancoSaldo(''); loadAllData();
+  }
+
+  async function handleSaveTributo(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tribImposto || !tribValor) return;
+    await supabase.from('tributos_erp').insert([{
+      imposto: tribImposto, competencia: tribCompetencia || 'Atual', valor: parseFloat(tribValor || '0'),
+      vencimento: tribVencimento || new Date().toISOString().split('T')[0], status: 'Previsto', empresa: selectedCompany
+    }]);
+    setShowTributoModal(false); setTribCompetencia(''); setTribValor(''); loadAllData();
+  }
+
+  async function handleSaveEmpresa(e: React.FormEvent) {
+    e.preventDefault();
+    if (!empNome) return;
+    await supabase.from('empresas_erp').insert([{ nome: empNome, cnpj: empCnpj || '00.000.000/0001-00' }]);
+    setShowEmpresaModal(false); setEmpNome(''); setEmpCnpj(''); loadAllData();
+  }
+
+  async function handleToggleQuitar(item: any, tipo: 'pagar' | 'receber') {
+    const novoStatus = item.status === 'Pago' || item.status === 'Recebido' ? 'Pendente' : (tipo === 'pagar' ? 'Pago' : 'Recebido');
+    const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
+    await supabase.from(tableTarget).update({ status: novoStatus }).eq('id', item.id);
+    loadAllData();
+  }
+
+  // Filtros Globais
+  const filteredPagar = financialsPagar.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
+  const filteredReceber = financialsReceber.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
+  const filteredBancos = contasBancarias.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
+  const filteredTributos = tributos.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
+
+  const totalPagar = filteredPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+  const totalReceber = filteredReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+  const totalSaldosBancos = filteredBancos.reduce((acc, item) => acc + Number(item.saldo || 0), 0);
+  const saldoLiquido = totalReceber - totalPagar;
+
+  // Filtros do Dashboard
+  const listaCentrosCusto = Array.from(new Set(['Geral / Sede', 'Obra Res. Pôr do Sol', 'Pavimentação Buenópolis', ...filteredPagar.map(i => i.centro_custo).filter(Boolean)]));
+  
+  const dashboardPagarFiltrado = filteredPagar.filter(item => {
+    if (dashFiltroStatus !== 'todos') {
+      const match = dashFiltroStatus === 'pagos' ? item.status === 'Pago' : item.status !== 'Pago';
+      if (!match) return false;
     }
-    try {
-      const { error } = await supabase.from('suprimentos_produtos').insert([{
-        nome: prodNome,
-        especificacao: prodEspecificacao,
-        apelido: prodApelido || '-',
-        tipo: prodTipo,
-        unidade: prodUnidade,
-        marca: prodMarca,
-        categoria: prodCategoria,
-        subcategoria: prodSubcategoria,
-        valor_estimado: parseFloat(prodValorEstimado || '0'),
-        observacoes: prodObservacoes,
-        status: 'Ativo',
-        empresa: selectedCompany
-      }]);
+    if (dashFiltroCategoria !== 'todas' && item.categoria !== dashFiltroCategoria) return false;
+    if (dashFiltroCentroCusto !== 'todos' && (item.centro_custo || 'Geral / Sede') !== dashFiltroCentroCusto) return false;
+    return true;
+  });
 
-      if (error) throw error;
+  const gastosPorCentroCusto = dashboardPagarFiltrado.reduce((acc: any, item: any) => {
+    const cc = item.centro_custo || 'Geral / Sede';
+    acc[cc] = (acc[cc] || 0) + Number(item.valor || 0);
+    return acc;
+  }, {});
+  const totalGastosFiltrados = Object.values(gastosPorCentroCusto).reduce((a: any, b: any) => a + b, 0) as number;
 
-      setShowNovoProdutoModal(false);
-      setProdNome(''); setProdEspecificacao(''); setProdApelido(''); setProdMarca(''); setProdValorEstimado(''); setProdObservacoes('');
-      loadAllData();
-      alert('Produto cadastrado com sucesso!');
-    } catch (err: any) {
-      console.error('Erro ao salvar produto:', err);
-      alert('Erro ao salvar produto: ' + err.message);
-    }
-  }
-
-  async function handleSaveLocal(e: React.FormEvent) {
-    e.preventDefault();
-    if (!localNome) return;
-    await supabase.from('suprimentos_locais').insert([{
-      nome: localNome, cidade: localCidade || 'Belo Horizonte', status: 'Ativo', status_balanco: 'Sem balanço', empresa: selectedCompany
-    }]);
-    setShowNovoLocalModal(false); setLocalNome(''); setLocalCidade(''); loadAllData();
-  }
-
-  async function handleSaveEquipamento(e: React.FormEvent) {
-    e.preventDefault();
-    if (!equipNome) return;
-    await supabase.from('suprimentos_equipamentos').insert([{
-      nome: equipNome, produto_associado: equipProdutoAssociado || equipNome, especificacao: equipEspec,
-      ano_fabricacao: equipAnoFab, ano_modelo: equipAnoMod, data_aquisicao: equipDataAquisicao || new Date().toISOString().split('T')[0],
-      local_alocado: equipLocalAlocado, status: 'Disponível', empresa: selectedCompany
-    }]);
-    setShowNovoEquipamentoModal(false); setEquipNome(''); loadAllData();
-  }
-
-  async function handleSaveConsumo(e: React.FormEvent) {
-    e.preventDefault();
-    await supabase.from('suprimentos_consumos').insert([{
-      local_consumo: consLocal, retirado_por: consRetiradoPor, tipo_consumo: 'Entrega',
-      quantidade_itens: 1, valor_total: 15.00, comentarios: consComentarios, empresa: selectedCompany
-    }]);
-    setShowNovoConsumoForm(false); loadAllData();
-  }
-
-  function abrirBalancoDetalhe(bal: any) {
-    setBalancoDetalhe(bal);
-    setBalancoItens([
-      { id: '1', produto_nome: 'Cimento CP-1 50kg', categoria_subcategoria: 'Concretos, Grautes e Argamassas / Cimento e Cal', quant_atual: 372, quant_real: 372, unidade: 'un' },
-      { id: '2', produto_nome: 'Cimento CP-2 50kg', categoria_subcategoria: 'Concretos, Grautes e Argamassas / Cimento e Cal', quant_atual: 93, quant_real: 93, unidade: 'un' },
-      { id: '3', produto_nome: 'Cimento teste Portland CP-3 50kg', categoria_subcategoria: 'Concretos, Grautes e Argamassas / Cimento e Cal', quant_atual: 11, quant_real: 11, unidade: 'un' },
-    ]);
-  }
+  const produtosFiltrados = produtosSup.filter(p => p.nome?.toLowerCase().includes(searchTerm.toLowerCase()));
 
   function resetDetalhes() {
     setBalancoDetalhe(null);
@@ -265,16 +319,6 @@ export default function TorquatoFullERP() {
     setShowNovaEntradaForm(false);
     setShowNovoConsumoForm(false);
   }
-
-  const filteredPagar = financialsPagar.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
-  const filteredReceber = financialsReceber.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
-  const filteredBancos = contasBancarias.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
-  const totalPagar = filteredPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0);
-  const totalReceber = filteredReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0);
-  const totalSaldosBancos = filteredBancos.reduce((acc, item) => acc + Number(item.saldo || 0), 0);
-  const saldoLiquido = totalReceber - totalPagar;
-
-  const produtosFiltrados = produtosSup.filter(p => p.nome?.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <>
@@ -333,32 +377,161 @@ export default function TorquatoFullERP() {
           {/* MAIN CONTENT */}
           <main className="flex-1 bg-slate-950 overflow-y-auto p-8 text-slate-200">
             
+            {/* 1. DASHBOARD EXECUTIVO COMPLETO */}
             {activeModule === 'dashboard' && (
               <div className="space-y-6">
-                <h1 className="text-2xl font-bold text-white flex items-center gap-2"><LayoutDashboard className="w-6 h-6 text-amber-500" /> Dashboard Executivo</h1>
-                <div className="grid grid-cols-4 gap-4">
-                  <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800"><p className="text-xs font-bold text-slate-400">Saldo Bancário Total</p><h3 className="text-xl font-black text-amber-400">R$ {totalSaldosBancos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3></div>
-                  <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800"><p className="text-xs font-bold text-slate-400">Contas a Pagar</p><h3 className="text-xl font-black text-rose-400">R$ {totalPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3></div>
-                  <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800"><p className="text-xs font-bold text-slate-400">Contas a Receber</p><h3 className="text-xl font-black text-emerald-400">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3></div>
-                  <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800"><p className="text-xs font-bold text-slate-400">Resultado Projetado</p><h3 className="text-xl font-black text-amber-400">R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3></div>
+                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-2"><LayoutDashboard className="w-6 h-6 text-amber-500" /> Dashboard Executivo & Métricas (Koper ERP)</h1>
+                    <p className="text-xs text-slate-400 mt-1">Visão estratégica e financeira da empresa: <span className="text-amber-400 font-bold">{selectedCompany}</span></p>
+                  </div>
+                  <button onClick={() => setActiveModule('financeiro')} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-2 cursor-pointer">
+                    <DollarSign className="w-4 h-4" /> Ir para Financeiro
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
+                    <p className="text-xs font-bold text-slate-400 uppercase">Saldo Bancário Total</p>
+                    <h3 className="text-xl font-black text-amber-400 mt-1">R$ {totalSaldosBancos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                  </div>
+                  <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
+                    <p className="text-xs font-bold text-slate-400 uppercase">Contas a Pagar</p>
+                    <h3 className="text-xl font-black text-rose-400 mt-1">R$ {totalPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                  </div>
+                  <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
+                    <p className="text-xs font-bold text-slate-400 uppercase">Contas a Receber</p>
+                    <h3 className="text-xl font-black text-emerald-400 mt-1">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                  </div>
+                  <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
+                    <p className="text-xs font-bold text-slate-400 uppercase">Resultado Projetado</p>
+                    <h3 className={`text-xl font-black mt-1 ${saldoLiquido >= 0 ? 'text-amber-400' : 'text-rose-400'}`}>R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                  </div>
+                </div>
+
+                {/* FILTROS E GRÁFICOS DO DASHBOARD */}
+                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                  <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-4 h-4 text-amber-500" />
+                      <h3 className="font-bold text-sm text-white uppercase">Filtros Combináveis & Centro de Custo</h3>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <select value={dashFiltroStatus} onChange={(e) => setDashFiltroStatus(e.target.value)} className="bg-slate-950 text-slate-200 border border-slate-800 rounded-xl px-3 py-2 font-bold cursor-pointer">
+                        <option value="todos">Status: Todos</option>
+                        <option value="pagos">Status: Pagos</option>
+                        <option value="pendentes">Status: Pendentes</option>
+                      </select>
+
+                      <select value={dashFiltroCentroCusto} onChange={(e) => setDashFiltroCentroCusto(e.target.value)} className="bg-slate-950 text-amber-400 border border-slate-800 rounded-xl px-3 py-2 font-bold cursor-pointer">
+                        <option value="todos">Centro de Custo: Todos</option>
+                        {listaCentrosCusto.map((cc, i) => <option key={i} value={cc}>{cc}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                      <h4 className="font-bold text-xs uppercase text-slate-300 flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4 text-amber-500" /> Custos por Obra / Centro de Custo
+                      </h4>
+                      {Object.entries(gastosPorCentroCusto).map(([centro, valor]: [string, any], index) => {
+                        const percentual = totalGastosFiltrados > 0 ? (valor / totalGastosFiltrados) * 100 : 0;
+                        return (
+                          <div key={index} className="space-y-1">
+                            <div className="flex justify-between text-xs font-semibold">
+                              <span className="text-slate-300">{centro}</span>
+                              <span className="text-amber-400">R$ {valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({percentual.toFixed(1)}%)</span>
+                            </div>
+                            <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                              <div className="bg-amber-500 h-full rounded-full" style={{ width: `${percentual}%` }}></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                      <h4 className="font-bold text-xs uppercase text-slate-300 flex items-center gap-2">
+                        <PieChart className="w-4 h-4 text-emerald-400" /> Fluxo Geral no Período
+                      </h4>
+                      <div className="space-y-3 pt-2">
+                        <div className="flex justify-between text-xs"><span className="text-emerald-400">Recebimentos</span><span className="font-bold text-emerald-400">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-rose-400">Contas a Pagar</span><span className="font-bold text-rose-400">R$ {totalPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
 
+            {/* 2. MÓDULO FINANCEIRO COMPLETO */}
             {activeModule === 'financeiro' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-                  <h1 className="text-2xl font-bold text-white flex items-center gap-2"><DollarSign className="w-6 h-6 text-emerald-500" /> Módulo Financeiro</h1>
-                  <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">+ Novo Lançamento</button>
+                  <div>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-2"><DollarSign className="w-6 h-6 text-emerald-500" /> Módulo Financeiro Corporativo (Koper ERP)</h1>
+                    <p className="text-xs text-slate-400 mt-1">Empresa ativa: <span className="text-amber-400 font-bold">{selectedCompany}</span></p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-slate-800 text-amber-400 font-bold rounded-xl text-xs border border-slate-700 cursor-pointer">+ Conta Bancária</button>
+                    <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs cursor-pointer">+ Novo Lançamento</button>
+                  </div>
                 </div>
+
+                <div className="flex gap-2 border-b border-slate-800 pb-2">
+                  <button onClick={() => setFinSubTab('pagar')} className={`px-4 py-2 rounded-xl text-xs font-bold cursor-pointer ${finSubTab === 'pagar' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Pagar ({filteredPagar.length})</button>
+                  <button onClick={() => setFinSubTab('receber')} className={`px-4 py-2 rounded-xl text-xs font-bold cursor-pointer ${finSubTab === 'receber' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Receber ({filteredReceber.length})</button>
+                  <button onClick={() => setFinSubTab('bancos')} className={`px-4 py-2 rounded-xl text-xs font-bold cursor-pointer ${finSubTab === 'bancos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas Bancárias ({filteredBancos.length})</button>
+                  <button onClick={() => setFinSubTab('tributos')} className={`px-4 py-2 rounded-xl text-xs font-bold cursor-pointer ${finSubTab === 'tributos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Tributos & Impostos ({filteredTributos.length})</button>
+                </div>
+
+                {finSubTab === 'pagar' && (
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <h3 className="font-bold text-sm text-white uppercase flex items-center gap-2"><TrendingDown className="w-4 h-4 text-rose-400" /> Contas a Pagar & Anexos Separados (NF / Comprovante)</h3>
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-950 text-slate-400 uppercase">
+                        <tr><th className="p-3">Descrição</th><th className="p-3">Categoria</th><th className="p-3">Centro de Custo</th><th className="p-3">Vencimento</th><th className="p-3">Valor</th><th className="p-3">Nota Fiscal</th><th className="p-3">Comprovante</th><th className="p-3">Status</th><th className="p-3 text-center">Ações</th></tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800">
+                        {filteredPagar.map((item: any) => (
+                          <tr key={item.id} className="hover:bg-slate-950/50">
+                            <td className="p-3 font-bold text-white">{item.descricao}</td>
+                            <td className="p-3 text-slate-400">{item.categoria}</td>
+                            <td className="p-3 text-amber-400 font-bold">{item.centro_custo || 'Geral'}</td>
+                            <td className="p-3 text-slate-300">{item.vencimento}</td>
+                            <td className="p-3 font-bold text-rose-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td className="p-3">{item.nf_url ? <a href={item.nf_url} target="_blank" rel="noreferrer" className="text-amber-400 font-bold underline flex items-center gap-1"><Paperclip className="w-3 h-3" /> Ver NF</a> : <span className="text-slate-500">Sem NF</span>}</td>
+                            <td className="p-3">{item.comprovante_url ? <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="text-emerald-400 font-bold underline flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Ver Comp.</a> : <span className="text-slate-500">Sem Comp.</span>}</td>
+                            <td className="p-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>{item.status || 'Pendente'}</span></td>
+                            <td className="p-3 text-center"><button onClick={() => handleToggleQuitar(item, 'pagar')} className={`px-2 py-1 rounded text-xs font-bold cursor-pointer ${item.status === 'Pago' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}>{item.status === 'Pago' ? 'Estornar' : 'Pagar'}</button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {finSubTab === 'bancos' && (
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <h3 className="font-bold text-sm text-white uppercase flex items-center gap-2"><Wallet className="w-4 h-4 text-amber-500" /> Contas Bancárias</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {filteredBancos.map((b: any) => (
+                        <div key={b.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
+                          <div><p className="font-bold text-white text-sm">{b.banco}</p><p className="text-xs text-slate-400">Ag: {b.agencia} • CC: {b.conta}</p></div>
+                          <p className="font-black text-amber-400 text-sm">R$ {Number(b.saldo || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* MÓDULO SUPRIMENTOS COMPLETO */}
+            {/* 3. MÓDULO SUPRIMENTOS COMPLETO (8 SUB-ABAS) */}
             {activeModule === 'suprimentos' && (
               <div className="space-y-6">
-                
-                {/* SUB-ABAS */}
                 <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
                   <div className="flex items-center gap-2 overflow-x-auto">
                     <button onClick={() => { setSupSubTab('produtos'); resetDetalhes(); }} className={`px-3.5 py-2 rounded-xl text-xs font-bold cursor-pointer ${supSubTab === 'produtos' ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 text-slate-400'}`}>Produtos</button>
@@ -375,74 +548,28 @@ export default function TorquatoFullERP() {
                     {supSubTab === 'produtos' && (
                       <button onClick={() => setShowNovoProdutoModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer flex items-center gap-1.5"><Plus className="w-4 h-4" /> + Produto</button>
                     )}
-                    {supSubTab === 'locais' && visaoLocais === 'lista' && (
-                      <>
-                        <button onClick={() => setVisaoLocais('controle')} className="px-3.5 py-2 border border-amber-500 text-amber-400 font-bold rounded-xl text-xs cursor-pointer">Controle de estoque</button>
-                        <button onClick={() => setShowNovoLocalModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">+ Local</button>
-                      </>
-                    )}
-                    {supSubTab === 'entradas' && !showNovaEntradaForm && (
-                      <button onClick={() => setShowNovaEntradaForm(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">+ ENTRADA</button>
-                    )}
-                    {supSubTab === 'equipamentos' && !equipDetalhe && (
-                      <button onClick={() => setShowNovoEquipamentoModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">+ EQUIPAMENTO</button>
-                    )}
-                    {supSubTab === 'consumo' && !showNovoConsumoForm && !consumoDetalhe && (
-                      <button onClick={() => setShowNovoConsumoForm(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">+ CONSUMO</button>
-                    )}
                   </div>
                 </div>
 
-                {/* 1. PRODUTOS */}
                 {supSubTab === 'produtos' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Boxes className="w-4 h-4 text-amber-500" /> Produtos Cadastrados</h3>
-                      <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 w-64">
-                        <Search className="w-4 h-4 text-slate-500" />
-                        <input type="text" placeholder="Buscar produto..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-transparent text-xs text-white focus:outline-none w-full" />
-                      </div>
+                      <h3 className="font-bold text-sm text-white uppercase flex items-center gap-2"><Boxes className="w-4 h-4 text-amber-500" /> Produtos Cadastrados</h3>
+                      <input type="text" placeholder="Buscar produto..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="p-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white w-64" />
                     </div>
-
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
-                        <tr><th className="p-3">Código</th><th className="p-3">Produto</th><th className="p-3">Unidade</th><th className="p-3">Marca</th><th className="p-3">Tipo</th><th className="p-3">Categoria / Subcategoria</th><th className="p-3">Status</th></tr>
+                        <tr><th className="p-3">Código</th><th className="p-3">Produto</th><th className="p-3">Unidade</th><th className="p-3">Marca</th><th className="p-3">Tipo</th><th className="p-3">Categoria</th><th className="p-3">Status</th></tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
-                        {produtosFiltrados.length === 0 ? (
-                          <tr><td colSpan={7} className="p-6 text-center text-slate-500">Nenhum produto encontrado. Clique em "+ Produto" para cadastrar.</td></tr>
-                        ) : (
-                          produtosFiltrados.map((prod: any, idx: number) => (
-                            <tr key={prod.id || idx} className="hover:bg-slate-950/50">
-                              <td className="p-3 font-bold text-amber-400">{prod.codigo || (100 + idx)}</td>
-                              <td className="p-3 font-bold text-white">{prod.nome}</td>
-                              <td className="p-3 font-bold text-amber-400 font-mono uppercase">{prod.unidade || 'un'}</td>
-                              <td className="p-3 text-slate-300">{prod.marca || '-'}</td>
-                              <td className="p-3"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">{prod.tipo || 'Material'}</span></td>
-                              <td className="p-3 text-slate-300">{prod.categoria || 'Geral'} <span className="text-slate-500">• {prod.subcategoria || 'Geral'}</span></td>
-                              <td className="p-3"><span className="text-emerald-400 font-bold">Ativo</span></td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* 2. LOCAIS */}
-                {supSubTab === 'locais' && visaoLocais === 'lista' && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Warehouse className="w-4 h-4 text-amber-500" /> Locais Ativos de Estoque</h3>
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950 text-slate-400 uppercase">
-                        <tr><th className="p-3">Código</th><th className="p-3">Nome</th><th className="p-3">Cidade</th><th className="p-3">Status</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800">
-                        {locaisSup.map((loc: any, idx: number) => (
-                          <tr key={loc.id || idx} className="hover:bg-slate-950/50">
-                            <td className="p-3 font-bold text-amber-400">{loc.codigo || (2000 + idx)}</td>
-                            <td className="p-3 font-bold text-white">{loc.nome}</td>
-                            <td className="p-3 text-slate-300">{loc.cidade || 'Belo Horizonte'}</td>
+                        {produtosFiltrados.map((prod: any, idx: number) => (
+                          <tr key={prod.id || idx} className="hover:bg-slate-950/50">
+                            <td className="p-3 font-bold text-amber-400">{prod.codigo || (100 + idx)}</td>
+                            <td className="p-3 font-bold text-white">{prod.nome}</td>
+                            <td className="p-3 font-bold text-amber-400 uppercase">{prod.unidade || 'un'}</td>
+                            <td className="p-3 text-slate-300">{prod.marca || '-'}</td>
+                            <td className="p-3"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">{prod.tipo || 'Material'}</span></td>
+                            <td className="p-3 text-slate-300">{prod.categoria || 'Geral'}</td>
                             <td className="p-3"><span className="text-emerald-400 font-bold">Ativo</span></td>
                           </tr>
                         ))}
@@ -450,129 +577,6 @@ export default function TorquatoFullERP() {
                     </table>
                   </div>
                 )}
-
-                {/* 3. ENTRADAS */}
-                {supSubTab === 'entradas' && !showNovaEntradaForm && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><ArrowDownLeft className="w-4 h-4 text-amber-500" /> Entradas Pendentes</h3>
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950 text-slate-400 uppercase">
-                        <tr><th className="p-3">Código</th><th className="p-3">Origem</th><th className="p-3">Local De Entrada</th><th className="p-3">Qtd Itens</th><th className="p-3">NFe/Recibo</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800">
-                        <tr className="bg-amber-500/10 text-amber-300"><td className="p-3 font-bold">⚠️ 5926</td><td className="p-3">Casas d' agua - Biguaçu</td><td className="p-3">Vila real</td><td className="p-3">1 item</td><td className="p-3 font-mono">#7322</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* 4. EQUIPAMENTOS */}
-                {supSubTab === 'equipamentos' && !equipDetalhe && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Wrench className="w-4 h-4 text-amber-500" /> Equipamentos & Máquinas</h3>
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950 text-slate-400 uppercase">
-                        <tr><th className="p-3">Código</th><th className="p-3">Equipamento</th><th className="p-3">Aquisição</th><th className="p-3">Alocado Em</th><th className="p-3">Status</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800">
-                        {equipamentosSup.map((eq: any, idx: number) => (
-                          <tr key={eq.id || idx} onClick={() => setEquipDetalhe(eq)} className="hover:bg-slate-950/50 cursor-pointer">
-                            <td className="p-3 font-bold text-amber-400">{eq.codigo || (832 + idx)}</td>
-                            <td className="p-3 font-bold text-white underline">{eq.nome}</td>
-                            <td className="p-3 text-slate-400">{eq.data_aquisicao}</td>
-                            <td className="p-3 text-slate-300">{eq.local_alocado}</td>
-                            <td className="p-3"><span className="text-emerald-400 font-bold">{eq.status || 'Disponível'}</span></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* 5. CONSUMO */}
-                {supSubTab === 'consumo' && !showNovoConsumoForm && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><MinusCircle className="w-4 h-4 text-amber-500" /> Histórico de Consumo</h3>
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950 text-slate-400 uppercase">
-                        <tr><th className="p-3">Código</th><th className="p-3">Local Consumo</th><th className="p-3">Retirado Por</th><th className="p-3">Valor Total</th><th className="p-3">Data</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800">
-                        {consumosSup.map((c: any, idx: number) => (
-                          <tr key={c.id || idx} className="hover:bg-slate-950/50">
-                            <td className="p-3 font-bold text-amber-400">{c.codigo || (10765 + idx)}</td>
-                            <td className="p-3 font-bold text-white">{c.local_consumo}</td>
-                            <td className="p-3 text-slate-300">{c.retirado_por}</td>
-                            <td className="p-3 font-bold text-emerald-400">R$ {Number(c.valor_total || 15).toFixed(2)}</td>
-                            <td className="p-3 text-slate-400">{new Date(c.created_at || Date.now()).toLocaleString('pt-BR')}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* 6. EPIs */}
-                {supSubTab === 'epis' && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><ShieldAlert className="w-4 h-4 text-amber-500" /> Equipamentos de Proteção Individual (EPIs)</h3>
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950 text-slate-400 uppercase">
-                        <tr><th className="p-3">EPI</th><th className="p-3">CA</th><th className="p-3">Quantidade</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800">
-                        {episSup.map((epi: any, idx: number) => (
-                          <tr key={epi.id || idx} className="hover:bg-slate-950/50">
-                            <td className="p-3 font-bold text-white">{epi.nome}</td>
-                            <td className="p-3 text-slate-400 font-mono">{epi.ca || 'N/A'}</td>
-                            <td className="p-3 font-bold text-emerald-400 font-mono">{epi.quantidade || 0}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* 7. BALANÇOS */}
-                {supSubTab === 'balancos' && !balancoDetalhe && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><ClipboardCheck className="w-4 h-4 text-amber-500" /> Balanços de Estoque</h3>
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950 text-slate-400 uppercase">
-                        <tr><th className="p-3">Código</th><th className="p-3">Local</th><th className="p-3">Setor</th><th className="p-3">Status</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800">
-                        <tr onClick={() => abrirBalancoDetalhe({ id: '1', codigo_balanco: '2176', local: 'Vila real', setor: 'Geral', status: 'Atrasado' })} className="hover:bg-slate-950/50 cursor-pointer">
-                          <td className="p-3 font-bold text-amber-400">2176</td>
-                          <td className="p-3 font-bold text-white underline">Vila real</td>
-                          <td className="p-3 text-slate-300">Geral</td>
-                          <td className="p-3"><span className="text-rose-500 font-bold">● Atrasado</span></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* 8. SOLICITAÇÕES */}
-                {supSubTab === 'solicitacoes' && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><ShoppingCart className="w-4 h-4 text-amber-500" /> Solicitações de Compra</h3>
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950 text-slate-400 uppercase">
-                        <tr><th className="p-3">Local</th><th className="p-3">Itens</th><th className="p-3">Prazo</th><th className="p-3">Status</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800">
-                        <tr className="hover:bg-slate-950/50">
-                          <td className="p-3 font-bold text-white">1201</td>
-                          <td className="p-3 font-mono">1</td>
-                          <td className="p-3 text-slate-300">25/05/2026</td>
-                          <td className="p-3"><span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full font-bold text-[10px]">Em análise</span></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
               </div>
             )}
 
@@ -582,73 +586,45 @@ export default function TorquatoFullERP() {
           </main>
         </div>
 
-        {/* MODAL NOVO PRODUTO COMPLETO (Koper ERP Pattern) */}
+        {/* MODAL NOVO PRODUTO */}
         {showNovoProdutoModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-2xl w-full p-6 border border-slate-800 space-y-4 text-slate-200 max-h-[90vh] overflow-y-auto">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-xl w-full p-6 border border-slate-800 space-y-4 text-slate-200">
               <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 className="font-bold text-base text-white flex items-center gap-2"><Boxes className="w-5 h-5 text-amber-500" /> Cadastrar Novo Produto / Insumo</h3>
+                <h3 className="font-bold text-white">Cadastrar Novo Produto</h3>
                 <button onClick={() => setShowNovoProdutoModal(false)}><X className="w-5 h-5 text-slate-400" /></button>
               </div>
-
-              <form onSubmit={handleSaveProduto} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 mb-1">Nome / Descrição do Produto *</label>
-                  <input type="text" required placeholder="Ex: Abraçadeira tipo D 3/4" value={prodNome} onChange={(e) => setProdNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500" />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 mb-1">Especificação Técnica</label>
-                  <input type="text" placeholder="Ex: Abraçadeira tipo D 3/4 com rosca zincada" value={prodEspecificacao} onChange={(e) => setProdEspecificacao(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500" />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1">Apelido</label>
-                    <input type="text" placeholder="Ex: Abraçadeira 3/4" value={prodApelido} onChange={(e) => setProdApelido(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1">Tipo *</label>
-                    <select value={prodTipo} onChange={(e) => setProdTipo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                      <option value="Material">Material</option>
-                      <option value="Equipamento">Equipamento</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-amber-400 mb-1">Unidade *</label>
-                    <select value={prodUnidade} onChange={(e) => setProdUnidade(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-400 font-bold">
-                      <option value="un">un (Unidade)</option>
-                      <option value="kg">kg (Quilograma)</option>
-                      <option value="m³">m³ (Metro Cúbico)</option>
-                      <option value="m">m (Metro)</option>
-                      <option value="m²">m² (Metro²)</option>
-                      <option value="l">l (Litro)</option>
-                      <option value="par">par (Par)</option>
-                      <option value="sc">sc (Saco)</option>
-                      <option value="cx">cx (Caixa)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1">Categoria *</label>
-                    <select value={prodCategoria} onChange={(e) => setProdCategoria(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                      <option value="Instalações hidráulicas">Instalações hidráulicas</option>
-                      <option value="Estrutura">Estrutura</option>
-                      <option value="Geral">Geral</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1">Marca</label>
-                    <input type="text" placeholder="Ex: Amanco, Tigre" value={prodMarca} onChange={(e) => setProdMarca(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                  </div>
-                </div>
-
+              <form onSubmit={handleSaveProduto} className="space-y-3">
+                <input type="text" required placeholder="Nome do Produto *" value={prodNome} onChange={(e) => setProdNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-                  <button type="button" onClick={() => setShowNovoProdutoModal(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs">Cancelar</button>
-                  <button type="submit" className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs shadow-lg">Salvar Produto Completo</button>
+                  <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">Salvar Produto</button>
                 </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL NOVO LANÇAMENTO FINANCEIRO */}
+        {showFinanceiroModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Lançamento Financeiro</h3><button onClick={() => setShowFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleSaveFinanceiro} className="space-y-3">
+                <input type="text" required placeholder="Descrição" value={finDescricao} onChange={(e) => setFinDescricao(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" step="0.01" required placeholder="Valor (R$)" value={finValor} onChange={(e) => setFinValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="date" required value={finVencimento} onChange={(e) => setFinVencimento(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                  <label className="block text-xs font-bold text-amber-400">Nota Fiscal (XML/PDF)</label>
+                  <input type="file" accept=".xml,.pdf" onChange={(e) => handleFileChange(e, 'nf')} className="w-full text-xs text-slate-400" />
+                </div>
+
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                  <label className="block text-xs font-bold text-emerald-400">Comprovante de Pagamento</label>
+                  <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, 'comprovante')} className="w-full text-xs text-slate-400" />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs cursor-pointer">Salvar Lançamento</button></div>
               </form>
             </div>
           </div>
