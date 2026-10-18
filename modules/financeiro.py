@@ -1,5 +1,5 @@
 class FinanceiroModule:
-    """Módulo individualizado para gestão Financeira e Contábil (Koper)."""
+    """Módulo Financeiro Completo - Torquato Engenharia (Baseado no Koper ERP)"""
     
     def __init__(self):
         self.transacoes = []
@@ -7,10 +7,9 @@ class FinanceiroModule:
         self.contas_receber = []
         self.notas_fiscais = []
         self.tributos = []
-        self.contas_bancarias = []
 
     # ==========================================
-    # 1. FLUXO DE CAIXA E SALDOS
+    # 1. FLUXO DE CAIXA
     # ==========================================
     def calcular_fluxo_caixa(self, saldo_anterior, entradas_efetivadas, saidas_efetivadas, entradas_previstas, saidas_previstas):
         saldo_atual = saldo_anterior + entradas_efetivadas - saidas_efetivadas
@@ -28,11 +27,8 @@ class FinanceiroModule:
         print(f"[Financeiro] Fluxo de Caixa calculado. Saldo Atual: R$ {saldo_atual:,.2f} | Saldo Final Previsto: R$ {saldo_final_previsto:,.2f}")
         return panorama
 
-    def adicionar_estatistica_grafico(self, tipo_grafico, periodo, dados):
-        print(f"[Financeiro] Gráfico '{tipo_grafico}' configurado para o período: {periodo}.")
-
     # ==========================================
-    # 2. CONTAS A PAGAR (Com etiquetas, anexos e relatórios)
+    # 2. CONTAS A PAGAR
     # ==========================================
     def registrar_conta_pagar(self, codigo, nfe_recibo, beneficiario, valor, vencimento, centro_custo, etiquetas=None, recorrente=False):
         conta = {
@@ -49,7 +45,7 @@ class FinanceiroModule:
             "anexo_boleto": None
         }
         self.contas_pagar.append(conta)
-        print(f"[Financeiro] Conta a Pagar #{codigo} registrada: {beneficiario} - R$ {valor} (Venc: {vencimento})")
+        print(f"[Financeiro] Conta a Pagar #{codigo} registrada: {beneficiario} - R$ {valor:,.2f} (Venc: {vencimento})")
 
     def adicionar_etiqueta_conta_pagar(self, codigo, etiqueta):
         for conta in self.contas_pagar:
@@ -61,7 +57,7 @@ class FinanceiroModule:
         return False
 
     def anexar_documento_pagar(self, codigo, tipo, caminho_arquivo):
-        """Tipo pode ser 'comprovante' ou 'boleto'"""
+        """tipo: 'comprovante' ou 'boleto'"""
         for conta in self.contas_pagar:
             if conta["codigo"] == codigo:
                 if tipo == "comprovante":
@@ -71,12 +67,6 @@ class FinanceiroModule:
                 print(f"[Financeiro] Anexo de {tipo} adicionado com sucesso à conta #{codigo}.")
                 return True
         return False
-
-    def exportar_relatorio_contas_pagar(self, filtro_centro_custo="Todos", filtro_periodo="Todos"):
-        print(f"[Financeiro] Gerando relatório de Contas a Pagar | Centro de Custo: {filtro_centro_custo} | Período: {filtro_periodo}")
-        # Simula a exportação estruturada em PDF/Excel vista nos relatórios
-        relatorio = [c for c in self.contas_pagar]
-        return relatorio
 
     # ==========================================
     # 3. CONTAS A RECEBER
@@ -88,11 +78,11 @@ class FinanceiroModule:
             "valor": valor,
             "vencimento": vencimento,
             "obra": obra,
-            "etiquetas": etiquetas,
+            "etiquetas": etiquetas or [],
             "status": "A Receber"
         }
         self.contas_receber.append(recebimento)
-        print(f"[Financeiro] Conta a Receber cadastrada para {cliente} - R$ {valor}")
+        print(f"[Financeiro] Conta a Receber cadastrada para {cliente} - R$ {valor:,.2f}")
 
     def emitir_e_enviar_boleto(self, id_recebimento, canal="email"):
         for rec in self.contas_receber:
@@ -129,4 +119,4 @@ class FinanceiroModule:
             "status": "Pendente"
         }
         self.tributos.append(tributo)
-        print(f"[Financeiro] Tributo {imposto} (Comp: {competencia}) registrado no valor de R$ {valor}.")
+        print(f"[Financeiro] Tributo {imposto} (Comp: {competencia}) registrado no valor de R$ {valor:,.2f}.")
