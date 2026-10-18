@@ -33,77 +33,109 @@
             <div>
                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Governança Corporativa</p>
                 <nav class="space-y-1">
-                    <a href="#" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl text-xs shadow-md">
+                    <button onclick="mudarSecao('matriz')" id="menu-matriz" class="w-full flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl text-xs shadow-md cursor-pointer transition">
                         <span>🏢</span>
                         <span>Dados da Empresa Matriz</span>
-                    </a>
-                    <a href="#" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl text-xs transition">
+                    </button>
+                    <button onclick="mudarSecao('utilizadores')" id="menu-utilizadores" class="w-full flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl text-xs transition cursor-pointer">
                         <span>👥</span>
                         <span>Gestão de Utilizadores</span>
-                    </a>
+                    </button>
                 </nav>
             </div>
         </aside>
 
         <!-- Conteúdo Central -->
         <main class="flex-1 p-8 max-w-5xl">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h2 class="text-xl font-bold text-white">Cadastro da Empresa Matriz</h2>
-                    <p class="text-xs text-slate-400">Gerencie as informações institucionais e fiscais da empresa.</p>
-                </div>
-                <button type="button" id="btn-editar" onclick="habilitarEdicao()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer">
-                    <span>✏️</span>
-                    <span>Editar Dados</span>
-                </button>
-            </div>
-
-            <!-- Caixa de Alerta / Status -->
-            <div id="mensagem-status" class="hidden p-3 mb-6 rounded-xl text-xs font-semibold"></div>
-
-            <!-- Formulário de Dados -->
-            <form id="form-matriz" onsubmit="salvarMatriz(event)" class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            
+            <!-- SEÇÃO 1: EMPRESA MATRIZ -->
+            <section id="secao-matriz" class="space-y-6">
+                <div class="flex items-center justify-between">
                     <div>
-                        <label class="block text-slate-400 font-bold mb-1">Razão Social</label>
-                        <input type="text" id="razao_social" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
+                        <h2 class="text-xl font-bold text-white">Cadastro da Empresa Matriz</h2>
+                        <p class="text-xs text-slate-400">Gerencie as informações institucionais e fiscais da empresa.</p>
                     </div>
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">CNPJ</label>
-                        <input type="text" id="cnpj" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">Inscrição Estadual</label>
-                        <input type="text" id="inscricao_estadual" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">Inscrição Municipal</label>
-                        <input type="text" id="inscricao_municipal" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">CEP</label>
-                        <input type="text" id="cep" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">Estado (UF)</label>
-                        <input type="text" id="estado" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-slate-400 font-bold mb-1">País</label>
-                        <input type="text" id="pais" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
-                    </div>
-                </div>
-
-                <!-- Botões de Ação na Edição -->
-                <div id="container-botoes-salvar" class="hidden pt-4 border-t border-slate-800/80 flex items-center justify-end space-x-3">
-                    <button type="button" onclick="cancelarEdicao()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer">
-                        Cancelar
-                    </button>
-                    <button type="submit" id="btn-salvar" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer">
-                        Salvar Alterações
+                    <button type="button" id="btn-editar" onclick="habilitarEdicao()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer">
+                        <span>✏️</span>
+                        <span>Editar Dados</span>
                     </button>
                 </div>
-            </form>
+
+                <div id="mensagem-status-matriz" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+
+                <form id="form-matriz" onsubmit="salvarMatriz(event)" class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Razão Social</label>
+                            <input type="text" id="razao_social" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">CNPJ</label>
+                            <input type="text" id="cnpj" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Inscrição Estadual</label>
+                            <input type="text" id="inscricao_estadual" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Inscrição Municipal</label>
+                            <input type="text" id="inscricao_municipal" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">CEP</label>
+                            <input type="text" id="cep" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Estado (UF)</label>
+                            <input type="text" id="estado" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-slate-400 font-bold mb-1">País</label>
+                            <input type="text" id="pais" disabled class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                    </div>
+
+                    <div id="container-botoes-salvar" class="hidden pt-4 border-t border-slate-800/80 flex items-center justify-end space-x-3">
+                        <button type="button" onclick="cancelarEdicao()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer">
+                            Cancelar
+                        </button>
+                        <button type="submit" id="btn-salvar" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer">
+                            Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- SEÇÃO 2: GESTÃO DE UTILIZADORES -->
+            <section id="secao-utilizadores" class="hidden space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Gestão de Utilizadores e Acessos</h2>
+                        <p class="text-xs text-slate-400">Controle os colaboradores com acesso autorizado ao Torquato ERP.</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+                    <h3 class="text-sm font-bold text-amber-400">Utilizadores Cadastrados no Supabase</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400">
+                                    <th class="p-3">Nome</th>
+                                    <th class="p-3">E-mail</th>
+                                    <th class="p-3">Perfil</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-utilizadores-corpo">
+                                <tr>
+                                    <td colspan="3" class="p-4 text-center text-slate-500">A carregar utilizadores...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
 
@@ -117,6 +149,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
             carregarDadosMatriz();
+            carregarUtilizadores();
         });
 
         function verificarSessao() {
@@ -134,8 +167,27 @@
             window.location.href = 'login.html';
         }
 
+        function mudarSecao(secao) {
+            const secMatriz = document.getElementById('secao-matriz');
+            const secUtil = document.getElementById('secao-utilizadores');
+            const btnMatriz = document.getElementById('menu-matriz');
+            const btnUtil = document.getElementById('menu-utilizadores');
+
+            if (secao === 'matriz') {
+                secMatriz.classList.remove('hidden');
+                secUtil.classList.add('hidden');
+                btnMatriz.className = "w-full flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl text-xs shadow-md cursor-pointer transition";
+                btnUtil.className = "w-full flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl text-xs transition cursor-pointer";
+            } else {
+                secMatriz.classList.add('hidden');
+                secUtil.classList.remove('hidden');
+                btnUtil.className = "w-full flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl text-xs shadow-md cursor-pointer transition";
+                btnMatriz.className = "w-full flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl text-xs transition cursor-pointer";
+            }
+        }
+
         function exibirMensagem(texto, tipo) {
-            const el = document.getElementById('mensagem-status');
+            const el = document.getElementById('mensagem-status-matriz');
             el.classList.remove('hidden', 'bg-red-950', 'text-red-300', 'border-red-800', 'bg-emerald-950', 'text-emerald-300', 'border-emerald-800');
             el.classList.add('border');
             if (tipo === 'erro') {
@@ -196,7 +248,7 @@
             document.getElementById('btn-editar').classList.remove('hidden');
 
             preencherFormulario(dadosMatrizOriginal);
-            document.getElementById('mensagem-status').classList.add('hidden');
+            document.getElementById('mensagem-status-matriz').classList.add('hidden');
         }
 
         async function salvarMatriz(e) {
@@ -240,6 +292,37 @@
             } finally {
                 btnSalvar.disabled = false;
                 btnSalvar.innerText = 'Salvar Alterações';
+            }
+        }
+
+        async function carregarUtilizadores() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('usuarios_erp')
+                    .select('*');
+
+                const corpoTabela = document.getElementById('tabela-utilizadores-corpo');
+
+                if (error) {
+                    corpoTabela.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-400">Erro ao carregar: ${error.message}</td></tr>`;
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    corpoTabela.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Nenhum utilizador encontrado.</td></tr>`;
+                    return;
+                }
+
+                corpoTabela.innerHTML = data.map(u => `
+                    <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                        <td class="p-3 font-medium text-white">${u.nome}</td>
+                        <td class="p-3 text-slate-300">${u.email}</td>
+                        <td class="p-3"><span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded uppercase text-[10px] font-bold">${u.perfil}</span></td>
+                    </tr>
+                `).join('');
+
+            } catch (err) {
+                console.error(err);
             }
         }
     </script>
