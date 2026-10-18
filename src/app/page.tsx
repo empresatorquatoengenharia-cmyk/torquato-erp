@@ -84,9 +84,6 @@ export default function TorquatoFullERP() {
   const [dashFiltroStatus, setDashFiltroStatus] = useState('todos');
   const [dashFiltroCategoria, setDashFiltroCategoria] = useState('todas');
   const [dashFiltroCentroCusto, setDashFiltroCentroCusto] = useState('todos');
-  const [dashFiltroPrazo, setDashFiltroPrazo] = useState('30');
-  const [dashDataInicio, setDashDataInicio] = useState('');
-  const [dashDataFim, setDashDataFim] = useState('');
 
   // Busca Suprimentos
   const [searchTerm, setSearchTerm] = useState('');
@@ -98,7 +95,6 @@ export default function TorquatoFullERP() {
   const [showFinanceiroModal, setShowFinanceiroModal] = useState(false);
   const [showBancoModal, setShowBancoModal] = useState(false);
   const [showTributoModal, setShowTributoModal] = useState(false);
-  const [showEmpresaModal, setShowEmpresaModal] = useState(false);
 
   // Form Produto
   const [prodNome, setProdNome] = useState('');
@@ -123,11 +119,7 @@ export default function TorquatoFullERP() {
   const [equipDataAquisicao, setEquipDataAquisicao] = useState('');
   const [equipLocalAlocado, setEquipLocalAlocado] = useState('Casa da Andreia');
 
-  // Form Consumo & Financeiro
-  const [consLocal, setConsLocal] = useState('1201');
-  const [consRetiradoPor, setConsRetiradoPor] = useState('Maria Eduarda Pereira Martins');
-  const [consComentarios, setConsComentarios] = useState('');
-
+  // Form Financeiro
   const [finDescricao, setFinDescricao] = useState('');
   const [finValor, setFinValor] = useState('');
   const [finTipo, setFinTipo] = useState('pagar');
@@ -140,6 +132,7 @@ export default function TorquatoFullERP() {
   const [finCompNome, setFinCompNome] = useState('');
   const [finCompUrl, setFinCompUrl] = useState('');
 
+  // Form Banco & Tributo
   const [bancoNome, setBancoNome] = useState('');
   const [bancoAgencia, setBancoAgencia] = useState('');
   const [bancoConta, setBancoConta] = useState('');
@@ -149,9 +142,6 @@ export default function TorquatoFullERP() {
   const [tribCompetencia, setTribCompetencia] = useState('');
   const [tribValor, setTribValor] = useState('');
   const [tribVencimento, setTribVencimento] = useState('');
-
-  const [empNome, setEmpNome] = useState('');
-  const [empCnpj, setEmpCnpj] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -210,7 +200,6 @@ export default function TorquatoFullERP() {
     }
   }
 
-  // Anexo de Arquivos no Financeiro
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>, tipoArquivo: 'nf' | 'comprovante') {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -224,7 +213,6 @@ export default function TorquatoFullERP() {
     }
   }
 
-  // Handlers de Salvamento
   async function handleSaveProduto(e: React.FormEvent) {
     e.preventDefault();
     if (!prodNome) return;
@@ -265,13 +253,6 @@ export default function TorquatoFullERP() {
     setShowTributoModal(false); setTribCompetencia(''); setTribValor(''); loadAllData();
   }
 
-  async function handleSaveEmpresa(e: React.FormEvent) {
-    e.preventDefault();
-    if (!empNome) return;
-    await supabase.from('empresas_erp').insert([{ nome: empNome, cnpj: empCnpj || '00.000.000/0001-00' }]);
-    setShowEmpresaModal(false); setEmpNome(''); setEmpCnpj(''); loadAllData();
-  }
-
   async function handleToggleQuitar(item: any, tipo: 'pagar' | 'receber') {
     const novoStatus = item.status === 'Pago' || item.status === 'Recebido' ? 'Pendente' : (tipo === 'pagar' ? 'Pago' : 'Recebido');
     const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
@@ -279,7 +260,6 @@ export default function TorquatoFullERP() {
     loadAllData();
   }
 
-  // Filtros Globais
   const filteredPagar = financialsPagar.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
   const filteredReceber = financialsReceber.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
   const filteredBancos = contasBancarias.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
@@ -290,7 +270,6 @@ export default function TorquatoFullERP() {
   const totalSaldosBancos = filteredBancos.reduce((acc, item) => acc + Number(item.saldo || 0), 0);
   const saldoLiquido = totalReceber - totalPagar;
 
-  // Filtros do Dashboard
   const listaCentrosCusto = Array.from(new Set(['Geral / Sede', 'Obra Res. Pôr do Sol', 'Pavimentação Buenópolis', ...filteredPagar.map(i => i.centro_custo).filter(Boolean)]));
   
   const dashboardPagarFiltrado = filteredPagar.filter(item => {
@@ -298,7 +277,6 @@ export default function TorquatoFullERP() {
       const match = dashFiltroStatus === 'pagos' ? item.status === 'Pago' : item.status !== 'Pago';
       if (!match) return false;
     }
-    if (dashFiltroCategoria !== 'todas' && item.categoria !== dashFiltroCategoria) return false;
     if (dashFiltroCentroCusto !== 'todos' && (item.centro_custo || 'Geral / Sede') !== dashFiltroCentroCusto) return false;
     return true;
   });
@@ -377,7 +355,7 @@ export default function TorquatoFullERP() {
           {/* MAIN CONTENT */}
           <main className="flex-1 bg-slate-950 overflow-y-auto p-8 text-slate-200">
             
-            {/* 1. DASHBOARD EXECUTIVO COMPLETO */}
+            {/* 1. DASHBOARD EXECUTIVO */}
             {activeModule === 'dashboard' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
@@ -409,7 +387,6 @@ export default function TorquatoFullERP() {
                   </div>
                 </div>
 
-                {/* FILTROS E GRÁFICOS DO DASHBOARD */}
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
                     <div className="flex items-center gap-2">
@@ -466,7 +443,7 @@ export default function TorquatoFullERP() {
               </div>
             )}
 
-            {/* 2. MÓDULO FINANCEIRO COMPLETO */}
+            {/* 2. MÓDULO FINANCEIRO */}
             {activeModule === 'financeiro' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
@@ -476,6 +453,7 @@ export default function TorquatoFullERP() {
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-slate-800 text-amber-400 font-bold rounded-xl text-xs border border-slate-700 cursor-pointer">+ Conta Bancária</button>
+                    <button onClick={() => setShowTributoModal(true)} className="px-3 py-2 bg-slate-800 text-blue-400 font-bold rounded-xl text-xs border border-slate-700 cursor-pointer">+ Tributo / DAS</button>
                     <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs cursor-pointer">+ Novo Lançamento</button>
                   </div>
                 </div>
@@ -526,10 +504,32 @@ export default function TorquatoFullERP() {
                     </div>
                   </div>
                 )}
+
+                {finSubTab === 'tributos' && (
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <h3 className="font-bold text-sm text-white uppercase flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-blue-400" /> Tributos e Guias Fiscais (DAS, FGTS, INSS)</h3>
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-950 text-slate-400 uppercase">
+                        <tr><th className="p-3">Imposto</th><th className="p-3">Competência</th><th className="p-3">Vencimento</th><th className="p-3">Valor</th><th className="p-3">Status</th></tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800">
+                        {filteredTributos.map((t: any) => (
+                          <tr key={t.id} className="hover:bg-slate-950/50">
+                            <td className="p-3 font-bold text-white">{t.imposto}</td>
+                            <td className="p-3 text-slate-300">{t.competencia}</td>
+                            <td className="p-3 text-slate-300">{t.vencimento}</td>
+                            <td className="p-3 font-bold text-amber-400">R$ {Number(t.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td className="p-3"><span className="text-emerald-400 font-bold">{t.status}</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* 3. MÓDULO SUPRIMENTOS COMPLETO (8 SUB-ABAS) */}
+            {/* 3. MÓDULO SUPRIMENTOS */}
             {activeModule === 'suprimentos' && (
               <div className="space-y-6">
                 <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
@@ -625,6 +625,42 @@ export default function TorquatoFullERP() {
                 </div>
 
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs cursor-pointer">Salvar Lançamento</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL CONTA BANCÁRIA */}
+        {showBancoModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-800 text-slate-200 space-y-4">
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Nova Conta Bancária</h3><button onClick={() => setShowBancoModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleSaveBanco} className="space-y-3">
+                <input type="text" required placeholder="Banco (Ex: Cora, PagBank)" value={bancoNome} onChange={(e) => setBancoNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" placeholder="Agência" value={bancoAgencia} onChange={(e) => setBancoAgencia(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" placeholder="Conta" value={bancoConta} onChange={(e) => setBancoConta(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" step="0.01" placeholder="Saldo Inicial (R$)" value={bancoSaldo} onChange={(e) => setBancoSaldo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">Salvar Banco</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL TRIBUTO */}
+        {showTributoModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-800 text-slate-200 space-y-4">
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Tributo / Guia</h3><button onClick={() => setShowTributoModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleSaveTributo} className="space-y-3">
+                <select value={tribImposto} onChange={(e) => setTribImposto(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                  <option value="DAS (Simples Nacional)">DAS (Simples Nacional)</option>
+                  <option value="FGTS">FGTS</option>
+                  <option value="INSS">INSS</option>
+                </select>
+                <input type="text" placeholder="Competência (Ex: 05/2026)" value={tribCompetencia} onChange={(e) => setTribCompetencia(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" step="0.01" required placeholder="Valor (R$)" value={tribValor} onChange={(e) => setTribValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="date" required value={tribVencimento} onChange={(e) => setTribVencimento(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs cursor-pointer">Salvar Tributo</button></div>
               </form>
             </div>
           </div>
