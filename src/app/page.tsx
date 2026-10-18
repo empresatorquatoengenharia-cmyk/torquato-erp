@@ -139,6 +139,20 @@ export default function TorquatoFullERP() {
     setShowEmpresaModal(false); setEmpNome(''); setEmpCnpj(''); loadAllData();
   }
 
+  async function handleSaveUser(e: React.FormEvent) {
+    e.preventDefault();
+    if (!userName || !userEmail) return;
+    await supabase.from('usuarios_erp').insert([{ nome: userName, email: userEmail, cargo: userCargo, limite_aprovacao: parseFloat(userLimite), status: 'ativo' }]);
+    setShowUserModal(false); setUserName(''); setUserEmail(''); loadAllData();
+  }
+
+  async function handleSaveContrato(e: React.FormEvent) {
+    e.preventDefault();
+    if (!contTitulo || !contValor) return;
+    await supabase.from('contratos_empresa').insert([{ titulo: contTitulo, fornecedor: contFornecedor, valor: parseFloat(contValor), status: 'Ativo' }]);
+    setShowContratoModal(false); setContTitulo(''); setContFornecedor(''); setContValor(''); loadAllData();
+  }
+
   async function handleSaveFinanceiro(e: React.FormEvent) {
     e.preventDefault();
     if (!finDescricao || !finValor) return;
