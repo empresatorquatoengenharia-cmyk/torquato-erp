@@ -1,12 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torquato ERP - Corporativo</title>
-    <!-- Tailwind CSS via CDN -->
+    <title>Torquato ERP - Módulo Financeiro (Koper Style)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans flex flex-col h-screen overflow-hidden">
@@ -21,19 +19,15 @@
                     <span class="text-[10px] font-bold text-amber-500 uppercase tracking-widest block -mt-1">ERP Corporativo</span>
                 </div>
             </div>
-
             <div class="hidden md:flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
                 <span class="text-amber-500 font-bold">🏢</span>
                 <span class="text-slate-400">Empresa Ativa:</span>
-                <select id="select-empresa" onchange="mudarEmpresa(this.value)" class="bg-transparent text-amber-400 font-bold focus:outline-none cursor-pointer">
-                    <option value="Torquato Engenharia Ltda" class="bg-slate-900">Torquato Engenharia Ltda</option>
-                </select>
+                <span class="text-amber-400 font-bold">Torquato Engenharia Ltda</span>
             </div>
         </div>
-
         <div class="flex items-center gap-4 text-xs text-slate-400">
             <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Online (Supabase Sincronizado)</span>
+            <span>Supabase Sincronizado</span>
         </div>
     </header>
 
@@ -41,174 +35,154 @@
         <!-- SIDEBAR -->
         <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-4 shrink-0">
             <nav class="space-y-1.5">
-                <div class="px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Módulos do Sistema</div>
+                <div class="px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">FINANCEIRO KOPER</div>
 
-                <button onclick="mudarModulo('dashboard', this)" id="btn-dashboard" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 font-bold shadow-md transition">
-                    <div class="flex items-center gap-3">📊 Dashboard Executivo</div>
+                <button onclick="mudarAba('fluxo', this)" id="btn-fluxo" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 font-bold shadow-md transition">
+                    <div class="flex items-center gap-3">📊 Fluxo de caixa</div>
                 </button>
-
-                <button onclick="mudarModulo('financeiro', this)" id="btn-financeiro" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
-                    <div class="flex items-center gap-3">💵 Módulo Financeiro Koper</div>
+                <button onclick="mudarAba('pagar', this)" id="btn-pagar" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
+                    <div class="flex items-center gap-3">📉 Contas a pagar</div>
                 </button>
-
-                <button onclick="mudarModulo('administracao', this)" id="btn-administracao" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
-                    <div class="flex items-center gap-3">🛡️ Administração & Governança</div>
+                <button onclick="mudarAba('receber', this)" id="btn-receber" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
+                    <div class="flex items-center gap-3">📈 Contas a receber</div>
                 </button>
-
-                <button onclick="mudarModulo('engenharia', this)" id="btn-engenharia" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
-                    <div class="flex items-center gap-3">👷 Engenharia & RDO</div>
+                <button onclick="mudarAba('notas', this)" id="btn-notas" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
+                    <div class="flex items-center gap-3">📄 Notas eletrônicas e manuais</div>
                 </button>
-
-                <button onclick="mudarModulo('compras', this)" id="btn-compras" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
-                    <div class="flex items-center gap-3">🛒 Compras & Suprimentos</div>
+                <button onclick="mudarAba('tributos', this)" id="btn-tributos" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
+                    <div class="flex items-center gap-3">🏛️ Tributos</div>
                 </button>
             </nav>
-
-            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-                <div>
-                    <p class="font-bold text-slate-200">Torquato ERP</p>
-                    <p class="text-[10px] text-slate-500">Versão Estável</p>
-                </div>
+            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-400">
+                <p class="font-bold text-slate-200">Torquato ERP</p>
+                <p class="text-[10px] text-slate-500">Módulo Koper Ativo</p>
             </div>
         </aside>
 
         <!-- CONTEÚDO PRINCIPAL -->
         <main class="flex-1 bg-slate-950 overflow-y-auto p-8 text-slate-200">
-            
-            <!-- MÓDULO 1: DASHBOARD -->
-            <div id="mod-dashboard" class="modulo-conteudo space-y-6">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-4">
-                    <div>
-                        <h1 class="text-2xl font-bold text-white flex items-center gap-2">📊 Dashboard Executivo & Métricas</h1>
-                        <p class="text-xs text-slate-400 mt-1">Acompanhamento consolidado da empresa ativa.</p>
-                    </div>
-                    <button onclick="mudarModuloPorId('financeiro')" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg">
-                        Gerenciar Financeiro
-                    </button>
-                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-                        <p class="text-xs font-bold text-slate-400 uppercase">Saldo Bancário Total</p>
-                        <h3 id="dash-saldo" class="text-xl font-black text-amber-400 mt-1">R$ 0,00</h3>
-                    </div>
-                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-                        <p class="text-xs font-bold text-slate-400 uppercase">Contas a Pagar</p>
-                        <h3 id="dash-pagar" class="text-xl font-black text-rose-400 mt-1">R$ 0,00</h3>
-                    </div>
-                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-                        <p class="text-xs font-bold text-slate-400 uppercase">Contas a Receber</p>
-                        <h3 id="dash-receber" class="text-xl font-black text-emerald-400 mt-1">R$ 0,00</h3>
-                    </div>
-                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-                        <p class="text-xs font-bold text-slate-400 uppercase">Balanço Líquido</p>
-                        <h3 id="dash-liquido" class="text-xl font-black text-amber-400 mt-1">R$ 0,00</h3>
+            <!-- 1. FLUXO DE CAIXA -->
+            <div id="aba-fluxo" class="aba-conteudo space-y-6">
+                <h1 class="text-2xl font-bold text-white mb-2">Fluxo de Caixa</h1>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
+                    <div class="bg-slate-950 text-white p-4 rounded-xl font-bold text-sm">Saldo Mês Atual - Todos os Bancos / Caixas</div>
+                    <div class="space-y-3 text-xs">
+                        <div class="flex justify-between py-2 border-b border-slate-800"><span>Saldo mês anterior</span><span class="font-semibold">R$ 4.196.061,32</span></div>
+                        <div class="flex justify-between py-2 border-b border-slate-800 text-blue-400"><span>Entradas efetivadas</span><span class="font-semibold">R$ 26.033,45</span></div>
+                        <div class="flex justify-between py-2 border-b border-slate-800 text-rose-400"><span>Saídas efetivadas</span><span class="font-semibold">R$ 888,87</span></div>
+                        <div class="flex justify-between py-2 border-b-2 border-slate-700 text-sm font-bold text-white"><span>Saldo atual (+ saldos iniciais)</span><span>R$ 4.221.205,90</span></div>
+                        <div class="flex justify-between py-2 border-b border-slate-800 text-blue-400"><span>Entradas previstas</span><span class="font-semibold">R$ 52.937,98</span></div>
+                        <div class="flex justify-between py-2 border-b border-slate-800 text-rose-400"><span>Saídas previstas</span><span class="font-semibold">R$ 11,94</span></div>
+                        <div class="flex justify-between py-2 text-sm font-bold text-emerald-400"><span>Saldo final previsto (mês)</span><span>R$ 4.274.131,94</span></div>
                     </div>
                 </div>
             </div>
 
-            <!-- MÓDULO 2: FINANCEIRO -->
-            <div id="mod-financeiro" class="modulo-conteudo space-y-6 hidden">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-4">
-                    <div>
-                        <h1 class="text-2xl font-bold text-white flex items-center gap-2">💵 Módulo Financeiro Corporativo (Koper)</h1>
-                        <p class="text-xs text-slate-400 mt-1">Gestão de contas a pagar, receber, notas fiscais e comprovantes.</p>
-                    </div>
-                    <button onclick="abrirModalLancamento()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg">
-                        + Novo Lançamento
-                    </button>
-                </div>
-
-                <!-- FORMULÁRIO RÁPIDO DE CADASTRO -->
+            <!-- 2. CONTAS A PAGAR -->
+            <div id="aba-pagar" class="aba-conteudo space-y-6 hidden">
+                <h1 class="text-2xl font-bold text-white mb-2">Contas a Pagar</h1>
                 <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
-                    <h3 class="font-bold text-sm text-white uppercase tracking-wider">Registar Lançamento Rápido no Supabase</h3>
+                    <h3 class="font-bold text-sm text-white uppercase tracking-wider">Registar Conta a Pagar & Anexar Comprovante</h3>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
-                        <div>
-                            <label class="block text-slate-400 font-bold mb-1">Tipo</label>
-                            <select id="form-tipo" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white font-bold">
-                                <option value="pagar">Conta a Pagar</option>
-                                <option value="receber">Conta a Receber</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 font-bold mb-1">Descrição / Fornecedor</label>
-                            <input type="text" id="form-descricao" placeholder="Ex: Casan / Material" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 font-bold mb-1">Valor (R$)</label>
-                            <input type="number" id="form-valor" placeholder="0.00" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 font-bold mb-1">Vencimento</label>
-                            <input type="date" id="form-vencimento" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
-                        </div>
+                        <div><label class="block text-slate-400 font-bold mb-1">Beneficiário / Fornecedor</label><input type="text" id="pag-beneficiario" placeholder="Ex: Casan" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
+                        <div><label class="block text-slate-400 font-bold mb-1">Valor (R$)</label><input type="number" id="pag-valor" placeholder="0.00" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
+                        <div><label class="block text-slate-400 font-bold mb-1">Vencimento</label><input type="date" id="pag-vencimento" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
+                        <div><label class="block text-slate-400 font-bold mb-1">Comprovante (PDF/Img)</label><input type="file" id="pag-comprovante" class="w-full bg-slate-950 border border-slate-800 p-2 rounded-xl text-slate-400 text-[10px]"></div>
                     </div>
-                    <button onclick="salvarLancamento()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-md">
-                        Salvar Lançamento no Supabase
-                    </button>
+                    <button onclick="salvarContaPagar()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-md">Registar no Supabase</button>
                 </div>
-
-                <!-- TABELAS -->
                 <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 class="font-bold text-sm text-white uppercase tracking-wider">Lançamentos Financeiros Registrados</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-950 text-slate-400 uppercase">
-                                <tr>
-                                    <th class="p-3">Tipo</th>
-                                    <th class="p-3">Descrição</th>
-                                    <th class="p-3">Vencimento</th>
-                                    <th class="p-3">Valor</th>
-                                    <th class="p-3">Status</th>
-                                    <th class="p-3 text-center">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabela-financeiro-corpo" class="divide-y divide-slate-800">
-                                <tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar dados do Supabase...</td></tr>
-                            </tbody>
-                        </table>
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-950 text-slate-400 uppercase">
+                            <tr><th class="p-3">Código</th><th class="p-3">Beneficiário</th><th class="p-3">Valor</th><th class="p-3">Vencimento</th><th class="p-3">Comprovante</th><th class="p-3 text-center">Ações</th></tr>
+                        </thead>
+                        <tbody id="tabela-pagar" class="divide-y divide-slate-800">
+                            <tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. CONTAS A RECEBER -->
+            <div id="aba-receber" class="aba-conteudo space-y-6 hidden">
+                <h1 class="text-2xl font-bold text-white mb-2">Contas a Receber</h1>
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-950 text-slate-400 uppercase">
+                            <tr><th class="p-3">Cliente</th><th class="p-3">Obra</th><th class="p-3">Valor</th><th class="p-3">Vencimento</th><th class="p-3">Status</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            <tr class="hover:bg-slate-950/50">
+                                <td class="p-3 font-bold text-white">Construtora Horizonte</td>
+                                <td class="p-3 text-slate-400">Residencial Viena</td>
+                                <td class="p-3 font-bold text-blue-400">R$ 26.097,19</td>
+                                <td class="p-3 text-slate-300">10/05/2026</td>
+                                <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-500/10 text-blue-400">A Receber</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. NOTAS ELETRÔNICAS E MANUAIS -->
+            <div id="aba-notas" class="aba-conteudo space-y-6 hidden">
+                <h1 class="text-2xl font-bold text-white mb-2">Notas Eletrônicas e Manuais</h1>
+                <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+                    <h3 class="font-bold text-sm text-white uppercase tracking-wider">Cadastrar Nota Fiscal & Rateio da Obra</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+                        <div><label class="block text-slate-400 font-bold mb-1">Número da Nota</label><input type="text" id="nota-numero" placeholder="Ex: 56116" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
+                        <div><label class="block text-slate-400 font-bold mb-1">Fornecedor</label><input type="text" id="nota-fornecedor" placeholder="Nome do fornecedor" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
+                        <div><label class="block text-slate-400 font-bold mb-1">Valor (R$)</label><input type="number" id="nota-valor" placeholder="0.00" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
+                        <div><label class="block text-slate-400 font-bold mb-1">Rateio da Obra</label><input type="text" id="nota-obra" placeholder="Ex: Casa Diário" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></div>
+                        <div class="md:col-span-2"><label class="block text-slate-400 font-bold mb-1">Ficheiro XML / PDF</label><input type="file" id="nota-arquivo" accept=".xml,.pdf" class="w-full bg-slate-950 border border-slate-800 p-2 rounded-xl text-slate-400 text-[10px]"></div>
                     </div>
+                    <button onclick="salvarNota()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-md">Guardar Nota no Supabase</button>
+                </div>
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-950 text-slate-400 uppercase">
+                            <tr><th class="p-3">Número da Nota</th><th class="p-3">Fornecedor</th><th class="p-3">Valor</th><th class="p-3">Rateio Obra</th><th class="p-3">Ficheiro XML / PDF</th><th class="p-3 text-center">Ações</th></tr>
+                        </thead>
+                        <tbody id="tabela-notas" class="divide-y divide-slate-800">
+                            <tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- MÓDULO 3: ADMINISTRAÇÃO -->
-            <div id="mod-administracao" class="modulo-conteudo space-y-6 hidden">
-                <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <h2 class="text-xl font-bold text-white mb-2">🛡️ Administração & Governança</h2>
-                    <p class="text-xs text-slate-400">Controlo de empresas do grupo e utilizadores autorizados.</p>
-                </div>
-            </div>
-
-            <!-- MÓDULO 4: ENGENHARIA -->
-            <div id="mod-engenharia" class="modulo-conteudo space-y-6 hidden">
-                <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <h2 class="text-xl font-bold text-white mb-2">👷 Engenharia & RDO</h2>
-                    <p class="text-xs text-slate-400">Registo de Diário de Obra e ARTs (Crea-MG).</p>
-                </div>
-            </div>
-
-            <!-- MÓDULO 5: COMPRAS -->
-            <div id="mod-compras" class="modulo-conteudo space-y-6 hidden">
-                <div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl">
-                    <h2 class="text-xl font-bold text-white mb-2">🛒 Compras & Suprimentos</h2>
-                    <p class="text-xs text-slate-400">Cotações, pedidos de materiais e ordens de compra.</p>
+            <!-- 5. TRIBUTOS -->
+            <div id="aba-tributos" class="aba-conteudo space-y-6 hidden">
+                <h1 class="text-2xl font-bold text-white mb-2">Gestão de Tributos</h1>
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-950 text-slate-400 uppercase">
+                            <tr><th class="p-3">Imposto / Guia</th><th class="p-3">Competência</th><th class="p-3">Valor</th><th class="p-3">Vencimento</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            <tr class="hover:bg-slate-950/50">
+                                <td class="p-3 font-bold text-white">Guia DAS (Simples Nacional)</td>
+                                <td class="p-3 text-slate-400">04/2026</td>
+                                <td class="p-3 font-bold text-amber-400">R$ 550,00</td>
+                                <td class="p-3 text-slate-300">20/05/2026</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
         </main>
     </div>
 
-    <!-- SCRIPT DE CONEXÃO E FUNCIONALIDADES -->
+    <!-- SCRIPT DE CONTROLO E SUPABASE -->
     <script>
         const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let empresaAtiva = 'Torquato Engenharia Ltda';
-
-        function mudarModulo(idModulo, elemento) {
-            document.querySelectorAll('.modulo-conteudo').forEach(el => el.classList.add('hidden'));
-            document.getElementById('mod-' + idModulo).classList.remove('hidden');
+        function mudarAba(idAba, elemento) {
+            document.querySelectorAll('.aba-conteudo').forEach(el => el.classList.add('hidden'));
+            document.getElementById('aba-' + idAba).classList.remove('hidden');
 
             document.querySelectorAll('aside nav button').forEach(btn => {
                 btn.className = "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/80 hover:text-white transition";
@@ -216,125 +190,122 @@
             if(elemento) {
                 elemento.className = "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-amber-500 text-slate-950 font-bold shadow-md transition";
             }
+
+            if (idAba === 'pagar') carregarContasPagar();
+            if (idAba === 'notas') carregarNotas();
         }
 
-        function mudarModuloPorId(id) {
-            const btnMap = {
-                'dashboard': document.getElementById('btn-dashboard'),
-                'financeiro': document.getElementById('btn-financeiro'),
-                'administracao': document.getElementById('btn-administracao'),
-                'engenharia': document.getElementById('btn-engenharia'),
-                'compras': document.getElementById('btn-compras')
-            };
-            mudarModulo(id, btnMap[id]);
-        }
+        async function salvarContaPagar() {
+            const beneficiario = document.getElementById('pag-beneficiario').value;
+            const valor = parseFloat(document.getElementById('pag-valor').value);
+            const vencimento = document.getElementById('pag-vencimento').value;
+            const arquivoInput = document.getElementById('pag-comprovante');
+            const comprovante = arquivoInput.files.length > 0 ? arquivoInput.files[0].name : 'Comprovante.pdf';
+            const codigo = Math.floor(10000 + Math.random() * 90000);
 
-        async function carregarDados() {
-            try {
-                // Carregar Pagar
-                const { data: pagar } = await supabaseClient.from('financeiro_lancamentos').select('*');
-                // Carregar Receber
-                const { data: receber } = await supabaseClient.from('financeiro_receber').select('*');
-
-                const tbody = document.getElementById('tabela-financeiro-corpo');
-                tbody.innerHTML = '';
-
-                let totalPagar = 0;
-                let totalReceber = 0;
-
-                if (pagar && pagar.length > 0) {
-                    pagar.forEach(item => {
-                        totalPagar += Number(item.valor || 0);
-                        tbody.innerHTML += `
-                            <tr class="hover:bg-slate-950/50">
-                                <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-500/10 text-rose-400">Pagar</span></td>
-                                <td class="p-3 font-bold text-white">${item.descricao}</td>
-                                <td class="p-3 text-slate-300">${item.vencimento || '-'}</td>
-                                <td class="p-3 font-bold text-rose-400">R$ ${Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}">${item.status || 'Pendente'}</span></td>
-                                <td class="p-3 text-center"><button onclick="removerItem('${item.id}', 'pagar')" class="text-rose-400 hover:underline">Excluir</button></td>
-                            </tr>
-                        `;
-                    });
-                }
-
-                if (receber && receber.length > 0) {
-                    receber.forEach(item => {
-                        totalReceber += Number(item.valor || 0);
-                        tbody.innerHTML += `
-                            <tr class="hover:bg-slate-950/50">
-                                <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-400">Receber</span></td>
-                                <td class="p-3 font-bold text-white">${item.descricao}</td>
-                                <td class="p-3 text-slate-300">${item.vencimento || '-'}</td>
-                                <td class="p-3 font-bold text-emerald-400">R$ ${Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Recebido' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}">${item.status || 'A Receber'}</span></td>
-                                <td class="p-3 text-center"><button onclick="removerItem('${item.id}', 'receber')" class="text-rose-400 hover:underline">Excluir</button></td>
-                            </tr>
-                        `;
-                    });
-                }
-
-                if ((!pagar || pagar.length === 0) && (!receber || receber.length === 0)) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhum lançamento registado.</td></tr>`;
-                }
-
-                // Atualizar Dashboard
-                document.getElementById('dash-pagar').innerText = `R$ ${totalPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-                document.getElementById('dash-receber').innerText = `R$ ${totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-                const liquido = totalReceber - totalPagar;
-                const elLiquido = document.getElementById('dash-liquido');
-                elLiquido.innerText = `R$ ${liquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-                elLiquido.className = `text-xl font-black mt-1 ${liquido >= 0 ? 'text-amber-400' : 'text-rose-400'}`;
-
-            } catch (err) {
-                console.error("Erro ao carregar do Supabase:", err);
-            }
-        }
-
-        async function salvarLancamento() {
-            const tipo = document.getElementById('form-tipo').value;
-            const descricao = document.getElementById('form-descricao').value;
-            const valor = parseFloat(document.getElementById('form-valor').value);
-            const vencimento = document.getElementById('form-vencimento').value;
-
-            if (!descricao || isNaN(valor)) {
-                alert('Preencha a descrição e o valor.');
+            if (!beneficiario || isNaN(valor)) {
+                alert('Preencha o beneficiário e o valor.');
                 return;
             }
 
-            const tabela = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
-            const statusInicial = tipo === 'pagar' ? 'Pendente' : 'A Receber';
-
-            const { error } = await supabaseClient.from(tabela).insert([{
-                descricao,
-                valor,
-                vencimento: vencimento || new Date().toISOString().split('T')[0],
-                status: statusInicial,
-                empresa: empresaAtiva
-            }]);
-
+            const { error } = await supabaseClient.from('contas_pagar').insert([{ codigo, beneficiario, valor, vencimento, comprovante }]);
             if (error) {
-                alert('Erro ao salvar no Supabase.');
-                console.error(error);
+                alert('Erro ao guardar no Supabase.');
             } else {
-                alert('Lançamento guardado com sucesso!');
-                document.getElementById('form-descricao').value = '';
-                document.getElementById('form-valor').value = '';
-                document.getElementById('form-vencimento').value = '';
-                carregarDados();
+                alert('Conta a pagar guardada com sucesso!');
+                document.getElementById('pag-beneficiario').value = '';
+                document.getElementById('pag-valor').value = '';
+                document.getElementById('pag-vencimento').value = '';
+                arquivoInput.value = '';
+                carregarContasPagar();
             }
         }
 
-        async function removerItem(id, tipo) {
-            if (confirm('Deseja excluir este lançamento?')) {
-                const tabela = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
+        async function carregarContasPagar() {
+            const tbody = document.getElementById('tabela-pagar');
+            const { data, error } = await supabaseClient.from('contas_pagar').select('*');
+            if (error) { tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-rose-400">Erro ao carregar dados.</td></tr>`; return; }
+
+            tbody.innerHTML = '';
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-950/50">
+                            <td class="p-3 font-bold text-white">${item.codigo}</td>
+                            <td class="p-3">${item.beneficiario}</td>
+                            <td class="p-3 font-bold text-rose-400">R$ ${Number(item.valor).toFixed(2)}</td>
+                            <td class="p-3 text-slate-300">${item.vencimento || '-'}</td>
+                            <td class="p-3 text-amber-400 underline">📎 ${item.comprovante || 'Comprovante'}</td>
+                            <td class="p-3 text-center"><button onclick="removerRegistro('contas_pagar', '${item.id}', carregarContasPagar)" class="text-rose-400 hover:underline">Excluir</button></td>
+                        </tr>
+                    `;
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhuma conta a pagar registada.</td></tr>`;
+            }
+        }
+
+        async function salvarNota() {
+            const numero = document.getElementById('nota-numero').value;
+            const fornecedor = document.getElementById('nota-fornecedor').value;
+            const valor = parseFloat(document.getElementById('nota-valor').value);
+            const obra = document.getElementById('nota-obra').value;
+            const arquivoInput = document.getElementById('nota-arquivo');
+            const arquivo = arquivoInput.files.length > 0 ? arquivoInput.files[0].name : 'Nota.pdf';
+
+            if (!numero || !fornecedor || isNaN(valor)) {
+                alert('Preencha os campos obrigatórios da nota.');
+                return;
+            }
+
+            const { error } = await supabaseClient.from('notas_fiscais').insert([{ numero, fornecedor, valor, obra, arquivo }]);
+            if (error) {
+                alert('Erro ao guardar nota.');
+            } else {
+                alert('Nota fiscal guardada com sucesso!');
+                document.getElementById('nota-numero').value = '';
+                document.getElementById('nota-fornecedor').value = '';
+                document.getElementById('nota-valor').value = '';
+                document.getElementById('nota-obra').value = '';
+                arquivoInput.value = '';
+                carregarNotas();
+            }
+        }
+
+        async function carregarNotas() {
+            const tbody = document.getElementById('tabela-notas');
+            const { data, error } = await supabaseClient.from('notas_fiscais').select('*');
+            if (error) { tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-rose-400">Erro ao carregar dados.</td></tr>`; return; }
+
+            tbody.innerHTML = '';
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-950/50">
+                            <td class="p-3 font-bold text-white">${item.numero}</td>
+                            <td class="p-3">${item.fornecedor}</td>
+                            <td class="p-3 font-bold text-blue-400">R$ ${Number(item.valor).toFixed(2)}</td>
+                            <td class="p-3 text-slate-300">${item.obra || '-'}</td>
+                            <td class="p-3 text-amber-400 underline">📄 ${item.arquivo || 'Documento'}</td>
+                            <td class="p-3 text-center"><button onclick="removerRegistro('notas_fiscais', '${item.id}', carregarNotas)" class="text-rose-400 hover:underline">Excluir</button></td>
+                        </tr>
+                    `;
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhuma nota fiscal registada.</td></tr>`;
+            }
+        }
+
+        async function removerRegistro(tabela, id, callback) {
+            if (confirm('Deseja excluir este registo?')) {
                 await supabaseClient.from(tabela).delete().eq('id', id);
-                carregarDados();
+                callback();
             }
         }
 
         window.onload = () => {
-            carregarDados();
+            carregarContasPagar();
+            carregarNotas();
         };
     </script>
 </body>
