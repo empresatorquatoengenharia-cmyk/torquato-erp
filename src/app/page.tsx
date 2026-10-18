@@ -35,7 +35,6 @@ import {
   Search,
   Warehouse,
   ShieldAlert,
-  ArrowRightLeft,
   Edit3
 } from 'lucide-react';
 
@@ -44,37 +43,28 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function TorquatoFullERP() {
-  const [activeModule, setActiveModule] = useState('dashboard');
+  const [activeModule, setActiveModule] = useState('suprimentos');
   const [selectedCompany, setSelectedCompany] = useState('Torquato Engenharia Ltda');
 
   // Estados Globais
   const [empresas, setEmpresas] = useState<any[]>([]);
-  const [usuarios, setUsuarios] = useState<any[]>([]);
-  const [contratos, setContratos] = useState<any[]>([]);
   const [financialsPagar, setFinancialsPagar] = useState<any[]>([]);
   const [financialsReceber, setFinancialsReceber] = useState<any[]>([]);
   const [contasBancarias, setContasBancarias] = useState<any[]>([]);
-  const [boletos, setBoletos] = useState<any[]>([]);
-  const [tributos, setTributos] = useState<any[]>([]);
 
-  // Módulo Suprimentos - Abas Espelho Koper
-  const [supSubTab, setSupSubTab] = useState('produtos'); // 'produtos', 'locais', 'balancos', 'epis'
+  // Módulo Suprimentos
+  const [supSubTab, setSupSubTab] = useState('produtos'); 
   const [produtosSup, setProdutosSup] = useState<any[]>([]);
   const [locaisSup, setLocaisSup] = useState<any[]>([]);
   const [episSup, setEpisSup] = useState<any[]>([]);
   const [entregasEpi, setEntregasEpi] = useState<any[]>([]);
   const [balancosSup, setBalancosSup] = useState<any[]>([]);
-  const [balancoSelecionado, setBalancoSelecionado] = useState<any>(null);
-  const [itensBalanco, setItensBalanco] = useState<any[]>([]);
-  const [limitesEstoque, setLimitesEstoque] = useState<any[]>([]);
-
-  // Sub-visão Suprimentos (Ex: Controle de Estoque ou Ficha de EPI)
+  
   const [visaoLocais, setVisaoLocais] = useState<'lista' | 'controle'>('lista');
   const [epiDetalhe, setEpiDetalhe] = useState<any>(null);
 
   // Busca e Filtros
   const [searchTerm, setSearchTerm] = useState('');
-  const [filtroTipo, setFiltroTipo] = useState('Todos');
   const [filtroStatusProduto, setFiltroStatusProduto] = useState('Ativo');
   const [showFiltroModal, setShowFiltroModal] = useState(false);
 
@@ -83,54 +73,30 @@ export default function TorquatoFullERP() {
   const [showNovoLocalModal, setShowNovoLocalModal] = useState(false);
   const [showNovoEpiModal, setShowNovoEpiModal] = useState(false);
   const [showGerarContratoEpiModal, setShowGerarContratoEpiModal] = useState(false);
-  const [showAjustarProdutosModal, setShowAjustarProdutosModal] = useState(false);
 
-  // Dashboard Filtros
-  const [dashFiltroStatus, setDashFiltroStatus] = useState('todos');
-  const [dashFiltroCategoria, setDashFiltroCategoria] = useState('todas');
-  const [dashFiltroCentroCusto, setDashFiltroCentroCusto] = useState('todos');
-  const [dashFiltroPrazo, setDashFiltroPrazo] = useState('30');
-  const [dashDataInicio, setDashDataInicio] = useState('');
-  const [dashDataFim, setDashDataFim] = useState('');
-
-  // Modais Financeiro / Admin
-  const [finSubTab, setFinSubTab] = useState('pagar');
-  const [showEmpresaModal, setShowEmpresaModal] = useState(false);
-  const [showUserModal, setShowUserModal] = useState(false);
-  const [showContratoModal, setShowContratoModal] = useState(false);
-  const [showFinanceiroModal, setShowFinanceiroModal] = useState(false);
-  const [showBancoModal, setShowBancoModal] = useState(false);
-  const [showTributoModal, setShowTributoModal] = useState(false);
-
-  // Form States Suprimentos
+  // Form States para Cadastro COMPLETO de Produto (Koper Pattern)
   const [prodNome, setProdNome] = useState('');
+  const [prodEspecificacao, setProdEspecificacao] = useState('');
   const [prodApelido, setProdApelido] = useState('');
   const [prodTipo, setProdTipo] = useState('Material');
+  const [prodUnidade, setProdUnidade] = useState('un');
+  const [prodMarca, setProdMarca] = useState('');
   const [prodCategoria, setProdCategoria] = useState('Instalações hidráulicas');
-  const [prodSubcategoria, setProdSubcategoria] = useState('Tubos e Conexões');
+  const [prodSubcategoria, setProdSubcategoria] = useState('Tubos e Conexões para esgoto');
+  const [prodValorEstimado, setProdValorEstimado] = useState('');
+  const [prodObservacoes, setProdObservacoes] = useState('');
+
+  // Outros Forms
   const [localNome, setLocalNome] = useState('');
   const [localCidade, setLocalCidade] = useState('');
   const [epiNome, setEpiNome] = useState('');
   const [epiCa, setEpiCa] = useState('');
   const [epiQtd, setEpiQtd] = useState('10');
 
-  // Form Contrato EPI
   const [epiColaborador, setEpiColaborador] = useState('');
   const [epiObra, setEpiObra] = useState('Obra Res. Pôr do Sol');
   const [epiItemSelecionado, setEpiItemSelecionado] = useState('');
   const [epiQtdEntrega, setEpiQtdEntrega] = useState('1');
-
-  // Forms Financeiro / Admin
-  const [finDescricao, setFinDescricao] = useState('');
-  const [finValor, setFinValor] = useState('');
-  const [finTipo, setFinTipo] = useState('pagar');
-  const [finVencimento, setFinVencimento] = useState('');
-  const [finCategoria, setFinCategoria] = useState('Material de Obra');
-  const [finCentroCusto, setFinCentroCusto] = useState('Geral / Sede');
-  const [finNfNome, setFinNfNome] = useState('');
-  const [finNfUrl, setFinNfUrl] = useState('');
-  const [finCompNome, setFinCompNome] = useState('');
-  const [finCompUrl, setFinCompUrl] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -153,9 +119,6 @@ export default function TorquatoFullERP() {
       const { data: bancoData } = await supabase.from('contas_bancarias').select('*');
       if (bancoData) setContasBancarias(bancoData);
 
-      const { data: tribData } = await supabase.from('tributos_erp').select('*').order('vencimento', { ascending: true });
-      if (tribData) setTributos(tribData);
-
       // Suprimentos
       const { data: prodData } = await supabase.from('suprimentos_produtos').select('*').order('created_at', { ascending: false });
       if (prodData) setProdutosSup(prodData);
@@ -176,22 +139,32 @@ export default function TorquatoFullERP() {
     }
   }
 
-  // Handlers de Suprimentos
+  // Handler de Cadastro Completo de Produto
   async function handleSaveProduto(e: React.FormEvent) {
     e.preventDefault();
     if (!prodNome) return;
-    await supabase.from('suprimentos_produtos').insert([{
-      nome: prodNome,
-      apelido: prodApelido || '-',
-      tipo: prodTipo,
-      categoria: prodCategoria,
-      subcategoria: prodSubcategoria,
-      status: 'Ativo',
-      empresa: selectedCompany
-    }]);
-    setShowNovoProdutoModal(false);
-    setProdNome(''); setProdApelido('');
-    loadAllData();
+    try {
+      await supabase.from('suprimentos_produtos').insert([{
+        nome: prodNome,
+        especificacao: prodEspecificacao,
+        apelido: prodApelido || '-',
+        tipo: prodTipo,
+        unidade: prodUnidade,
+        marca: prodMarca,
+        categoria: prodCategoria,
+        subcategoria: prodSubcategoria,
+        valor_estimado: parseFloat(prodValorEstimado || '0'),
+        observacoes: prodObservacoes,
+        status: 'Ativo',
+        empresa: selectedCompany
+      }]);
+
+      setShowNovoProdutoModal(false);
+      setProdNome(''); setProdEspecificacao(''); setProdApelido(''); setProdMarca(''); setProdValorEstimado(''); setProdObservacoes('');
+      loadAllData();
+    } catch (err) {
+      console.error('Erro ao salvar produto:', err);
+    }
   }
 
   async function handleSaveLocal(e: React.FormEvent) {
@@ -241,15 +214,18 @@ export default function TorquatoFullERP() {
     loadAllData();
   }
 
-  // Filtros Globais
-  const filteredPagar = financialsPagar.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
-  const filteredReceber = financialsReceber.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
-  const filteredBancos = contasBancarias.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
-  const filteredTributos = tributos.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
+  // Filtro de Busca de Produtos
+  const produtosFiltrados = produtosSup.filter(p => {
+    const matchesSearch = p.nome?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          p.categoria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          p.apelido?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filtroStatusProduto === 'Todos' || p.status === filtroStatusProduto;
+    return matchesSearch && matchesStatus;
+  });
 
-  const totalPagar = filteredPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0);
-  const totalReceber = filteredReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0);
-  const totalSaldosBancos = filteredBancos.reduce((acc, item) => acc + Number(item.saldo || 0), 0);
+  const totalPagar = financialsPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+  const totalReceber = financialsReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0);
+  const totalSaldosBancos = contasBancarias.reduce((acc, item) => acc + Number(item.saldo || 0), 0);
   const saldoLiquido = totalReceber - totalPagar;
 
   return (
@@ -397,11 +373,11 @@ export default function TorquatoFullERP() {
               </div>
             )}
 
-            {/* MÓDULO SUPRIMENTOS (ESPELHO FIEL KOPER) */}
+            {/* MÓDULO SUPRIMENTOS */}
             {activeModule === 'suprimentos' && (
               <div className="space-y-6">
                 
-                {/* SUB-NAVEGAÇÃO DAS TELAS DO KOPER */}
+                {/* SUB-NAVEGAÇÃO */}
                 <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-4">
                   <div className="flex items-center gap-2">
                     <button 
@@ -432,14 +408,9 @@ export default function TorquatoFullERP() {
 
                   <div className="flex items-center gap-2">
                     {supSubTab === 'produtos' && (
-                      <>
-                        <button onClick={() => setShowAjustarProdutosModal(true)} className="px-3.5 py-2 border border-amber-500 text-amber-400 font-bold rounded-xl text-xs hover:bg-amber-500/10 transition cursor-pointer">
-                          Ajustar produtos
-                        </button>
-                        <button onClick={() => setShowNovoProdutoModal(true)} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer">
-                          + Produto
-                        </button>
-                      </>
+                      <button onClick={() => setShowNovoProdutoModal(true)} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center gap-1.5">
+                        <Plus className="w-4 h-4" /> + Produto
+                      </button>
                     )}
 
                     {supSubTab === 'locais' && visaoLocais === 'lista' && (
@@ -466,7 +437,7 @@ export default function TorquatoFullERP() {
                   </div>
                 </div>
 
-                {/* 1. TELA DE PRODUTOS ESPELHO KOPER */}
+                {/* 1. TELA DE PRODUTOS */}
                 {supSubTab === 'produtos' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                     <div className="flex flex-wrap items-center justify-between gap-4">
@@ -498,29 +469,32 @@ export default function TorquatoFullERP() {
                         <tr>
                           <th className="p-3">Código</th>
                           <th className="p-3">Produto</th>
-                          <th className="p-3">Apelido</th>
+                          <th className="p-3">Unidade</th>
+                          <th className="p-3">Marca</th>
                           <th className="p-3">Tipo</th>
-                          <th className="p-3">Categoria</th>
-                          <th className="p-3">Subcategoria</th>
+                          <th className="p-3">Categoria / Subcategoria</th>
                           <th className="p-3">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
-                        {produtosSup.length === 0 ? (
+                        {produtosFiltrados.length === 0 ? (
                           <tr><td colSpan={7} className="p-6 text-center text-slate-500">Nenhum produto cadastrado.</td></tr>
                         ) : (
-                          produtosSup.map((prod: any, idx: number) => (
+                          produtosFiltrados.map((prod: any, idx: number) => (
                             <tr key={prod.id || idx} className="hover:bg-slate-950/50">
                               <td className="p-3 font-bold text-amber-400">{prod.codigo || (100 + idx)}</td>
-                              <td className="p-3 font-bold text-white">{prod.nome}</td>
-                              <td className="p-3 text-slate-400">{prod.apelido || '-'}</td>
+                              <td className="p-3 font-bold text-white">
+                                {prod.nome}
+                                {prod.especificacao && <p className="text-[10px] text-slate-400 font-normal">{prod.especificacao}</p>}
+                              </td>
+                              <td className="p-3 font-bold text-amber-400 font-mono uppercase">{prod.unidade || 'un'}</td>
+                              <td className="p-3 text-slate-300">{prod.marca || '-'}</td>
                               <td className="p-3">
                                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${prod.tipo === 'Equipamento' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
                                   {prod.tipo || 'Material'}
                                 </span>
                               </td>
-                              <td className="p-3 text-slate-300">{prod.categoria || 'Geral'}</td>
-                              <td className="p-3 text-slate-400">{prod.subcategoria || 'Geral'}</td>
+                              <td className="p-3 text-slate-300">{prod.categoria || 'Geral'} <span className="text-slate-500">• {prod.subcategoria || 'Geral'}</span></td>
                               <td className="p-3"><span className="text-emerald-400 font-bold">Ativo</span></td>
                             </tr>
                           ))
@@ -530,19 +504,10 @@ export default function TorquatoFullERP() {
                   </div>
                 )}
 
-                {/* 2. TELA DE LOCAIS DE ESTOQUE ESPELHO KOPER */}
+                {/* 2. LOCAIS DE ESTOQUE */}
                 {supSubTab === 'locais' && visaoLocais === 'lista' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                        <Warehouse className="w-4 h-4 text-amber-500" /> Locais Ativos de Estoque
-                      </h3>
-                      <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 w-64">
-                        <Search className="w-4 h-4 text-slate-500" />
-                        <input type="text" placeholder="Buscar local..." className="bg-transparent text-xs text-white focus:outline-none w-full" />
-                      </div>
-                    </div>
-
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Warehouse className="w-4 h-4 text-amber-500" /> Locais Ativos de Estoque</h3>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
                         <tr>
@@ -554,283 +519,169 @@ export default function TorquatoFullERP() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
-                        {locaisSup.length === 0 ? (
-                          <tr><td colSpan={5} className="p-6 text-center text-slate-500">Nenhum local ativo encontrado.</td></tr>
-                        ) : (
-                          locaisSup.map((loc: any, idx: number) => (
-                            <tr key={loc.id || idx} className="hover:bg-slate-950/50">
-                              <td className="p-3 font-bold text-amber-400">{loc.codigo || (2000 + idx)}</td>
-                              <td className="p-3 font-bold text-white">{loc.nome}</td>
-                              <td className="p-3 text-slate-300">{loc.cidade || 'Belo Horizonte'}</td>
-                              <td className="p-3 text-slate-400 font-mono">{loc.qtd_setores || 1}</td>
-                              <td className="p-3">
-                                <span className="px-2.5 py-1 bg-slate-800 text-slate-400 rounded-full text-[10px] font-bold">
-                                  {loc.status_balanco || 'Sem balanço'}
-                                </span>
-                              </td>
-                            </tr>
-                          ))
-                        )}
+                        {locaisSup.map((loc: any, idx: number) => (
+                          <tr key={loc.id || idx} className="hover:bg-slate-950/50">
+                            <td className="p-3 font-bold text-amber-400">{loc.codigo || (2000 + idx)}</td>
+                            <td className="p-3 font-bold text-white">{loc.nome}</td>
+                            <td className="p-3 text-slate-300">{loc.cidade || 'Belo Horizonte'}</td>
+                            <td className="p-3 text-slate-400 font-mono">{loc.qtd_setores || 1}</td>
+                            <td className="p-3"><span className="px-2.5 py-1 bg-slate-800 text-slate-400 rounded-full text-[10px] font-bold">{loc.status_balanco || 'Sem balanço'}</span></td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
                 )}
 
-                {/* 2.1 CONTROLE DE ESTOQUE (MATRIZ PRODUTOS x LOCAIS COM MÍN/MÁX) */}
-                {supSubTab === 'locais' && visaoLocais === 'controle' && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                      <div>
-                        <button onClick={() => setVisaoLocais('lista')} className="text-xs text-amber-400 hover:underline flex items-center gap-1 font-bold mb-1">
-                          ← Voltar para Locais
-                        </button>
-                        <h3 className="font-bold text-base text-white">Controle de Estoque (Mínimos e Máximos)</h3>
-                      </div>
-                      <button onClick={() => setShowNovoProdutoModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">
-                        + Produto
-                      </button>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-950 text-slate-400 uppercase">
-                          <tr>
-                            <th className="p-3">Produto</th>
-                            <th className="p-3 text-center" colSpan={2}>Obra Res. Pôr do Sol</th>
-                            <th className="p-3 text-center" colSpan={2}>Pavimentação Buenópolis</th>
-                            <th className="p-3 text-center">Ações</th>
-                          </tr>
-                          <tr className="bg-slate-900 text-[10px] text-slate-500">
-                            <th></th>
-                            <th className="p-1 text-center">Mín.</th>
-                            <th className="p-1 text-center">Máx.</th>
-                            <th className="p-1 text-center">Mín.</th>
-                            <th className="p-1 text-center">Máx.</th>
-                            <th></th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-800">
-                          {produtosSup.map((prod: any, idx: number) => (
-                            <tr key={idx} className="hover:bg-slate-950/50">
-                              <td className="p-3 font-bold text-white">{prod.nome}</td>
-                              <td className="p-3 text-center font-mono text-amber-400">10 kg</td>
-                              <td className="p-3 text-center font-mono text-slate-400">50 kg</td>
-                              <td className="p-3 text-center font-mono text-amber-400">20 un</td>
-                              <td className="p-3 text-center font-mono text-slate-400">100 un</td>
-                              <td className="p-3 text-center">
-                                <button className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg"><Edit3 className="w-3.5 h-3.5" /></button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                {/* 3. TELA DE BALANÇOS */}
+                {/* 3. BALANÇOS */}
                 {supSubTab === 'balancos' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                      <ClipboardCheck className="w-4 h-4 text-amber-500" /> Balanços de Estoque e Conferência Física
-                    </h3>
-
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><ClipboardCheck className="w-4 h-4 text-amber-500" /> Balanços de Estoque e Conferência Física</h3>
                     <div className="grid grid-cols-1 gap-3">
-                      {balancosSup.length === 0 ? (
-                        <p className="p-6 text-center text-slate-500">Nenhum balanço gerado até o momento.</p>
-                      ) : (
-                        balancosSup.map((bal: any) => (
-                          <div key={bal.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-                            <div>
-                              <p className="font-bold text-white text-sm">{bal.codigo_balanco} - {bal.centro_custo}</p>
-                              <p className="text-slate-400">Periodicidade: {bal.periodicidade}</p>
-                            </div>
-                            <span className="px-3 py-1 bg-amber-500/10 text-amber-400 rounded-full font-bold uppercase">{bal.status}</span>
-                          </div>
-                        ))
-                      )}
+                      {balancosSup.map((bal: any) => (
+                        <div key={bal.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                          <div><p className="font-bold text-white text-sm">{bal.codigo_balanco} - {bal.centro_custo}</p><p className="text-slate-400">Periodicidade: {bal.periodicidade}</p></div>
+                          <span className="px-3 py-1 bg-amber-500/10 text-amber-400 rounded-full font-bold uppercase">{bal.status}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
 
-                {/* 4. TELA DE EPIS ESPELHO KOPER */}
+                {/* 4. EPIS */}
                 {supSubTab === 'epis' && !epiDetalhe && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                        <ShieldAlert className="w-4 h-4 text-amber-500" /> Equipamentos de Proteção Individual (EPIs)
-                      </h3>
-                      <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 w-64">
-                        <Search className="w-4 h-4 text-slate-500" />
-                        <input type="text" placeholder="Buscar EPI..." className="bg-transparent text-xs text-white focus:outline-none w-full" />
-                      </div>
-                    </div>
-
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><ShieldAlert className="w-4 h-4 text-amber-500" /> Equipamentos de Proteção Individual (EPIs)</h3>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
-                        <tr>
-                          <th className="p-3">Código</th>
-                          <th className="p-3">EPI</th>
-                          <th className="p-3">CA (Certificado de Aprovação)</th>
-                          <th className="p-3">Quantidade</th>
-                        </tr>
+                        <tr><th className="p-3">Código</th><th className="p-3">EPI</th><th className="p-3">CA</th><th className="p-3">Quantidade</th></tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
-                        {episSup.length === 0 ? (
-                          <tr><td colSpan={4} className="p-6 text-center text-slate-500">Nenhum EPI cadastrado.</td></tr>
-                        ) : (
-                          episSup.map((epi: any, idx: number) => (
-                            <tr key={epi.id || idx} onClick={() => setEpiDetalhe(epi)} className="hover:bg-slate-950/50 cursor-pointer">
-                              <td className="p-3 font-bold text-amber-400">{epi.codigo || (4920 + idx)}</td>
-                              <td className="p-3 font-bold text-white underline">{epi.nome}</td>
-                              <td className="p-3 text-slate-400 font-mono">{epi.ca || 'N/A'}</td>
-                              <td className="p-3 font-bold text-emerald-400 font-mono text-sm">{epi.quantidade || 0}</td>
-                            </tr>
-                          ))
-                        )}
+                        {episSup.map((epi: any, idx: number) => (
+                          <tr key={epi.id || idx} onClick={() => setEpiDetalhe(epi)} className="hover:bg-slate-950/50 cursor-pointer">
+                            <td className="p-3 font-bold text-amber-400">{epi.codigo || (4920 + idx)}</td>
+                            <td className="p-3 font-bold text-white underline">{epi.nome}</td>
+                            <td className="p-3 text-slate-400 font-mono">{epi.ca || 'N/A'}</td>
+                            <td className="p-3 font-bold text-emerald-400 font-mono text-sm">{epi.quantidade || 0}</td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
-                  </div>
-                )}
-
-                {/* 4.1 VISÃO DETALHADA DO EPI (ALOCAÇÕES E ENTREGAS) */}
-                {supSubTab === 'epis' && epiDetalhe && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-6 shadow-xl">
-                    <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                      <div>
-                        <button onClick={() => setEpiDetalhe(null)} className="text-xs text-amber-400 hover:underline font-bold mb-1 block">
-                          ← Voltar para lista de EPIs
-                        </button>
-                        <h3 className="font-bold text-lg text-white">{epiDetalhe.nome}</h3>
-                      </div>
-                      <button className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs">Dar baixa</button>
-                    </div>
-
-                    {/* DETALHES GERAIS */}
-                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 grid grid-cols-4 gap-4 text-xs">
-                      <div><p className="text-slate-500">Código</p><p className="font-bold text-amber-400">{epiDetalhe.codigo || 4925}</p></div>
-                      <div><p className="text-slate-500">Nome</p><p className="font-bold text-white">{epiDetalhe.nome}</p></div>
-                      <div><p className="text-slate-500">Quantidade</p><p className="font-bold text-emerald-400">{epiDetalhe.quantidade || 5}</p></div>
-                      <div><p className="text-slate-500">CA</p><p className="font-bold text-slate-300">{epiDetalhe.ca || 'N/A'}</p></div>
-                    </div>
-
-                    {/* ALOCAÇÕES */}
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-bold text-xs uppercase text-amber-400">Alocações por Local</h4>
-                        <button className="px-3 py-1.5 bg-slate-800 text-slate-200 font-bold rounded-lg text-xs">+ Transferência</button>
-                      </div>
-                      <table className="w-full text-left text-xs bg-slate-950 rounded-xl">
-                        <thead className="text-slate-400 uppercase">
-                          <tr><th className="p-3">Local</th><th className="p-3">Setor</th><th className="p-3">Quantidade</th></tr>
-                        </thead>
-                        <tbody>
-                          <tr className="border-t border-slate-800"><td className="p-3 text-white font-bold">Obra Res. Pôr do Sol</td><td className="p-3 text-slate-400">Geral</td><td className="p-3 font-mono font-bold text-amber-400">{epiDetalhe.quantidade || 5}</td></tr>
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* HISTÓRICO DE ENTREGAS */}
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-bold text-xs uppercase text-emerald-400">Histórico de Entregas a Colaboradores</h4>
-                        <button onClick={() => setShowGerarContratoEpiModal(true)} className="px-3 py-1.5 bg-amber-500 text-slate-950 font-bold rounded-lg text-xs">+ Entrega de EPI</button>
-                      </div>
-                      <table className="w-full text-left text-xs bg-slate-950 rounded-xl">
-                        <thead className="text-slate-400 uppercase">
-                          <tr><th className="p-3">Código Contrato</th><th className="p-3">Colaborador</th><th className="p-3">Obra</th><th className="p-3">Quantidade</th><th className="p-3">Status</th></tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-800">
-                          {entregasEpi.length === 0 ? (
-                            <tr><td colSpan={5} className="p-4 text-center text-slate-500">Nenhuma entrega adicionada.</td></tr>
-                          ) : (
-                            entregasEpi.map((ent: any, i: number) => (
-                              <tr key={i}>
-                                <td className="p-3 font-bold text-amber-400">{ent.codigo_contrato}</td>
-                                <td className="p-3 text-white">{ent.colaborador}</td>
-                                <td className="p-3 text-slate-400">{ent.obra}</td>
-                                <td className="p-3 font-mono">{ent.quantidade}</td>
-                                <td className="p-3"><span className="text-emerald-400 font-bold">{ent.status}</span></td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
                   </div>
                 )}
 
               </div>
             )}
 
-            {/* DEMAIS MÓDULOS */}
-            {activeModule === 'financeiro' && <div className="p-6 text-slate-400">Módulo Financeiro Ativo.</div>}
-            {activeModule === 'administracao' && <div className="p-6 text-slate-400">Módulo Administração Ativo.</div>}
+            {activeModule !== 'dashboard' && activeModule !== 'suprimentos' && <div className="p-6 text-slate-400">Módulo Ativo.</div>}
           </main>
         </div>
 
-        {/* MODAL CONTRATO EPI (ESPELHO KOPER) */}
-        {showGerarContratoEpiModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-2xl w-full p-6 border border-slate-800 space-y-4 text-slate-200">
-              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 className="font-bold text-base text-white">Gerar Contrato de Entrega de EPI</h3>
-                <button onClick={() => setShowGerarContratoEpiModal(false)}><X className="w-5 h-5 text-slate-400" /></button>
-              </div>
-
-              <form onSubmit={handleGerarContratoEpi} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 mb-1">Modelo de Contrato</label>
-                  <input type="text" readOnly value="Modelo de Contrato de Entrega de EPI" className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-400 font-bold" />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1">Colaborador *</label>
-                    <input type="text" required placeholder="Nome do funcionário" value={epiColaborador} onChange={(e) => setEpiColaborador(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 mb-1">Obra *</label>
-                    <select value={epiObra} onChange={(e) => setEpiObra(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                      <option value="Obra Res. Pôr do Sol">Obra Res. Pôr do Sol</option>
-                      <option value="Pavimentação Buenópolis">Pavimentação Buenópolis</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
-                  <p className="font-bold text-xs uppercase text-amber-400">Itens para Entrega</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <select value={epiItemSelecionado} onChange={(e) => setEpiItemSelecionado(e.target.value)} className="col-span-2 p-2.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white">
-                      <option value="">Selecione o EPI...</option>
-                      {episSup.map((e, idx) => <option key={idx} value={e.nome}>{e.nome}</option>)}
-                    </select>
-                    <input type="number" placeholder="Qtd" value={epiQtdEntrega} onChange={(e) => setEpiQtdEntrega(e.target.value)} className="p-2.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white" />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                  <button type="button" onClick={() => setShowGerarContratoEpiModal(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs">Cancelar</button>
-                  <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Entregar & Salvar</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL DE NOVO PRODUTO */}
+        {/* MODAL NOVO PRODUTO COM CAMPOS COMPLETOS (PADRÃO KOPER ERP) */}
         {showNovoProdutoModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Produto</h3><button onClick={() => setShowNovoProdutoModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleSaveProduto} className="space-y-3">
-                <input type="text" required placeholder="Nome do Produto" value={prodNome} onChange={(e) => setProdNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" placeholder="Apelido" value={prodApelido} onChange={(e) => setProdApelido(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <select value={prodTipo} onChange={(e) => setProdTipo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                  <option value="Material">Material</option>
-                  <option value="Equipamento">Equipamento</option>
-                </select>
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">Salvar</button></div>
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-2xl w-full p-6 border border-slate-800 space-y-4 text-slate-200 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 className="font-bold text-base text-white flex items-center gap-2">
+                  <Boxes className="w-5 h-5 text-amber-500" /> Cadastrar Novo Produto / Insumo
+                </h3>
+                <button onClick={() => setShowNovoProdutoModal(false)}><X className="w-5 h-5 text-slate-400" /></button>
+              </div>
+
+              <form onSubmit={handleSaveProduto} className="space-y-4">
+                {/* INFORMAÇÕES BÁSICAS */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 mb-1">Nome / Descrição do Produto *</label>
+                  <input type="text" required placeholder="Ex: Abraçadeira tipo D 3/4" value={prodNome} onChange={(e) => setProdNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 mb-1">Especificação Técnica</label>
+                  <input type="text" placeholder="Ex: 512 - Abraçadeira tipo D 3/4 com rosca zincada" value={prodEspecificacao} onChange={(e) => setProdEspecificacao(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">Apelido / Nome Curto</label>
+                    <input type="text" placeholder="Ex: Abraçadeira 3/4" value={prodApelido} onChange={(e) => setProdApelido(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500" />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">Tipo *</label>
+                    <select value={prodTipo} onChange={(e) => setProdTipo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer">
+                      <option value="Material">Material</option>
+                      <option value="Equipamento">Equipamento</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-amber-400 mb-1">Unidade de Medida *</label>
+                    <select value={prodUnidade} onChange={(e) => setProdUnidade(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-400 font-bold focus:outline-none focus:border-amber-500 cursor-pointer">
+                      <option value="un">un (Unidade)</option>
+                      <option value="kg">kg (Quilograma)</option>
+                      <option value="m³">m³ (Metro Cúbico)</option>
+                      <option value="m">m (Metro Lineal)</option>
+                      <option value="m²">m² (Metro Quadrado)</option>
+                      <option value="l">l (Litro)</option>
+                      <option value="par">par (Par - EPI)</option>
+                      <option value="sc">sc (Saco)</option>
+                      <option value="cx">cx (Caixa)</option>
+                      <option value="rl">rl (Rolo)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* CATEGORIZAÇÃO E REFERÊNCIAS */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">Categoria *</label>
+                    <select value={prodCategoria} onChange={(e) => setProdCategoria(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer">
+                      <option value="Instalações hidráulicas">Instalações hidráulicas</option>
+                      <option value="Instalações elétricas e Telecomunicações">Instalações elétricas e Telecomunicações</option>
+                      <option value="Estrutura">Estrutura</option>
+                      <option value="Artfatos">Artfatos</option>
+                      <option value="Máquinas, Ferramentas e Equipamentos">Máquinas, Ferramentas e Equipamentos</option>
+                      <option value="Materiais de expediente">Materiais de expediente</option>
+                      <option value="Aberturas e Gradis">Aberturas e Gradis</option>
+                      <option value="Geral">Geral</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">Subcategoria *</label>
+                    <select value={prodSubcategoria} onChange={(e) => setProdSubcategoria(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer">
+                      <option value="Tubos e Conexões para esgoto">Tubos e Conexões para esgoto</option>
+                      <option value="Consumíveis">Consumíveis</option>
+                      <option value="Fixações">Fixações</option>
+                      <option value="Cabos de comunicação">Cabos de comunicação</option>
+                      <option value="Condutores elétricos">Condutores elétricos</option>
+                      <option value="Acessórios e Materiais">Acessórios e Materiais</option>
+                      <option value="Geral">Geral</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">Marca / Fabricante Preferencial</label>
+                    <input type="text" placeholder="Ex: Amanco, Tigre, Gerdau" value={prodMarca} onChange={(e) => setProdMarca(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500" />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">Valor Estimado / Preço Ref. (R$)</label>
+                    <input type="number" step="0.01" placeholder="R$ 0,00" value={prodValorEstimado} onChange={(e) => setProdValorEstimado(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 mb-1">Observações Gerais</label>
+                  <textarea rows={2} placeholder="Informações adicionais sobre o produto..." value={prodObservacoes} onChange={(e) => setProdObservacoes(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500" />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                  <button type="button" onClick={() => setShowNovoProdutoModal(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs cursor-pointer">Cancelar</button>
+                  <button type="submit" className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs cursor-pointer shadow-lg">Salvar Produto Completo</button>
+                </div>
               </form>
             </div>
           </div>
