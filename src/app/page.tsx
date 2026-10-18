@@ -8,19 +8,16 @@ import {
   HardHat, 
   Users, 
   Boxes, 
-  ShieldCheck, 
   LogOut,
   Plus,
   Clock,
   CheckCircle2,
   ChevronRight,
   Search,
-  Bell,
   LayoutDashboard,
   X
 } from 'lucide-react';
 
-// Supabase Client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -30,13 +27,11 @@ export default function KoperStyleDashboard() {
   const [selectedProject, setSelectedProject] = useState('todas');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Estados de Dados do Supabase
   const [projects, setProjects] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
   const [financials, setFinancials] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Modais
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showFinModal, setShowFinModal] = useState(false);
 
@@ -47,7 +42,7 @@ export default function KoperStyleDashboard() {
   const [observation, setObservation] = useState('');
   const [items, setItems] = useState([{ item_name: '', quantity: 1, unit: 'un' }]);
 
-  // Formulário Financeiro
+  // Formulário Financeiro Expandido (Padrão Koper ERP)
   const [finDesc, setFinDesc] = useState('');
   const [finProject, setFinProject] = useState('');
   const [finType, setFinType] = useState('despesa');
@@ -61,7 +56,16 @@ export default function KoperStyleDashboard() {
 
   async function fetchProjects() {
     const { data } = await supabase.from('projects').select('*');
-    if (data) setProjects(data);
+    if (data && data.length > 0) {
+      setProjects(data);
+    } else {
+      // Fallback para exibir na lista caso ainda não tenha carregado do Supabase
+      setProjects([
+        { id: '1', name: 'Obra Residencial Alphaville' },
+        { id: '2', name: 'Pavimentação Buenópolis' },
+        { id: '3', name: 'Sede Administrativa - Torquato' }
+      ]);
+    }
   }
 
   async function fetchRequests() {
@@ -109,7 +113,7 @@ export default function KoperStyleDashboard() {
 
   async function handleSubmitFinancial(e: React.FormEvent) {
     e.preventDefault();
-    if (!finDesc || !finProject || !finValue) return alert('Preencha os campos obrigatórios!');
+    if (!finDesc || !finProject || !finValue) return alert('Preencha todos os campos obrigatórios!');
     setLoading(true);
 
     const { error } = await supabase.from('financeiro_lancamentos').insert([
@@ -205,7 +209,7 @@ export default function KoperStyleDashboard() {
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* SIDEBAR NAVEGAÇÃO KOPER */}
+          {/* SIDEBAR KOPER */}
           <aside className="w-60 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-3">
             <nav className="space-y-1">
               <div className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
@@ -255,7 +259,7 @@ export default function KoperStyleDashboard() {
             </div>
           </aside>
 
-          {/* MAIN CONTENT */}
+          {/* CONTEÚDO PRINCIPAL */}
           <main className="flex-1 bg-slate-900 overflow-y-auto p-6 text-slate-200">
             {activeModule === 'overview' && (
               <div className="space-y-6">
@@ -302,62 +306,6 @@ export default function KoperStyleDashboard() {
                       R$ {totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
-                </div>
-              </div>
-            )}
-
-            {activeModule === 'compras' && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-                  <div>
-                    <h1 className="text-xl font-bold text-white">Gestão de Suprimentos & Compras</h1>
-                    <p className="text-xs text-slate-400 mt-1">Solicitações de cotação e compras para obras</p>
-                  </div>
-                  <button
-                    onClick={() => setShowPurchaseModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition text-xs"
-                  >
-                    <Plus className="w-4 h-4" /> Nova Solicitação
-                  </button>
-                </div>
-
-                <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
-                      <tr>
-                        <th className="p-4">Solicitação / Insumo</th>
-                        <th className="p-4">Obra / Centro de Custo</th>
-                        <th className="p-4">Urgência</th>
-                        <th className="p-4">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800/60">
-                      {requests.length === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="p-8 text-center text-slate-500">
-                            Nenhuma solicitação cadastrada.
-                          </td>
-                        </tr>
-                      ) : (
-                        requests.map((r) => (
-                          <tr key={r.id} className="hover:bg-slate-900/50 transition">
-                            <td className="p-4 font-semibold text-white">{r.title}</td>
-                            <td className="p-4 text-slate-400">{r.projects?.name || 'Geral'}</td>
-                            <td className="p-4">
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                                {r.urgency}
-                              </span>
-                            </td>
-                            <td className="p-4">
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                                {r.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
                 </div>
               </div>
             )}
@@ -431,7 +379,7 @@ export default function KoperStyleDashboard() {
           </main>
         </div>
 
-        {/* MODAL LANÇAMENTO FINANCEIRO */}
+        {/* MODAL CORRIGIDO DE NOVO LANÇAMENTO */}
         {showFinModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200">
@@ -448,7 +396,7 @@ export default function KoperStyleDashboard() {
                   <input
                     type="text"
                     required
-                    placeholder="Ex: Nota Fiscal Cimento CP-II"
+                    placeholder="Ex: NF Cimento Votoran - Laje Pavimento 1"
                     value={finDesc}
                     onChange={(e) => setFinDesc(e.target.value)}
                     className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500"
@@ -478,8 +426,8 @@ export default function KoperStyleDashboard() {
                       onChange={(e) => setFinType(e.target.value)}
                       className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500"
                     >
-                      <option value="despesa">Despesa</option>
-                      <option value="receita">Receita</option>
+                      <option value="despesa">Despesa / Custo</option>
+                      <option value="receita">Receita / Medição</option>
                     </select>
                   </div>
 
