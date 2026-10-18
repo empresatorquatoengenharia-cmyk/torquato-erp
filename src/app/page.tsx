@@ -441,7 +441,7 @@ export default function TorquatoFullERP() {
               </div>
             )}
 
-            {/* MÓDULO FINANCEIRO KOPER ERP */}
+            {/* MÓDULO FINANCEIRO KOPER ERP (COM ABAS DE PAGAR, RECEBER E CONTAS BANCÁRIAS) */}
             {activeModule === 'financeiro' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
@@ -565,17 +565,21 @@ export default function TorquatoFullERP() {
                       <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">+ Nova Conta</button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {filteredBancos.map((b: any) => (
-                        <div key={b.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
-                          <div>
-                            <p className="font-bold text-white text-sm">{b.banco}</p>
-                            <p className="text-xs text-slate-400">Ag: {b.agencia} • CC: {b.conta}</p>
+                      {filteredBancos.length === 0 ? (
+                        <p className="text-slate-500 text-xs">Nenhuma conta bancária cadastrada.</p>
+                      ) : (
+                        filteredBancos.map((b: any) => (
+                          <div key={b.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
+                            <div>
+                              <p className="font-bold text-white text-sm">{b.banco}</p>
+                              <p className="text-xs text-slate-400">Ag: {b.agencia} • CC: {b.conta}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-black text-amber-400 text-sm">R$ {Number(b.saldo || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-black text-amber-400 text-sm">R$ {Number(b.saldo || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                          </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </div>
                 )}
@@ -621,7 +625,7 @@ export default function TorquatoFullERP() {
           </main>
         </div>
 
-        {/* MODAIS */}
+        {/* MODAL NOVO LANÇAMENTO FINANCEIRO */}
         {showFinanceiroModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
@@ -657,6 +661,7 @@ export default function TorquatoFullERP() {
           </div>
         )}
 
+        {/* MODAL NOVA CONTA BANCÁRIA */}
         {showBancoModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
@@ -672,6 +677,7 @@ export default function TorquatoFullERP() {
           </div>
         )}
 
+        {/* MODAL CADASTRAR EMPRESA */}
         {showEmpresaModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
