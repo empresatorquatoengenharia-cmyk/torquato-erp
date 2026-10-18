@@ -12,9 +12,12 @@ import {
   LogOut,
   Plus,
   Trash2,
-  CheckCircle2,
   Clock,
-  AlertCircle
+  CheckCircle2,
+  AlertTriangle,
+  TrendingDown,
+  Calendar,
+  CreditCard
 } from 'lucide-react';
 
 // Inicialização do cliente Supabase
@@ -23,26 +26,38 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function Dashboard() {
-  const [activeModule, setActiveModule] = useState('compras');
+  const [activeModule, setActiveModule] = useState('financeiro');
   const [userRole, setUserRole] = useState('admin');
 
-  // Estados de dados do Supabase
+  // Estados de Dados do Supabase
   const [projects, setProjects] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
+  const [financials, setFinancials] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Estados do Formulário de Nova Solicitação (Estilo Koper ERP)
-  const [showModal, setShowModal] = useState(false);
+  // Estados do Modal de Compras
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [title, setTitle] = useState('');
   const [projectId, setProjectId] = useState('');
   const [urgency, setUrgency] = useState('media');
   const [observation, setObservation] = useState('');
   const [items, setItems] = useState([{ item_name: '', quantity: 1, unit: 'un' }]);
 
-  // Buscar Obras e Solicitações ao carregar
+  // Estados do Modal Financeiro (Contas a Pagar / Koper)
+  const [showFinModal, setShowFinModal] = useState(false);
+  const [finDesc, setFinDesc] = useState('');
+  const [finProject, setFinProject] = useState('');
+  const [finCategory, setFinCategory] = useState('Material');
+  const [finValue, setFinValue] = useState('');
+  const [finDueDate, setFinDueDate] = useState('');
+  const [finSupplier, setFinSupplier] = useState('');
+  const [finPaymentMethod, setFinPaymentMethod] = useState('pix');
+  const [finObs, setFinObs] = useState('');
+
   useEffect(() => {
     fetchProjects();
     fetchRequests();
+    fetchFinancials();
   }, []);
 
   async function fetchProjects() {
@@ -51,84 +66,109 @@ export default function Dashboard() {
   }
 
   async function fetchRequests() {
-    setLoading(true);
     const { data } = await supabase
       .from('purchase_requests')
       .select('*, projects(name), purchase_request_items(*)')
       .order('created_at', { ascending: false });
     if (data) setRequests(data);
+  }
+
+  async function fetchFinancials() {
+    setLoading(true);
+    const { data } = await supabase
+      .from('financeiro_lancamentos')
+      .select('*, projects(name)')
+      .order('data_vencimento', { ascending: true });
+    if (data) setFinancials(data);
     setLoading(false);
   }
 
-  // Manipulação de múltiplos itens da compra
-  const handleAddItem = () => {
-    setItems([...items, { item_name: '', quantity: 1, unit: 'un' }]);
-  };
-
-  const handleRemoveItem = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
-  };
-
+  // --- COMPRAS ---
+  const handleAddItem = () => setItems([...items, { item_name: '', quantity: 1, unit: 'un' }]);
+  const handleRemoveItem = (index: number) => setItems(items.filter((_, i) => i !== index));
   const handleItemChange = (index: number, field: string, value: any) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     setItems(newItems);
   };
 
-  // Salvar Solicitação estilo Koper no Supabase
   async function handleSubmitRequest(e: React.FormEvent) {
     e.preventDefault();
-    if (!title || !projectId) {
-      alert('Por favor, preencha o título e selecione a Obra!');
-      return;
-    }
-
+    if (!title || !projectId) return alert('Preencha o título e selecione a obra!');
     setLoading(true);
 
-    // 1. Inserir cabeçalho da solicitação
-    const { data: requestData, error: requestError } = await supabase
-      .from('purchase_requests')
-      .insert([
-        {
-          title,
-          project_id: projectId,
-          urgency,
-          observation,
-          status: 'pendente'
-        }
-      ])
-      .select();
+    const { data, error } = await supabase.from('purchase_requests').insert([
+      { title, project_id: projectId, urgency, observation, status: 'pendente' }
+    ]).select();
 
-    if (requestError || !requestData) {
-      alert('Erro ao salvar solicitação no Supabase: ' + requestError?.message);
-      setLoading(false);
-      return;
+    if (!error && data) {
+      const requestId = data[0].id;
+      const formattedItems = items
+        .filter(i => i.item_name.trim() !== '')
+        .map(i => ({ request_id: requestId, item_name: i.item_name, quantity: i.quantity, unit: i.unit }));
+      if (formattedItems.length > 0) {
+        await supabase.from('purchase_request_items').insert(formattedItems);
+      }
+      setTitle('');
+      setObservation('');
+      setItems([{ item_name: '', quantity: 1, unit: 'un' }]);
+      setShowPurchaseModal(false);
+      fetchRequests();
     }
-
-    const requestId = requestData[0].id;
-
-    // 2. Inserir os insumos/itens vinculados à solicitação
-    const formattedItems = items
-      .filter(i => i.item_name.trim() !== '')
-      .map(i => ({
-        request_id: requestId,
-        item_name: i.item_name,
-        quantity: i.quantity,
-        unit: i.unit
-      }));
-
-    if (formattedItems.length > 0) {
-      await supabase.from('purchase_request_items').insert(formattedItems);
-    }
-
-    // Limpar formulário e atualizar lista
-    setTitle('');
-    setObservation('');
-    setItems([{ item_name: '', quantity: 1, unit: 'un' }]);
-    setShowModal(false);
-    fetchRequests();
     setLoading(false);
   }
+
+  // --- FINANCEIRO (KOPER) ---
+  async function handleSubmitFinancial(e: React.FormEvent) {
+    e.preventDefault();
+    if (!finDesc || !finProject || !finValue || !finDueDate) {
+      alert('Por favor, preencha Descrição, Obra, Valor e Vencimento!');
+      return;
+    }
+    setLoading(true);
+
+    const { error } = await supabase.from('financeiro_lancamentos').insert([
+      {
+        descricao: finDesc,
+        projeto_id: finProject,
+        categoria: finCategory,
+        valor: parseFloat(finValue),
+        data_vencimento: finDueDate,
+        fornecedor_nome: finSupplier,
+        forma_pagamento: finPaymentMethod,
+        observacao: finObs,
+        status: 'pendente'
+      }
+    ]);
+
+    if (error) {
+      alert('Erro ao salvar lançamento: ' + error.message);
+    } else {
+      setFinDesc('');
+      setFinValue('');
+      setFinDueDate('');
+      setFinSupplier('');
+      setFinObs('');
+      setShowFinModal(false);
+      fetchFinancials();
+    }
+    setLoading(false);
+  }
+
+  async function handleToggleStatus(id: string, currentStatus: string) {
+    const nextStatus = currentStatus === 'pago' ? 'pendente' : 'pago';
+    await supabase.from('financeiro_lancamentos').update({ status: nextStatus }).eq('id', id);
+    fetchFinancials();
+  }
+
+  // Cálculos do Painel Financeiro
+  const totalPendente = financials
+    .filter(f => f.status === 'pendente')
+    .reduce((acc, curr) => acc + Number(curr.valor), 0);
+
+  const totalPago = financials
+    .filter(f => f.status === 'pago')
+    .reduce((acc, curr) => acc + Number(curr.valor), 0);
 
   const modules = [
     { id: 'admin', name: 'Painel Administrativo', icon: ShieldCheck, roles: ['admin'] },
@@ -153,7 +193,7 @@ export default function Dashboard() {
           </div>
 
           <div className="mt-6 mb-2 px-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Selecione o Perfil:
+            Perfil do Usuário:
           </div>
           <select 
             value={userRole} 
@@ -161,8 +201,8 @@ export default function Dashboard() {
             className="w-full bg-slate-800 text-xs text-slate-200 p-2 rounded border border-slate-700 mb-6 focus:outline-none"
           >
             <option value="admin">Administrador (Acesso Total)</option>
-            <option value="compras">Setor Compras</option>
             <option value="financeiro">Setor Financeiro</option>
+            <option value="compras">Setor Compras</option>
             <option value="engenharia">Engenharia / Obras</option>
           </select>
 
@@ -192,14 +232,14 @@ export default function Dashboard() {
         </div>
       </aside>
 
-      {/* Conteúdo Principal */}
+      {/* Área Conteúdo Principal */}
       <main className="flex-1 overflow-y-auto p-8">
         <header className="flex justify-between items-center mb-8 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
           <div>
             <h2 className="text-2xl font-bold text-slate-800">
               {modules.find(m => m.id === activeModule)?.name}
             </h2>
-            <p className="text-xs text-slate-500 mt-1">Torquato Engenharia Ltda — Gestão de Suprimentos & Obras</p>
+            <p className="text-xs text-slate-500 mt-1">Torquato Engenharia Ltda — Gestão Integrada de Obras</p>
           </div>
           <div className="flex items-center gap-2">
             <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -207,66 +247,111 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* MÓDULO DE COMPRAS (PADRÃO KOPER ERP) */}
-        {activeModule === 'compras' && (
+        {/* MÓDULO FINANCEIRO (KOPER ERP) */}
+        {activeModule === 'financeiro' && (
           <div className="space-y-6">
+            {/* KPI Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase">A Pagar (Pendente)</h3>
+                  <Clock className="w-5 h-5 text-amber-500" />
+                </div>
+                <p className="text-3xl font-bold text-slate-800 mt-2">
+                  R$ {totalPendente.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+                <p className="text-xs text-amber-600 mt-2 font-medium">Contas e Despesas em aberto</p>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase">Total Quitado (Pago)</h3>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                </div>
+                <p className="text-3xl font-bold text-slate-800 mt-2">
+                  R$ {totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+                <p className="text-xs text-emerald-600 mt-2 font-medium">Lançamentos baixados</p>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase">Total de Registros</h3>
+                  <TrendingDown className="w-5 h-5 text-blue-500" />
+                </div>
+                <p className="text-3xl font-bold text-slate-800 mt-2">{financials.length}</p>
+                <p className="text-xs text-slate-500 mt-2 font-medium">Lançamentos por Obra/ADM</p>
+              </div>
+            </div>
+
+            {/* Cabeçalho da Lista e Botão Adicionar */}
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-lg font-bold text-slate-800">Solicitações de Compra</h3>
-                <p className="text-xs text-slate-500">Controle e cotações de insumos para obras</p>
+                <h3 className="text-lg font-bold text-slate-800">Contas a Pagar / Despesas por Obra</h3>
+                <p className="text-xs text-slate-500">Fluxo financeiro e controle de fornecedores</p>
               </div>
               <button
-                onClick={() => setShowModal(true)}
+                onClick={() => setShowFinModal(true)}
                 className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition shadow-sm text-sm"
               >
-                <Plus className="w-4 h-4" /> Nova Solicitação
+                <Plus className="w-4 h-4" /> Novo Lançamento
               </button>
             </div>
 
-            {/* Listagem de Solicitações do Supabase */}
+            {/* Tabela de Lançamentos Financeiros */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase">
-                    <th className="p-4">Solicitação / Insumo</th>
+                    <th className="p-4">Descrição / Fornecedor</th>
                     <th className="p-4">Obra / Centro de Custo</th>
-                    <th className="p-4">Urgência</th>
-                    <th className="p-4">Itens</th>
+                    <th className="p-4">Categoria</th>
+                    <th className="p-4">Vencimento</th>
+                    <th className="p-4">Valor (R$)</th>
                     <th className="p-4">Status</th>
+                    <th className="p-4 text-center">Ação</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm">
-                  {requests.length === 0 ? (
+                  {financials.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-slate-400">
-                        Nenhuma solicitação cadastrada ainda. Clique em "Nova Solicitação" para criar.
+                      <td colSpan={7} className="p-8 text-center text-slate-400">
+                        Nenhum lançamento financeiro registrado. Clique em "Novo Lançamento".
                       </td>
                     </tr>
                   ) : (
-                    requests.map((req) => (
-                      <tr key={req.id} className="hover:bg-slate-50/80 transition">
+                    financials.map((fin) => (
+                      <tr key={fin.id} className="hover:bg-slate-50/80 transition">
                         <td className="p-4 font-semibold text-slate-800">
-                          {req.title}
-                          {req.observation && <p className="text-xs text-slate-400 font-normal">{req.observation}</p>}
+                          {fin.descricao}
+                          {fin.fornecedor_nome && (
+                            <p className="text-xs text-slate-400 font-normal">Forn: {fin.fornecedor_nome}</p>
+                          )}
                         </td>
-                        <td className="p-4 text-slate-600">{req.projects?.name || 'Obra Geral'}</td>
+                        <td className="p-4 text-slate-600">{fin.projects?.name || 'Geral / ADM'}</td>
+                        <td className="p-4 text-xs font-medium text-slate-500">{fin.categoria}</td>
+                        <td className="p-4 text-slate-700 font-medium">
+                          {new Date(fin.data_vencimento).toLocaleDateString('pt-BR')}
+                        </td>
+                        <td className="p-4 font-bold text-slate-900">
+                          R$ {Number(fin.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
                         <td className="p-4">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            req.urgency === 'urgente' ? 'bg-rose-100 text-rose-700' :
-                            req.urgency === 'alta' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
+                            fin.status === 'pago' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'
                           }`}>
-                            {req.urgency?.toUpperCase()}
+                            {fin.status === 'pago' ? 'PAGO' : 'PENDENTE'}
                           </span>
                         </td>
-                        <td className="p-4 text-xs text-slate-600">
-                          {req.purchase_request_items?.map((item: any, idx: number) => (
-                            <div key={idx}>• {item.quantity} {item.unit} - {item.item_name}</div>
-                          ))}
-                        </td>
-                        <td className="p-4">
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                            <Clock className="w-3.5 h-3.5" /> {req.status?.toUpperCase()}
-                          </span>
+                        <td className="p-4 text-center">
+                          <button
+                            onClick={() => handleToggleStatus(fin.id, fin.status)}
+                            className={`px-3 py-1 rounded-md text-xs font-bold transition ${
+                              fin.status === 'pago' ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-emerald-600 text-white hover:bg-emerald-500'
+                            }`}
+                          >
+                            {fin.status === 'pago' ? 'Desfazer' : 'Dar Baixa (Pagar)'}
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -277,22 +362,22 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* MODAL PADRÃO KOPER PARA NOVA SOLICITAÇÃO */}
-        {showModal && (
+        {/* MODAL NOVO LANÇAMENTO FINANCEIRO */}
+        {showFinModal && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 border border-slate-200 max-h-[90vh] overflow-y-auto">
-              <h3 className="text-xl font-bold text-slate-800 mb-1">Nova Solicitação de Compra</h3>
-              <p className="text-xs text-slate-500 mb-6">Padrão Koper ERP — Envio direto para cotação e aprovação</p>
+            <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full p-6 border border-slate-200 max-h-[90vh] overflow-y-auto">
+              <h3 className="text-xl font-bold text-slate-800 mb-1">Novo Lançamento Financeiro</h3>
+              <p className="text-xs text-slate-500 mb-6">Padrão Koper ERP — Inclusão de Despesa / Conta a Pagar</p>
 
-              <form onSubmit={handleSubmitRequest} className="space-y-4">
+              <form onSubmit={handleSubmitFinancial} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Título da Solicitação</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Descrição da Despesa</label>
                   <input
                     type="text"
                     required
-                    placeholder="Ex: Cimento e Areia para concretagem da laje"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Ex: Fatura Cemig Obras ou NF Cimento Votoran"
+                    value={finDesc}
+                    onChange={(e) => setFinDesc(e.target.value)}
                     className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
                   />
                 </div>
@@ -302,8 +387,8 @@ export default function Dashboard() {
                     <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Obra / Centro de Custo</label>
                     <select
                       required
-                      value={projectId}
-                      onChange={(e) => setProjectId(e.target.value)}
+                      value={finProject}
+                      onChange={(e) => setFinProject(e.target.value)}
                       className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
                     >
                       <option value="">Selecione a Obra...</option>
@@ -314,76 +399,81 @@ export default function Dashboard() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Prioridade / Urgência</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Categoria de Custo</label>
                     <select
-                      value={urgency}
-                      onChange={(e) => setUrgency(e.target.value)}
+                      value={finCategory}
+                      onChange={(e) => setFinCategory(e.target.value)}
                       className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
                     >
-                      <option value="baixa">Baixa</option>
-                      <option value="media">Média</option>
-                      <option value="alta">Alta</option>
-                      <option value="urgente">URGENTE (Parada de Obra)</option>
+                      <option value="Material">Material de Construção</option>
+                      <option value="Mão de Obra">Mão de Obra / Empreiteiros</option>
+                      <option value="Equipamentos">Locação de Equipamentos</option>
+                      <option value="Utilidades">Utilidades (Cemig / Copasa)</option>
+                      <option value="Administrativo">Administrativo / Serviços</option>
                     </select>
                   </div>
                 </div>
 
-                {/* LISTA DINÂMICA DE INSUMOS */}
-                <div className="pt-2">
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-2">Insumos / Materiais Solicitados</label>
-                  {items.map((item, index) => (
-                    <div key={index} className="flex gap-2 mb-2 items-center">
-                      <input
-                        type="text"
-                        placeholder="Nome do Insumo (Ex: Cimento CP-II)"
-                        value={item.item_name}
-                        onChange={(e) => handleItemChange(index, 'item_name', e.target.value)}
-                        className="flex-1 p-2 border border-slate-300 rounded-lg text-sm"
-                        required
-                      />
-                      <input
-                        type="number"
-                        placeholder="Qtd"
-                        value={item.quantity}
-                        onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value))}
-                        className="w-20 p-2 border border-slate-300 rounded-lg text-sm"
-                        required
-                      />
-                      <select
-                        value={item.unit}
-                        onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
-                        className="w-24 p-2 border border-slate-300 rounded-lg text-sm"
-                      >
-                        <option value="un">Unid.</option>
-                        <option value="sc">Saco</option>
-                        <option value="m3">m³</option>
-                        <option value="kg">Kg</option>
-                        <option value="m">Metros</option>
-                        <option value="cx">Caixa</option>
-                      </select>
-                      {items.length > 1 && (
-                        <button type="button" onClick={() => handleRemoveItem(index)} className="text-rose-500 hover:text-rose-700 p-1">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={handleAddItem}
-                    className="text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 mt-1"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> Adicionar outro item
-                  </button>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Valor Total (R$)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      placeholder="0,00"
+                      value={finValue}
+                      onChange={(e) => setFinValue(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500 font-bold text-slate-800"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Data de Vencimento</label>
+                    <input
+                      type="date"
+                      required
+                      value={finDueDate}
+                      onChange={(e) => setFinDueDate(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Fornecedor / Razão Social</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: Comercial de Cimento Ltda"
+                      value={finSupplier}
+                      onChange={(e) => setFinSupplier(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Forma de Pagamento</label>
+                    <select
+                      value={finPaymentMethod}
+                      onChange={(e) => setFinPaymentMethod(e.target.value)}
+                      className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="pix">Pix</option>
+                      <option value="boleto">Boleto Bancário</option>
+                      <option value="transferencia">Transferência / TED</option>
+                      <option value="cartao">Cartão Corporativo</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Observações Técnicas</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Observações / NFE</label>
                   <textarea
                     rows={2}
-                    placeholder="Instruções de entrega ou especificações do engenheiro..."
-                    value={observation}
-                    onChange={(e) => setObservation(e.target.value)}
+                    placeholder="Número da Nota Fiscal ou detalhes do pagamento..."
+                    value={finObs}
+                    onChange={(e) => setFinObs(e.target.value)}
                     className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
                   />
                 </div>
@@ -391,7 +481,7 @@ export default function Dashboard() {
                 <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
                   <button
                     type="button"
-                    onClick={() => setShowModal(false)}
+                    onClick={() => setShowFinModal(false)}
                     className="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-100"
                   >
                     Cancelar
@@ -401,7 +491,7 @@ export default function Dashboard() {
                     disabled={loading}
                     className="px-5 py-2 bg-amber-500 text-slate-950 rounded-lg text-sm font-bold hover:bg-amber-400 transition shadow-sm"
                   >
-                    {loading ? 'Salvando...' : 'Criar Solicitação'}
+                    {loading ? 'Salvar...' : 'Salvar Lançamento'}
                   </button>
                 </div>
               </form>
