@@ -3,74 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Torquato ERP</title>
-    <!-- Tailwind CSS -->
+    <title>Torquato ERP - Login</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Biblioteca oficial do Supabase -->
+    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans flex items-center justify-center h-screen m-0">
+<body class="bg-slate-950 text-slate-100 font-sans flex items-center justify-center min-h-screen m-0 p-4">
 
     <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-full max-w-md shadow-2xl space-y-6">
+        <!-- Logo e Título -->
         <div class="text-center space-y-2">
-            <div class="w-12 h-12 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center mx-auto text-xl shadow-lg">TE</div>
-            <h1 class="text-xl font-bold text-white">Torquato ERP</h1>
-            <p class="text-xs text-slate-400">Gestão de Engenharia • www.torquatoengenharia.com.br</p>
+            <div class="w-14 h-14 bg-amber-500 text-slate-950 font-black rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-lg border border-amber-400">TE</div>
+            <h1 class="text-2xl font-bold text-white tracking-tight">Torquato ERP</h1>
+            <p class="text-xs text-slate-400">Torquato Engenharia Ltda • Gestão Integrada</p>
         </div>
 
+        <!-- Formulário -->
         <div class="space-y-4 text-xs">
             <div>
                 <label class="block text-slate-400 font-bold mb-1">E-mail de Acesso</label>
-                <input type="email" id="login-email" value="admin@torquato.com" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                <input type="email" id="login-email" value="admin@torquato.com" placeholder="seuemail@torquato.com" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
             </div>
             <div>
                 <label class="block text-slate-400 font-bold mb-1">Palavra-passe</label>
-                <input type="password" id="login-senha" value="123" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                <input type="password" id="login-senha" value="123" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
             </div>
-            <button onclick="fazerLogin()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer">
+
+            <!-- Caixas de Feedback de Erro/Sucesso -->
+            <div id="mensagem-status" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+
+            <button onclick="fazerLogin()" id="btn-entrar" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center justify-center">
                 Entrar no Sistema
             </button>
         </div>
         
-        <div class="text-center text-[10px] text-slate-500">
-            Torquato Engenharia Ltda • Sincronizado via Supabase
+        <div class="text-center text-[10px] text-slate-500 border-t border-slate-800/60 pt-4">
+            Acesso Restrito • Sincronizado via Supabase
         </div>
     </div>
 
     <script>
+        // Configuração oficial do Supabase
         const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         
-        // Agora inicializa corretamente
+        // Inicialização do cliente Supabase
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        async function fazerLogin() {
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const senha = document.getElementById('login-senha').value.trim();
+        function exibirMensagem(texto, tipo) {
+            const el = document.getElementById('mensagem-status');
+            el.classList.remove('hidden', 'bg-red-950', 'text-red-300', 'border-red-800', 'bg-emerald-950', 'text-emerald-300', 'border-emerald-800');
+            el.classList.add('border');
+            
+            if (tipo === 'erro') {
+                el.classList.add('bg-red-950', 'text-red-300', 'border-red-800');
+            } else {
+                el.classList.add('bg-emerald-950', 'text-emerald-300', 'border-emerald-800');
+            }
+            el.innerText = texto;
+        }
 
-            if (!email || !senha) {
-                alert('Preencha o e-mail e a palavra-passe.');
+        async function fazerLogin() {
+            const emailInput = document.getElementById('login-email').value.trim().toLowerCase();
+            const senhaInput = document.getElementById('login-senha').value.trim();
+            const btn = document.getElementById('btn-entrar');
+
+            if (!emailInput || !senhaInput) {
+                exibirMensagem('Por favor, preencha o e-mail e a palavra-passe.', 'erro');
                 return;
             }
 
+            btn.disabled = true;
+            btn.innerText = "A autenticar...";
+
             try {
+                // Consulta à tabela usuarios_erp
                 const { data, error } = await supabaseClient
                     .from('usuarios_erp')
                     .select('*')
-                    .eq('email', email)
-                    .eq('senha', senha);
+                    .eq('email', emailInput)
+                    .eq('senha', senhaInput);
 
-                if (error || !data || data.length === 0) {
-                    alert('E-mail ou palavra-passe incorretos.');
+                if (error) {
+                    console.error('Erro na consulta do Supabase:', error);
+                    exibirMensagem(`Erro na base de dados: ${error.message}`, 'erro');
+                    btn.disabled = false;
+                    btn.innerText = "Entrar no Sistema";
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    exibirMensagem('E-mail ou palavra-passe incorretos.', 'erro');
+                    btn.disabled = false;
+                    btn.innerText = "Entrar no Sistema";
                 } else {
                     const usuario = data[0];
                     localStorage.setItem('torquato_user', JSON.stringify(usuario));
-                    alert(`Bem-vindo, ${usuario.nome}!`);
-                    window.location.href = 'admin.html';
+                    exibirMensagem(`Bem-vindo, ${usuario.nome}! A redirecionar...`, 'sucesso');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'admin.html';
+                    }, 1000);
                 }
             } catch (err) {
-                console.error(err);
-                alert('Erro ao conectar ao Supabase.');
+                console.error('Erro inesperado:', err);
+                exibirMensagem('Falha na ligação ao servidor.', 'erro');
+                btn.disabled = false;
+                btn.innerText = "Entrar no Sistema";
             }
         }
     </script>
