@@ -6,8 +6,6 @@ import {
   ShoppingCart, 
   DollarSign, 
   HardHat, 
-  Users, 
-  Boxes, 
   LogOut,
   Plus,
   Clock,
@@ -32,17 +30,9 @@ export default function KoperStyleDashboard() {
   const [financials, setFinancials] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showFinModal, setShowFinModal] = useState(false);
 
-  // Formulário Compras
-  const [title, setTitle] = useState('');
-  const [projectId, setProjectId] = useState('');
-  const [urgency, setUrgency] = useState('media');
-  const [observation, setObservation] = useState('');
-  const [items, setItems] = useState([{ item_name: '', quantity: 1, unit: 'un' }]);
-
-  // Formulário Financeiro Completo
+  // Formulário Financeiro
   const [finDesc, setFinDesc] = useState('');
   const [finProject, setFinProject] = useState('');
   const [finType, setFinType] = useState('despesa');
@@ -60,12 +50,6 @@ export default function KoperStyleDashboard() {
     const { data } = await supabase.from('projects').select('*');
     if (data && data.length > 0) {
       setProjects(data);
-    } else {
-      setProjects([
-        { id: '1', name: 'Obra Residencial Alphaville' },
-        { id: '2', name: 'Pavimentação Buenópolis' },
-        { id: '3', name: 'Sede Administrativa - Torquato' }
-      ]);
     }
   }
 
@@ -87,40 +71,15 @@ export default function KoperStyleDashboard() {
     setLoading(false);
   }
 
-  async function handleSubmitRequest(e: React.FormEvent) {
-    e.preventDefault();
-    if (!title || !projectId) return alert('Preencha título e obra!');
-    setLoading(true);
-    const { data, error } = await supabase.from('purchase_requests').insert([
-      { title, project_id: projectId, urgency, observation, status: 'pendente' }
-    ]).select();
-
-    if (!error && data) {
-      const requestId = data[0].id;
-      const formattedItems = items
-        .filter(i => i.item_name.trim() !== '')
-        .map(i => ({ request_id: requestId, item_name: i.item_name, quantity: i.quantity, unit: i.unit }));
-      if (formattedItems.length > 0) {
-        await supabase.from('purchase_request_items').insert(formattedItems);
-      }
-      setTitle('');
-      setObservation('');
-      setItems([{ item_name: '', quantity: 1, unit: 'un' }]);
-      setShowPurchaseModal(false);
-      fetchRequests();
-    }
-    setLoading(false);
-  }
-
   async function handleSubmitFinancial(e: React.FormEvent) {
     e.preventDefault();
-    if (!finDesc || !finProject || !finValue || !finDueDate) return alert('Preencha todos os campos obrigatórios!');
+    if (!finDesc || !finValue || !finDueDate) return alert('Preencha os campos obrigatórios!');
     setLoading(true);
 
     const { error } = await supabase.from('financeiro_lancamentos').insert([
       {
         descricao: finDesc,
-        obra_id: finProject,
+        obra_id: finProject || null,
         tipo: finType,
         valor: parseFloat(finValue),
         data_vencimento: finDueDate,
@@ -161,7 +120,7 @@ export default function KoperStyleDashboard() {
       <script src="https://cdn.tailwindcss.com"></script>
 
       <div className="flex flex-col h-screen bg-slate-900 text-slate-100 font-sans">
-        {/* HEADER TOPO FIXO KOPER */}
+        {/* HEADER TOPO FIXO */}
         <header className="h-16 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-6 z-20">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
@@ -213,7 +172,7 @@ export default function KoperStyleDashboard() {
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* SIDEBAR KOPER */}
+          {/* SIDEBAR NAVEGAÇÃO */}
           <aside className="w-60 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-3">
             <nav className="space-y-1">
               <div className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
@@ -355,7 +314,7 @@ export default function KoperStyleDashboard() {
                               {f.descricao}
                               {f.fornecedor_nome && <span className="block text-[10px] text-slate-400 font-normal">Forn: {f.fornecedor_nome}</span>}
                             </td>
-                            <td className="p-4 text-slate-400">{f.projects?.name || 'Geral'}</td>
+                            <td className="p-4 text-slate-400">{f.projects?.name || 'Geral / ADM'}</td>
                             <td className="p-4 text-slate-300 font-medium">
                               {f.data_vencimento ? new Date(f.data_vencimento).toLocaleDateString('pt-BR') : '-'}
                             </td>
@@ -390,7 +349,7 @@ export default function KoperStyleDashboard() {
           </main>
         </div>
 
-        {/* MODAL FINANCEIRO COMPLETO COM DATA DE VENCIMENTO */}
+        {/* MODAL FINANCEIRO */}
         {showFinModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200">
@@ -417,12 +376,11 @@ export default function KoperStyleDashboard() {
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Obra / Centro de Custo</label>
                   <select
-                    required
                     value={finProject}
                     onChange={(e) => setFinProject(e.target.value)}
                     className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500"
                   >
-                    <option value="">Selecione a Obra...</option>
+                    <option value="">Geral / Sem obra associada</option>
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
