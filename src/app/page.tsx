@@ -14,10 +14,7 @@ import {
   Trash2,
   Clock,
   CheckCircle2,
-  AlertTriangle,
-  TrendingDown,
-  Calendar,
-  CreditCard
+  TrendingDown
 } from 'lucide-react';
 
 // Inicialização do cliente Supabase
@@ -47,6 +44,7 @@ export default function Dashboard() {
   const [showFinModal, setShowFinModal] = useState(false);
   const [finDesc, setFinDesc] = useState('');
   const [finProject, setFinProject] = useState('');
+  const [finType, setFinType] = useState('despesa');
   const [finCategory, setFinCategory] = useState('Material');
   const [finValue, setFinValue] = useState('');
   const [finDueDate, setFinDueDate] = useState('');
@@ -77,8 +75,8 @@ export default function Dashboard() {
     setLoading(true);
     const { data } = await supabase
       .from('financeiro_lancamentos')
-      .select('*, projects(name)')
-      .order('data_vencimento', { ascending: true });
+      .select('*, projects!obra_id(name)')
+      .order('created_at', { ascending: false });
     if (data) setFinancials(data);
     setLoading(false);
   }
@@ -118,11 +116,11 @@ export default function Dashboard() {
     setLoading(false);
   }
 
-  // --- FINANCEIRO (KOPER) ---
+  // --- FINANCEIRO (COMPATÍVEL COM SUPABASE DA IMAGEM) ---
   async function handleSubmitFinancial(e: React.FormEvent) {
     e.preventDefault();
-    if (!finDesc || !finProject || !finValue || !finDueDate) {
-      alert('Por favor, preencha Descrição, Obra, Valor e Vencimento!');
+    if (!finDesc || !finProject || !finValue) {
+      alert('Por favor, preencha a Descrição, Obra e o Valor!');
       return;
     }
     setLoading(true);
@@ -130,14 +128,11 @@ export default function Dashboard() {
     const { error } = await supabase.from('financeiro_lancamentos').insert([
       {
         descricao: finDesc,
-        projeto_id: finProject,
-        categoria: finCategory,
+        obra_id: finProject,
+        tipo: finType,
         valor: parseFloat(finValue),
-        data_vencimento: finDueDate,
-        fornecedor_nome: finSupplier,
-        forma_pagamento: finPaymentMethod,
-        observacao: finObs,
-        status: 'pendente'
+        status: 'pendente',
+        created_at: new Date().toISOString()
       }
     ]);
 
@@ -146,9 +141,6 @@ export default function Dashboard() {
     } else {
       setFinDesc('');
       setFinValue('');
-      setFinDueDate('');
-      setFinSupplier('');
-      setFinObs('');
       setShowFinModal(false);
       fetchFinancials();
     }
@@ -161,14 +153,13 @@ export default function Dashboard() {
     fetchFinancials();
   }
 
-  // Cálculos do Painel Financeiro
   const totalPendente = financials
     .filter(f => f.status === 'pendente')
-    .reduce((acc, curr) => acc + Number(curr.valor), 0);
+    .reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
 
   const totalPago = financials
     .filter(f => f.status === 'pago')
-    .reduce((acc, curr) => acc + Number(curr.valor), 0);
+    .reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
 
   const modules = [
     { id: 'admin', name: 'Painel Administrativo', icon: ShieldCheck, roles: ['admin'] },
@@ -247,7 +238,7 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* MÓDULO FINANCEIRO (KOPER ERP) */}
+        {/* MÓDULO FINANCEIRO */}
         {activeModule === 'financeiro' && (
           <div className="space-y-6">
             {/* KPI Summary Cards */}
@@ -260,7 +251,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-slate-800 mt-2">
                   R$ {totalPendente.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
-                <p className="text-xs text-amber-600 mt-2 font-medium">Contas e Despesas em aberto</p>
+                <p className="text-xs text-amber-600 mt-2 font-medium">Lançamentos em aberto</p>
               </div>
 
               <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
@@ -288,7 +279,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-bold text-slate-800">Contas a Pagar / Despesas por Obra</h3>
-                <p className="text-xs text-slate-500">Fluxo financeiro e controle de fornecedores</p>
+                <p className="text-xs text-slate-500">Fluxo financeiro conectado à tabela `financeiro_lancamentos`</p>
               </div>
               <button
                 onClick={() => setShowFinModal(true)}
@@ -303,10 +294,9 @@ export default function Dashboard() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase">
-                    <th className="p-4">Descrição / Fornecedor</th>
+                    <th className="p-4">Descrição</th>
                     <th className="p-4">Obra / Centro de Custo</th>
-                    <th className="p-4">Categoria</th>
-                    <th className="p-4">Vencimento</th>
+                    <th className="p-4">Tipo</th>
                     <th className="p-4">Valor (R$)</th>
                     <th className="p-4">Status</th>
                     <th className="p-4 text-center">Ação</th>
@@ -315,26 +305,18 @@ export default function Dashboard() {
                 <tbody className="divide-y divide-slate-100 text-sm">
                   {financials.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="p-8 text-center text-slate-400">
-                        Nenhum lançamento financeiro registrado. Clique em "Novo Lançamento".
+                      <td colSpan={6} className="p-8 text-center text-slate-400">
+                        Nenhum lançamento financeiro registrado no Supabase. Clique em "Novo Lançamento".
                       </td>
                     </tr>
                   ) : (
                     financials.map((fin) => (
                       <tr key={fin.id} className="hover:bg-slate-50/80 transition">
-                        <td className="p-4 font-semibold text-slate-800">
-                          {fin.descricao}
-                          {fin.fornecedor_nome && (
-                            <p className="text-xs text-slate-400 font-normal">Forn: {fin.fornecedor_nome}</p>
-                          )}
-                        </td>
+                        <td className="p-4 font-semibold text-slate-800">{fin.descricao}</td>
                         <td className="p-4 text-slate-600">{fin.projects?.name || 'Geral / ADM'}</td>
-                        <td className="p-4 text-xs font-medium text-slate-500">{fin.categoria}</td>
-                        <td className="p-4 text-slate-700 font-medium">
-                          {new Date(fin.data_vencimento).toLocaleDateString('pt-BR')}
-                        </td>
+                        <td className="p-4 text-xs font-medium text-slate-500 uppercase">{fin.tipo || 'Despesa'}</td>
                         <td className="p-4 font-bold text-slate-900">
-                          R$ {Number(fin.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          R$ {Number(fin.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="p-4">
                           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
@@ -365,9 +347,9 @@ export default function Dashboard() {
         {/* MODAL NOVO LANÇAMENTO FINANCEIRO */}
         {showFinModal && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full p-6 border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 border border-slate-200">
               <h3 className="text-xl font-bold text-slate-800 mb-1">Novo Lançamento Financeiro</h3>
-              <p className="text-xs text-slate-500 mb-6">Padrão Koper ERP — Inclusão de Despesa / Conta a Pagar</p>
+              <p className="text-xs text-slate-500 mb-6">Gravação direta na tabela `financeiro_lancamentos` do Supabase</p>
 
               <form onSubmit={handleSubmitFinancial} className="space-y-4">
                 <div>
@@ -375,7 +357,7 @@ export default function Dashboard() {
                   <input
                     type="text"
                     required
-                    placeholder="Ex: Fatura Cemig Obras ou NF Cimento Votoran"
+                    placeholder="Ex: Nota Fiscal Cimento ou Fatura Cemig"
                     value={finDesc}
                     onChange={(e) => setFinDesc(e.target.value)}
                     className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
@@ -393,88 +375,34 @@ export default function Dashboard() {
                     >
                       <option value="">Selecione a Obra...</option>
                       {projects.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
+                        <option key={p.id} value={p.id}>{p.name}</option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Categoria de Custo</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Tipo de Lançamento</label>
                     <select
-                      value={finCategory}
-                      onChange={(e) => setFinCategory(e.target.value)}
+                      value={finType}
+                      onChange={(e) => setFinType(e.target.value)}
                       className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
                     >
-                      <option value="Material">Material de Construção</option>
-                      <option value="Mão de Obra">Mão de Obra / Empreiteiros</option>
-                      <option value="Equipamentos">Locação de Equipamentos</option>
-                      <option value="Utilidades">Utilidades (Cemig / Copasa)</option>
-                      <option value="Administrativo">Administrativo / Serviços</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Valor Total (R$)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      required
-                      placeholder="0,00"
-                      value={finValue}
-                      onChange={(e) => setFinValue(e.target.value)}
-                      className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500 font-bold text-slate-800"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Data de Vencimento</label>
-                    <input
-                      type="date"
-                      required
-                      value={finDueDate}
-                      onChange={(e) => setFinDueDate(e.target.value)}
-                      className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Fornecedor / Razão Social</label>
-                    <input
-                      type="text"
-                      placeholder="Ex: Comercial de Cimento Ltda"
-                      value={finSupplier}
-                      onChange={(e) => setFinSupplier(e.target.value)}
-                      className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Forma de Pagamento</label>
-                    <select
-                      value={finPaymentMethod}
-                      onChange={(e) => setFinPaymentMethod(e.target.value)}
-                      className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
-                    >
-                      <option value="pix">Pix</option>
-                      <option value="boleto">Boleto Bancário</option>
-                      <option value="transferencia">Transferência / TED</option>
-                      <option value="cartao">Cartão Corporativo</option>
+                      <option value="despesa">Despesa / Custo de Obra</option>
+                      <option value="receita">Receita / Medição</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Observações / NFE</label>
-                  <textarea
-                    rows={2}
-                    placeholder="Número da Nota Fiscal ou detalhes do pagamento..."
-                    value={finObs}
-                    onChange={(e) => setFinObs(e.target.value)}
-                    className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500"
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Valor Total (R$)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    placeholder="0.00"
+                    value={finValue}
+                    onChange={(e) => setFinValue(e.target.value)}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-amber-500 font-bold text-slate-800"
                   />
                 </div>
 
