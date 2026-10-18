@@ -42,11 +42,13 @@ export default function KoperStyleDashboard() {
   const [observation, setObservation] = useState('');
   const [items, setItems] = useState([{ item_name: '', quantity: 1, unit: 'un' }]);
 
-  // Formulário Financeiro Expandido (Padrão Koper ERP)
+  // Formulário Financeiro Completo
   const [finDesc, setFinDesc] = useState('');
   const [finProject, setFinProject] = useState('');
   const [finType, setFinType] = useState('despesa');
   const [finValue, setFinValue] = useState('');
+  const [finDueDate, setFinDueDate] = useState(new Date().toISOString().split('T')[0]);
+  const [finSupplier, setFinSupplier] = useState('');
 
   useEffect(() => {
     fetchProjects();
@@ -59,7 +61,6 @@ export default function KoperStyleDashboard() {
     if (data && data.length > 0) {
       setProjects(data);
     } else {
-      // Fallback para exibir na lista caso ainda não tenha carregado do Supabase
       setProjects([
         { id: '1', name: 'Obra Residencial Alphaville' },
         { id: '2', name: 'Pavimentação Buenópolis' },
@@ -113,7 +114,7 @@ export default function KoperStyleDashboard() {
 
   async function handleSubmitFinancial(e: React.FormEvent) {
     e.preventDefault();
-    if (!finDesc || !finProject || !finValue) return alert('Preencha todos os campos obrigatórios!');
+    if (!finDesc || !finProject || !finValue || !finDueDate) return alert('Preencha todos os campos obrigatórios!');
     setLoading(true);
 
     const { error } = await supabase.from('financeiro_lancamentos').insert([
@@ -122,6 +123,8 @@ export default function KoperStyleDashboard() {
         obra_id: finProject,
         tipo: finType,
         valor: parseFloat(finValue),
+        data_vencimento: finDueDate,
+        fornecedor_nome: finSupplier || null,
         status: 'pendente'
       }
     ]);
@@ -130,6 +133,7 @@ export default function KoperStyleDashboard() {
       setFinDesc('');
       setFinValue('');
       setFinProject('');
+      setFinSupplier('');
       setShowFinModal(false);
       fetchFinancials();
     } else {
@@ -242,230 +246,4 @@ export default function KoperStyleDashboard() {
 
               <button
                 onClick={() => setActiveModule('financeiro')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold transition ${
-                  activeModule === 'financeiro' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <DollarSign className="w-4 h-4" /> Financeiro & Obras
-                </div>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </nav>
-
-            <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-              <span>Torquato v1.0</span>
-              <LogOut className="w-4 h-4 cursor-pointer hover:text-rose-400 transition" />
-            </div>
-          </aside>
-
-          {/* CONTEÚDO PRINCIPAL */}
-          <main className="flex-1 bg-slate-900 overflow-y-auto p-6 text-slate-200">
-            {activeModule === 'overview' && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-                  <div>
-                    <h1 className="text-xl font-bold text-white">Painel de Controle — Torquato ERP</h1>
-                    <p className="text-xs text-slate-400 mt-1">Visão consolidada das obras, compras e fluxo financeiro</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-semibold text-slate-400">OBRAS EM ANDAMENTO</span>
-                      <HardHat className="w-4 h-4 text-amber-500" />
-                    </div>
-                    <p className="text-2xl font-bold text-white mt-2">{projects.length}</p>
-                  </div>
-
-                  <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-semibold text-slate-400">COTAÇÕES DE COMPRA</span>
-                      <ShoppingCart className="w-4 h-4 text-blue-500" />
-                    </div>
-                    <p className="text-2xl font-bold text-white mt-2">{requests.length}</p>
-                  </div>
-
-                  <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-semibold text-slate-400">CONTAS A PAGAR</span>
-                      <Clock className="w-4 h-4 text-amber-500" />
-                    </div>
-                    <p className="text-2xl font-bold text-white mt-2">
-                      R$ {totalPendente.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-
-                  <div className="bg-slate-950 p-5 rounded-xl border border-slate-800">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-semibold text-slate-400">TOTAL QUITADO</span>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                    </div>
-                    <p className="text-2xl font-bold text-white mt-2">
-                      R$ {totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeModule === 'financeiro' && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-                  <div>
-                    <h1 className="text-xl font-bold text-white">Financeiro & Contas a Pagar</h1>
-                    <p className="text-xs text-slate-400 mt-1">Lançamento e baixa de custos por centro de custo/obra</p>
-                  </div>
-                  <button
-                    onClick={() => setShowFinModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition text-xs cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" /> Novo Lançamento
-                  </button>
-                </div>
-
-                <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
-                      <tr>
-                        <th className="p-4">Descrição</th>
-                        <th className="p-4">Obra</th>
-                        <th className="p-4">Valor (R$)</th>
-                        <th className="p-4">Status</th>
-                        <th className="p-4 text-center">Ação</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800/60">
-                      {financials.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="p-8 text-center text-slate-500">
-                            Nenhum lançamento financeiro registrado.
-                          </td>
-                        </tr>
-                      ) : (
-                        financials.map((f) => (
-                          <tr key={f.id} className="hover:bg-slate-900/50 transition">
-                            <td className="p-4 font-semibold text-white">{f.descricao}</td>
-                            <td className="p-4 text-slate-400">{f.projects?.name || 'Geral'}</td>
-                            <td className="p-4 font-bold text-white">
-                              R$ {Number(f.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </td>
-                            <td className="p-4">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                                f.status === 'pago' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                              }`}>
-                                {f.status === 'pago' ? 'PAGO' : 'PENDENTE'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-center">
-                              <button
-                                onClick={() => handleToggleStatus(f.id, f.status)}
-                                className={`px-3 py-1 rounded text-[10px] font-bold transition ${
-                                  f.status === 'pago' ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-emerald-500 text-slate-950 hover:bg-emerald-400'
-                                }`}
-                              >
-                                {f.status === 'pago' ? 'Desfazer' : 'Baixar'}
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </main>
-        </div>
-
-        {/* MODAL CORRIGIDO DE NOVO LANÇAMENTO */}
-        {showFinModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-white">Novo Lançamento Financeiro</h3>
-                <button onClick={() => setShowFinModal(false)} className="text-slate-400 hover:text-white">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmitFinancial} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Descrição</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: NF Cimento Votoran - Laje Pavimento 1"
-                    value={finDesc}
-                    onChange={(e) => setFinDesc(e.target.value)}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Obra / Centro de Custo</label>
-                  <select
-                    required
-                    value={finProject}
-                    onChange={(e) => setFinProject(e.target.value)}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="">Selecione a Obra...</option>
-                    {projects.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Tipo</label>
-                    <select
-                      value={finType}
-                      onChange={(e) => setFinType(e.target.value)}
-                      className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500"
-                    >
-                      <option value="despesa">Despesa / Custo</option>
-                      <option value="receita">Receita / Medição</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Valor (R$)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      required
-                      placeholder="0.00"
-                      value={finValue}
-                      onChange={(e) => setFinValue(e.target.value)}
-                      className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500 font-bold"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => setShowFinModal(false)}
-                    className="px-4 py-2 border border-slate-800 text-slate-400 rounded-lg text-xs font-semibold hover:bg-slate-800"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-5 py-2 bg-amber-500 text-slate-950 rounded-lg text-xs font-bold hover:bg-amber-400 transition"
-                  >
-                    {loading ? 'Salvar...' : 'Salvar Lançamento'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
-  );
-}
+                className={`w-full flex items-center justify-between px-3 py-2
