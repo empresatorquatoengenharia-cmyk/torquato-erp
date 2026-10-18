@@ -22,7 +22,11 @@ import {
   Check,
   Paperclip,
   Wallet,
-  Filter
+  Filter,
+  Users,
+  Briefcase,
+  Edit2,
+  Lock
 } from 'lucide-react';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -35,6 +39,8 @@ export default function TorquatoFullERP() {
 
   // Estados Globais
   const [empresas, setEmpresas] = useState<any[]>([]);
+  const [usuarios, setUsuarios] = useState<any[]>([]);
+  const [contratos, setContratos] = useState<any[]>([]);
   const [financialsPagar, setFinancialsPagar] = useState<any[]>([]);
   const [financialsReceber, setFinancialsReceber] = useState<any[]>([]);
   const [contasBancarias, setContasBancarias] = useState<any[]>([]);
@@ -47,8 +53,22 @@ export default function TorquatoFullERP() {
   const [dashFiltroCategoria, setDashFiltroCategoria] = useState('todas');
 
   // Modais
+  const [showEmpresaModal, setShowEmpresaModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [showContratoModal, setShowContratoModal] = useState(false);
   const [showFinanceiroModal, setShowFinanceiroModal] = useState(false);
   const [showBancoModal, setShowBancoModal] = useState(false);
+
+  // Forms Administração
+  const [empNome, setEmpNome] = useState('');
+  const [empCnpj, setEmpCnpj] = useState('');
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userCargo, setUserCargo] = useState('Engenheiro');
+  const [userLimite, setUserLimite] = useState('5000');
+  const [contTitulo, setContTitulo] = useState('');
+  const [contFornecedor, setContFornecedor] = useState('');
+  const [contValor, setContValor] = useState('');
 
   // Forms Financeiro
   const [finDescricao, setFinDescricao] = useState('');
@@ -80,6 +100,12 @@ export default function TorquatoFullERP() {
       if (!selectedCompany) setSelectedCompany(empData[0].nome);
     }
 
+    const { data: userData } = await supabase.from('usuarios_erp').select('*').order('created_at', { ascending: false });
+    if (userData) setUsuarios(userData);
+
+    const { data: contData } = await supabase.from('contratos_empresa').select('*').order('created_at', { ascending: false });
+    if (contData) setContratos(contData);
+
     const { data: pagData } = await supabase.from('financeiro_lancamentos').select('*').order('vencimento', { ascending: true });
     if (pagData) setFinancialsPagar(pagData);
 
@@ -104,6 +130,27 @@ export default function TorquatoFullERP() {
 
     if (tipoArquivo === 'nf') { setFinNfNome(nomeFicheiro); setFinNfUrl(urlFicheiro); }
     else { setFinCompNome(nomeFicheiro); setFinCompUrl(urlFicheiro); }
+  }
+
+  async function handleSaveEmpresa(e: React.FormEvent) {
+    e.preventDefault();
+    if (!empNome) return;
+    await supabase.from('empresas_erp').insert([{ nome: empNome, cnpj: empCnpj || '00.000.000/0001-00' }]);
+    setShowEmpresaModal(false); setEmpNome(''); setEmpCnpj(''); loadAllData();
+  }
+
+  async function handleSaveUser(e: React.FormEvent) {
+    e.preventDefault();
+    if (!userName || !userEmail) return;
+    await supabase.from('usuarios_erp').insert([{ nome: userName, email: userEmail, cargo: userCargo, limite_aprovacao: parseFloat(userLimite), status: 'ativo' }]);
+    setShowUserModal(false); setUserName(''); setUserEmail(''); loadAllData();
+  }
+
+  async function handleSaveContrato(e: React.FormEvent) {
+    e.preventDefault();
+    if (!contTitulo || !contValor) return;
+    await supabase.from('contratos_empresa').insert([{ titulo: contTitulo, fornecedor: contFornecedor, valor: parseFloat(contValor), status: 'Ativo' }]);
+    setShowContratoModal(false); setContTitulo(''); setContFornecedor(''); setContValor(''); loadAllData();
   }
 
   async function handleSaveFinanceiro(e: React.FormEvent) {
@@ -142,6 +189,9 @@ export default function TorquatoFullERP() {
     loadAllData();
   }
 
+  async function handleDeleteEmpresa(id: string) { if (confirm('Excluir empresa?')) { await supabase.from('empresas_erp').delete().eq('id', id); loadAllData(); } }
+  async function handleDeleteUser(id: string) { if (confirm('Excluir usuário?')) { await supabase.from('usuarios_erp').delete().eq('id', id); loadAllData(); } }
+  async function handleDeleteContrato(id: string) { if (confirm('Excluir contrato?')) { await supabase.from('contratos_empresa').delete().eq('id', id); loadAllData(); } }
   async function handleDeleteFinanceiro(id: string, tipo: 'pagar' | 'receber') {
     if (confirm('Excluir lançamento?')) {
       const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
@@ -419,7 +469,7 @@ export default function TorquatoFullERP() {
 
                 {finSubTab === 'pagar' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingDown className="w-4 h-4 text-rose-400" /> Contas a Pagar</h3>
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingDown className="w-4 h-4 text-rose-400" /> Contas a Pagar & Comprovantes / Notas Fiscais</h3>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
                         <tr>
@@ -427,8 +477,8 @@ export default function TorquatoFullERP() {
                           <th className="p-3">Categoria</th>
                           <th className="p-3">Vencimento</th>
                           <th className="p-3">Valor</th>
-                          <th className="p-3">Nota Fiscal</th>
-                          <th className="p-3">Comprovante</th>
+                          <th className="p-3">Nota Fiscal (XML/PDF)</th>
+                          <th className="p-3">Comprovante de Pagamento</th>
                           <th className="p-3">Status</th>
                           <th className="p-3 text-center">Ações</th>
                         </tr>
@@ -443,12 +493,64 @@ export default function TorquatoFullERP() {
                               <td className="p-3 text-slate-400">{item.categoria}</td>
                               <td className="p-3 text-slate-300">{item.vencimento}</td>
                               <td className="p-3 font-bold text-rose-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                              <td className="p-3">{item.nf_url ? <a href={item.nf_url} target="_blank" rel="noreferrer" className="text-amber-400 underline">Ver NF</a> : <span className="text-slate-500">Sem NF</span>}</td>
-                              <td className="p-3">{item.comprovante_url ? <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="text-emerald-400 underline">Ver Comp.</a> : <span className="text-slate-500">Sem Comprovante</span>}</td>
+                              
+                              <td className="p-3">
+                                {item.nf_url ? (
+                                  <a href={item.nf_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-amber-400 font-bold underline">
+                                    <Paperclip className="w-3 h-3" /> {item.nf_nome || 'Ver NF'}
+                                  </a>
+                                ) : <span className="text-slate-500">Sem NF</span>}
+                              </td>
+
+                              <td className="p-3">
+                                {item.comprovante_url ? (
+                                  <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-emerald-400 font-bold underline">
+                                    <CheckCircle2 className="w-3 h-3" /> {item.comprovante_nome || 'Ver Comp.'}
+                                  </a>
+                                ) : <span className="text-slate-500">Sem Comprovante</span>}
+                              </td>
+
                               <td className="p-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>{item.status || 'Pendente'}</span></td>
                               <td className="p-3 text-center flex items-center justify-center gap-1.5">
                                 <button onClick={() => handleToggleQuitar(item, 'pagar')} className={`px-2 py-1 rounded text-xs font-bold ${item.status === 'Pago' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}><Check className="w-3 h-3" /> {item.status === 'Pago' ? 'Estornar' : 'Pagar'}</button>
                                 <button onClick={() => handleDeleteFinanceiro(item.id, 'pagar')} className="p-1 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3 h-3" /></button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {finSubTab === 'receber' && (
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-400" /> Contas a Receber</h3>
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-950 text-slate-400 uppercase">
+                        <tr>
+                          <th className="p-3">Descrição</th>
+                          <th className="p-3">Categoria</th>
+                          <th className="p-3">Previsão</th>
+                          <th className="p-3">Valor</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3 text-center">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800">
+                        {filteredReceber.length === 0 ? (
+                          <tr><td colSpan={6} className="p-6 text-center text-slate-500">Nenhuma conta a receber registrada.</td></tr>
+                        ) : (
+                          filteredReceber.map((item: any) => (
+                            <tr key={item.id} className="hover:bg-slate-950/50">
+                              <td className="p-3 font-bold text-white">{item.descricao}</td>
+                              <td className="p-3 text-slate-400">{item.categoria}</td>
+                              <td className="p-3 text-slate-300">{item.vencimento}</td>
+                              <td className="p-3 font-bold text-emerald-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                              <td className="p-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Recebido' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>{item.status || 'Pendente'}</span></td>
+                              <td className="p-3 text-center flex items-center justify-center gap-1.5">
+                                <button onClick={() => handleToggleQuitar(item, 'receber')} className={`px-2 py-1 rounded text-xs font-bold ${item.status === 'Recebido' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}><Check className="w-3 h-3" /> {item.status === 'Recebido' ? 'Estornar' : 'Receber'}</button>
+                                <button onClick={() => handleDeleteFinanceiro(item.id, 'receber')} className="p-1 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3 h-3" /></button>
                               </td>
                             </tr>
                           ))
@@ -482,7 +584,36 @@ export default function TorquatoFullERP() {
               </div>
             )}
 
-            {activeModule !== 'dashboard' && activeModule !== 'financeiro' && (
+            {/* MÓDULO ADMINISTRAÇÃO */}
+            {activeModule === 'administracao' && (
+              <div className="space-y-8">
+                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <ShieldCheck className="w-6 h-6 text-amber-500" /> Administração & Governança Corporativa
+                    </h1>
+                    <p className="text-xs text-slate-400 mt-1">Gestão de Empresas, Acessos e Contratos</p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Building2 className="w-4 h-4 text-amber-500" /> Empresas Cadastradas</h3>
+                    <button onClick={() => setShowEmpresaModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition">+ Cadastrar Empresa</button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {empresas.map(emp => (
+                      <div key={emp.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
+                        <div><p className="font-bold text-white text-sm">{emp.nome}</p><p className="text-xs text-slate-400">CNPJ: {emp.cnpj}</p></div>
+                        <button onClick={() => handleDeleteEmpresa(emp.id)} className="p-2 bg-slate-800 text-rose-400 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeModule !== 'dashboard' && activeModule !== 'financeiro' && activeModule !== 'administracao' && (
               <div className="space-y-6">
                 <h1 className="text-2xl font-bold text-white capitalize">{activeModule}</h1>
                 <p className="text-xs text-slate-400">Módulo em operação.</p>
@@ -538,6 +669,19 @@ export default function TorquatoFullERP() {
                 <input type="text" placeholder="Conta Corrente" value={bancoConta} onChange={(e) => setBancoConta(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="number" step="0.01" placeholder="Saldo Inicial (R$)" value={bancoSaldo} onChange={(e) => setBancoSaldo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar Conta</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {showEmpresaModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
+              <h3 className="font-bold text-white">Cadastrar Empresa</h3>
+              <form onSubmit={handleSaveEmpresa} className="space-y-3">
+                <input type="text" required placeholder="Razão Social" value={empNome} onChange={(e) => setEmpNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" placeholder="CNPJ" value={empCnpj} onChange={(e) => setEmpCnpj(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
               </form>
             </div>
           </div>
