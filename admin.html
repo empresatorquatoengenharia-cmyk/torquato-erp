@@ -394,7 +394,7 @@
                     <td class="p-3 text-slate-400 text-[11px]">${(u.paginas_permitidas || []).join(', ') || 'Nenhuma'}</td>
                     <td class="p-3 text-right space-x-2">
                         <button type="button" onclick="abrirModalPermissoes('${u.email}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 hover:bg-amber-950 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Configurar Acessos</button>
-                        <button type="button" onclick="excluirUtilizador(${u.id})" class="text-red-400 hover:text-red-300 bg-red-950/40 hover:bg-red-950 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
+                        <button type="button" onclick="excluirUtilizador(${u.id})" class="text-red-400 hover:text-red-300 bg-red-950/40 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
                     </td>
                 </tr>
             `).join('');
@@ -431,18 +431,15 @@
             document.getElementById('modal-user-id').value = usuario.id;
             document.getElementById('modal-titulo-usuario').innerText = `Configurar Acessos: ${usuario.nome}`;
 
-            // Marca checkboxes das páginas
             const paginasPermitidas = usuario.paginas_permitidas || [];
             document.querySelectorAll('.chk-pagina').forEach(chk => {
                 chk.checked = paginasPermitidas.includes(chk.value);
             });
 
-            // Marca checkboxes de operações
             const operacoesPermitidas = usuario.operacoes_permitidas || [];
             document.getElementById('op-visualizar').checked = operacoesPermitidas.includes('visualizar');
             document.getElementById('op-editar').checked = operacoesPermitidas.includes('editar');
 
-            // Mostra o modal
             document.getElementById('modal-permissoes').classList.remove('hidden');
         }
 
@@ -474,7 +471,7 @@
 
         async function excluirUtilizador(id) {
             if (!confirm('Tem a certeza que deseja excluir este utilizador?')) return;
-            await supabaseClient.from('usuarios_erp'].delete().eq('id', id);
+            await supabaseClient.from('usuarios_erp').delete().eq('id', id);
             carregarUtilizadores();
         }
     </script>
