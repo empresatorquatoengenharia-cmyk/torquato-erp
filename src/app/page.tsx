@@ -16,7 +16,6 @@ import {
   TrendingUp,
   TrendingDown,
   Activity,
-  BarChart3,
   Trash2,
   CheckCircle2,
   Check,
@@ -35,7 +34,7 @@ export default function TorquatoFullERP() {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [selectedCompany, setSelectedCompany] = useState('Torquato Engenharia Ltda');
 
-  // Estados Globais de Dados
+  // Estados Globais
   const [empresas, setEmpresas] = useState<any[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [contratos, setContratos] = useState<any[]>([]);
@@ -57,7 +56,7 @@ export default function TorquatoFullERP() {
   const [showFinanceiroModal, setShowFinanceiroModal] = useState(false);
   const [showBancoModal, setShowBancoModal] = useState(false);
 
-  // Forms Administração
+  // Forms
   const [empNome, setEmpNome] = useState('');
   const [empCnpj, setEmpCnpj] = useState('');
   const [userName, setUserName] = useState('');
@@ -68,20 +67,19 @@ export default function TorquatoFullERP() {
   const [contFornecedor, setContFornecedor] = useState('');
   const [contValor, setContValor] = useState('');
 
-  // Forms Financeiro
+  // Financeiro Forms
   const [finDescricao, setFinDescricao] = useState('');
   const [finValor, setFinValor] = useState('');
   const [finTipo, setFinTipo] = useState('pagar');
   const [finVencimento, setFinVencimento] = useState('');
   const [finCategoria, setFinCategoria] = useState('Material de Obra');
   const [finStatus, setFinStatus] = useState('Pendente');
-  const [finEtiqueta, setFinEtiqueta] = useState('Geral');
   const [finNfNome, setFinNfNome] = useState('');
   const [finNfUrl, setFinNfUrl] = useState('');
   const [finCompNome, setFinCompNome] = useState('');
   const [finCompUrl, setFinCompUrl] = useState('');
 
-  // Forms Bancos
+  // Banco Form
   const [bancoNome, setBancoNome] = useState('');
   const [bancoAgencia, setBancoAgencia] = useState('');
   const [bancoConta, setBancoConta] = useState('');
@@ -171,7 +169,6 @@ export default function TorquatoFullERP() {
       categoria: finCategoria,
       status: finStatus,
       empresa: selectedCompany,
-      etiqueta: finEtiqueta,
       nf_nome: finNfNome || null,
       nf_url: finNfUrl || null,
       comprovante_nome: finCompNome || null,
@@ -217,7 +214,6 @@ export default function TorquatoFullERP() {
   const totalSaldosBancos = filteredBancos.reduce((acc, item) => acc + Number(item.saldo || 0), 0);
   const saldoLiquido = totalReceber - totalPagar;
 
-  // Filtros Combináveis do Dashboard
   const dashboardPagarFiltrado = filteredPagar.filter(item => {
     if (dashFiltroStatus !== 'todos') {
       const statusMatch = dashFiltroStatus === 'pagos' ? item.status === 'Pago' : item.status !== 'Pago';
