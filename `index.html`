@@ -1,0 +1,201 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Módulo Financeiro</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #f8f9fa; display: flex; height: 100vh; }
+        aside { width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px; box-sizing: border-box; }
+        .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
+        .logo-box { background: #f97316; color: #fff; padding: 8px 12px; border-radius: 6px; font-weight: bold; }
+        .menu-title { font-size: 12px; color: #9ca3af; font-weight: bold; margin-bottom: 10px; }
+        ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+        li { padding: 10px 12px; border-radius: 6px; cursor: pointer; color: #4b5563; }
+        li.active { background: #fff7ed; color: #ea580c; font-weight: bold; border-left: 4px solid #ea580c; }
+        main { flex: 1; padding: 30px; overflow-y: auto; box-sizing: border-box; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        h1 { font-size: 24px; color: #1f2937; margin: 0; }
+        .badge { background: #ea580c; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+        .card-header { background: #1f2937; color: #fff; padding: 15px 20px; border-radius: 8px 8px 0 0; font-weight: bold; }
+        .card-body { background: #fff; border: 1px solid #e5e7eb; border-radius: 0 0 8px 8px; padding: 20px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .row { display: flex; justifyContent: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
+        .table-container { background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th { background: #f3f4f6; padding: 12px; border-bottom: 1px solid #e5e7eb; color: #374151; }
+        td { padding: 12px; border-bottom: 1px solid #f3f4f6; }
+        .alert-row { background: #fef3c7; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div class="logo">
+            <div class="logo-box">K</div>
+            <span style="font-weight: bold; font-size: 18px; color: #1f2937;">Torquato ERP</span>
+        </div>
+        <div class="menu-title">FINANCEIRO</div>
+        <ul>
+            <li class="active" onclick="mudarAba('fluxo', this)">Fluxo de caixa</li>
+            <li onclick="mudarAba('pagar', this)">Contas a pagar</li>
+            <li onclick="mudarAba('receber', this)">Contas a receber</li>
+            <li onclick="mudarAba('notas', this)">Notas eletrônicas e manuais</li>
+            <li onclick="mudarAba('tributos', this)">Tributos</li>
+        </ul>
+    </aside>
+
+    <main>
+        <header>
+            <h1 id="titulo-pagina">Fluxo de caixa</h1>
+            <div class="badge">Pretexx 2</div>
+        </header>
+
+        <!-- FLUXO DE CAIXA -->
+        <div id="fluxo" class="tab-content active">
+            <div class="card-header">Saldo Mês Atual - Todos os Bancos / Caixas</div>
+            <div class="card-body">
+                <div class="row"><span>Saldo mês anterior</span><span style="font-weight: 600;">R$ 4.196.061,32</span></div>
+                <div class="row" style="color: #2563eb;"><span>Entradas efetivadas</span><span style="font-weight: 600;">R$ 26.033,45</span></div>
+                <div class="row" style="color: #dc2626;"><span>Saídas efetivadas</span><span style="font-weight: 600;">R$ 888,87</span></div>
+                <div class="row" style="font-weight: bold; font-size: 16px; border-bottom: 2px solid #e5e7eb;"><span>Saldo atual (+ saldos iniciais)</span><span>R$ 4.221.205,90</span></div>
+                <div class="row" style="color: #2563eb;"><span>Entradas previstas</span><span style="font-weight: 600;">R$ 52.937,98</span></div>
+                <div class="row" style="color: #dc2626;"><span>Saídas previstas</span><span style="font-weight: 600;">R$ 11,94</span></div>
+                <div class="row" style="font-weight: bold; font-size: 16px; color: #16a34a; border-bottom: none;"><span>Saldo final previsto (mês)</span><span>R$ 4.274.131,94</span></div>
+            </div>
+        </div>
+
+        <!-- CONTAS A PAGAR -->
+        <div id="pagar" class="tab-content">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>NFe/Recibo</th>
+                            <th>Beneficiário</th>
+                            <th>Valor</th>
+                            <th>Vencimento</th>
+                            <th>Etiqueta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="alert-row">
+                            <td style="font-weight: bold;">17829</td>
+                            <td>56115</td>
+                            <td>Casas D' Água - Biguaçu</td>
+                            <td style="font-weight: bold;">R$ 18,00</td>
+                            <td>01/05/2026</td>
+                            <td><span style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Material de consumo</span></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">17836</td>
+                            <td>-</td>
+                            <td>Casan</td>
+                            <td style="font-weight: bold;">R$ 152,30</td>
+                            <td>01/05/2026</td>
+                            <td><span style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Serviços</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CONTAS A RECEBER -->
+        <div id="receber" class="tab-content">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Obra</th>
+                            <th>Valor</th>
+                            <th>Vencimento</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: bold;">Construtora Horizonte</td>
+                            <td>Residencial Viena</td>
+                            <td style="color: #2563eb; font-weight: bold;">R$ 26.097,19</td>
+                            <td>10/05/2026</td>
+                            <td>A Receber</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- NOTAS FISCAIS -->
+        <div id="notas" class="tab-content">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Número da Nota</th>
+                            <th>Fornecedor</th>
+                            <th>Valor</th>
+                            <th>Rateio Obra</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: bold;">56115</td>
+                            <td>Casas D' Água - Biguaçu</td>
+                            <td>R$ 18,00</td>
+                            <td>Casa Diário</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TRIBUTOS -->
+        <div id="tributos" class="tab-content">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Imposto / Guia</th>
+                            <th>Competência</th>
+                            <th>Valor</th>
+                            <th>Vencimento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: bold;">Guia DAS (Simples Nacional)</td>
+                            <td>04/2026</td>
+                            <td>R$ 550,00</td>
+                            <td>20/05/2026</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function mudarAba(idAba, elemento) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('aside li').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(idAba).classList.add('active');
+            elemento.classList.add('active');
+
+            const titulos = {
+                'fluxo': 'Fluxo de caixa',
+                'pagar': 'Contas a pagar',
+                'receber': 'Contas a receber',
+                'notas': 'Notas eletrônicas e manuais',
+                'tributos': 'Gestão de Tributos'
+            };
+            document.getElementById('titulo-pagina').innerText = titulos[idAba];
+        }
+    </script>
+</body>
+</html>
+```
