@@ -55,6 +55,7 @@ export default function TorquatoFullERP() {
   const [showContratoModal, setShowContratoModal] = useState(false);
   const [showFinanceiroModal, setShowFinanceiroModal] = useState(false);
   const [showBancoModal, setShowBancoModal] = useState(false);
+  const [showTributoModal, setShowTributoModal] = useState(false);
 
   // Forms
   const [empNome, setEmpNome] = useState('');
@@ -84,6 +85,12 @@ export default function TorquatoFullERP() {
   const [bancoAgencia, setBancoAgencia] = useState('');
   const [bancoConta, setBancoConta] = useState('');
   const [bancoSaldo, setBancoSaldo] = useState('');
+
+  // Tributos Form
+  const [tribImposto, setTribImposto] = useState('DAS (Simples Nacional)');
+  const [tribCompetencia, setTribCompetencia] = useState('');
+  const [tribValor, setTribValor] = useState('');
+  const [tribVencimento, setTribVencimento] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -186,6 +193,22 @@ export default function TorquatoFullERP() {
     setShowBancoModal(false); setBancoNome(''); setBancoAgencia(''); setBancoConta(''); setBancoSaldo(''); loadAllData();
   }
 
+  async function handleSaveTributo(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tribImposto || !tribValor) return;
+    await supabase.from('tributos_erp').insert([{
+      imposto: tribImposto,
+      competencia: tribCompetencia || 'Atual',
+      valor: parseFloat(tribValor || '0'),
+      vencimento: tribVencimento || new Date().toISOString().split('T')[0],
+      status: 'Previsto',
+      empresa: selectedCompany
+    }]);
+    setShowTributoModal(false);
+    setTribImposto('DAS (Simples Nacional)'); setTribCompetencia(''); setTribValor(''); setTribVencimento('');
+    loadAllData();
+  }
+
   async function handleToggleQuitar(item: any, tipo: 'pagar' | 'receber') {
     const novoStatus = item.status === 'Pago' || item.status === 'Recebido' ? 'Pendente' : (tipo === 'pagar' ? 'Pago' : 'Recebido');
     const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
@@ -208,6 +231,7 @@ export default function TorquatoFullERP() {
   const filteredPagar = financialsPagar.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
   const filteredReceber = financialsReceber.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
   const filteredBancos = contasBancarias.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
+  const filteredTributos = tributos.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
 
   const totalPagar = filteredPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0);
   const totalReceber = filteredReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0);
@@ -469,7 +493,7 @@ export default function TorquatoFullERP() {
                   <button onClick={() => setFinSubTab('receber')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'receber' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Receber ({filteredReceber.length})</button>
                   <button onClick={() => setFinSubTab('bancos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'bancos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas Bancárias ({filteredBancos.length})</button>
                   <button onClick={() => setFinSubTab('boletos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'boletos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Boletos ({boletos.length})</button>
-                  <button onClick={() => setFinSubTab('tributos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'tributos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Tributos & Impostos ({tributos.length})</button>
+                  <button onClick={() => setFinSubTab('tributos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'tributos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Tributos & Impostos ({filteredTributos.length})</button>
                 </div>
 
                 {finSubTab === 'pagar' && (
@@ -616,19 +640,23 @@ export default function TorquatoFullERP() {
 
                 {finSubTab === 'tributos' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><FileText className="w-4 h-4 text-rose-400" /> Guia de Tributos & Impostos</h3>
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><FileText className="w-4 h-4 text-rose-400" /> Guia de Tributos & Impostos</h3>
+                      <button onClick={() => setShowTributoModal(true)} className="px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition">+ Gerar Guia de Tributo</button>
+                    </div>
                     <div className="grid grid-cols-1 gap-2">
-                      {tributos.length === 0 ? (
+                      {filteredTributos.length === 0 ? (
                         <p className="text-slate-500 text-xs">Nenhum tributo registrado.</p>
                       ) : (
-                        tributos.map((trib: any) => (
+                        filteredTributos.map((trib: any) => (
                           <div key={trib.id} className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
                             <div>
-                              <p className="font-bold text-white">{trib.imposto} ({trib.competencia})</p>
-                              <p className="text-slate-400">Vencimento: {trib.vencimento}</p>
+                              <p className="font-bold text-white">{trib.imposto} (Competência: {trib.competencia})</p>
+                              <p className="text-slate-400">Vencimento: {trib.vencimento} • Empresa: {trib.empresa}</p>
                             </div>
                             <div className="text-right">
                               <p className="font-bold text-rose-400">R$ {Number(trib.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                              <span className="text-[10px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded uppercase font-bold">{trib.status || 'Previsto'}</span>
                             </div>
                           </div>
                         ))
@@ -763,6 +791,27 @@ export default function TorquatoFullERP() {
                 <input type="text" placeholder="Conta Corrente" value={bancoConta} onChange={(e) => setBancoConta(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="number" step="0.01" placeholder="Saldo Inicial (R$)" value={bancoSaldo} onChange={(e) => setBancoSaldo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar Conta</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {showTributoModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Gerar Guia de Tributo & Imposto</h3><button onClick={() => setShowTributoModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleSaveTributo} className="space-y-3">
+                <select value={tribImposto} onChange={(e) => setTribImposto(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                  <option value="DAS (Simples Nacional)">DAS (Simples Nacional)</option>
+                  <option value="INSS Patronal / Folha">INSS Patronal / Folha</option>
+                  <option value="FGTS Digital">FGTS Digital</option>
+                  <option value="ISS Municipal">ISS Municipal</option>
+                  <option value="IRRF / CSLL / PIS / COFINS">IRRF / CSLL / PIS / COFINS</option>
+                </select>
+                <input type="text" placeholder="Competência (ex: 05/2026)" value={tribCompetencia} onChange={(e) => setTribCompetencia(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" step="0.01" required placeholder="Valor do Tributo (R$)" value={tribValor} onChange={(e) => setTribValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="date" required value={tribVencimento} onChange={(e) => setTribVencimento(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs">Salvar Tributo</button></div>
               </form>
             </div>
           </div>
