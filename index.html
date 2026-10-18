@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torquato ERP - Sistema de Gestão</title>
-    <!-- Supabase JS Client -->
+    <title>Torquato ERP - Módulo Financeiro</title>
+    <!-- Cliente oficial Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; }
@@ -58,7 +58,7 @@
     <main>
         <header>
             <h1 id="titulo-pagina">Fluxo de caixa</h1>
-            <div class="badge">● Supabase Ativo</div>
+            <div class="badge">● Supabase Conectado</div>
         </header>
 
         <!-- MÓDULO 1: FLUXO DE CAIXA -->
@@ -78,9 +78,9 @@
         <!-- MÓDULO 2: CONTAS A PAGAR -->
         <div id="pagar" class="tab-content">
             <div class="form-box">
-                <h3 style="margin-top: 0; color: #1f2937;">Cadastrar Conta a Pagar</h3>
+                <h3 style="margin-top: 0; color: #1f2937;">Cadastrar Conta a Pagar & Anexar Comprovante</h3>
                 <div class="form-grid">
-                    <div class="form-group"><label>Beneficiário</label><input type="text" id="pag-beneficiario" placeholder="Ex: Casan"></div>
+                    <div class="form-group"><label>Beneficiário / Fornecedor</label><input type="text" id="pag-beneficiario" placeholder="Ex: Casan"></div>
                     <div class="form-group"><label>Valor (R$)</label><input type="number" id="pag-valor" placeholder="0.00"></div>
                     <div class="form-group"><label>Vencimento</label><input type="date" id="pag-vencimento"></div>
                     <div class="form-group"><label>Comprovante (PDF/Imagem)</label><input type="file" id="pag-comprovante"></div>
@@ -195,7 +195,7 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // NAVEGAÇÃO ENTRE MÓDULOS
+        // GERENCIADOR DE ABAS E NAVEGAÇÃO
         function mudarAba(idAba, elemento) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('aside li').forEach(el => el.classList.remove('active'));
@@ -216,7 +216,7 @@
             if (idAba === 'pagar') carregarContasPagar();
         }
 
-        // FUNÇÕES DO MÓDULO DE NOTAS
+        // --- MÓDULO: NOTAS FISCAIS ---
         async function salvarNota() {
             const numero = document.getElementById('nota-numero').value;
             const fornecedor = document.getElementById('nota-fornecedor').value;
@@ -251,7 +251,7 @@
             const { data, error } = await supabaseClient.from('notas_fiscais').select('*');
             
             if (error) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Erro ao carregar notas.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Erro ao carregar notas do Supabase.</td></tr>`;
                 return;
             }
 
@@ -273,7 +273,7 @@
             }
         }
 
-        // FUNÇÕES DO MÓDULO DE CONTAS A PAGAR
+        // --- MÓDULO: CONTAS A PAGAR ---
         async function salvarContaPagar() {
             const beneficiario = document.getElementById('pag-beneficiario').value;
             const valor = parseFloat(document.getElementById('pag-valor').value);
@@ -307,7 +307,7 @@
             const { data, error } = await supabaseClient.from('contas_pagar').select('*');
             
             if (error) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Erro ao carregar contas.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Erro ao carregar contas do Supabase.</td></tr>`;
                 return;
             }
 
@@ -329,7 +329,7 @@
             }
         }
 
-        // CARREGAMENTO INICIAL
+        // CARREGAMENTO INICIAL DA APLICAÇÃO
         window.onload = () => {
             carregarNotas();
             carregarContasPagar();
