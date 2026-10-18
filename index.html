@@ -1,3 +1,14 @@
+<ElicitationsGroup>
+
+---
+
+Perfeito! Vamos enriquecer o **Contas a Pagar** para incluir a modalidade de **recibo/comprovante**, filtros de centros de custo e detalhes visuais idênticos à interface do Koper ERP (com campos de anexo, identificação de etiquetas e botões de ação).
+
+### Código Atualizado (`index.html`)
+
+Substitua todo o conteúdo do seu ficheiro `index.html` por esta versão aprimorada:
+
+```html
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
@@ -10,7 +21,7 @@
         .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
         .logo-box { background: #f97316; color: #fff; padding: 8px 12px; border-radius: 6px; font-weight: bold; }
         .menu-title { font-size: 12px; color: #9ca3af; font-weight: bold; margin-bottom: 10px; }
-        ul { list-style: none; padding: 0; margin: 0; display: flex; flexDirection: column; gap: 6px; }
+        ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
         li { padding: 10px 12px; border-radius: 6px; cursor: pointer; color: #4b5563; }
         li.active { background: #fff7ed; color: #ea580c; font-weight: bold; border-left: 4px solid #ea580c; }
         main { flex: 1; padding: 30px; overflow-y: auto; box-sizing: border-box; }
@@ -20,11 +31,16 @@
         .card-header { background: #1f2937; color: #fff; padding: 15px 20px; border-radius: 8px 8px 0 0; font-weight: bold; }
         .card-body { background: #fff; border: 1px solid #e5e7eb; border-radius: 0 0 8px 8px; padding: 20px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+        .filters { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
+        .filters select, .filters input { padding: 8px 12px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px; }
         .table-container { background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
         th { background: #f3f4f6; padding: 12px; border-bottom: 1px solid #e5e7eb; color: #374151; }
         td { padding: 12px; border-bottom: 1px solid #f3f4f6; }
         .alert-row { background: #fef3c7; }
+        .tag { background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #374151; display: inline-block; margin-right: 4px; }
+        .btn-action { background: #ea580c; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-action:hover { background: #c2410c; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
     </style>
@@ -66,36 +82,60 @@
             </div>
         </div>
 
-        <!-- CONTAS A PAGAR -->
+        <!-- CONTAS A PAGAR (Com Recibos e Etiquetas estilo Koper) -->
         <div id="pagar" class="tab-content">
+            <div class="filters">
+                <div>
+                    <label style="font-size: 12px; color: #6b7280; display: block; margin-bottom: 4px;">CENTRO DE CUSTO:</label>
+                    <select>
+                        <option>Todos</option>
+                        <option>Casa Diário</option>
+                        <option>Obras Gerais</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 12px; color: #6b7280; display: block; margin-bottom: 4px;">PESQUISAR:</label>
+                    <input type="text" placeholder="Filtrar por beneficiário, recibo ou etiqueta..." style="width: 100%;">
+                </div>
+            </div>
+
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>Código</th>
-                            <th>NFe/Recibo</th>
+                            <th>NFe / Recibo</th>
                             <th>Beneficiário</th>
                             <th>Valor</th>
                             <th>Vencimento</th>
-                            <th>Etiqueta</th>
+                            <th>Etiquetas & Anexo</th>
+                            <th>Ação</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr class="alert-row">
                             <td style="font-weight: bold;">17829</td>
-                            <td>56115</td>
+                            <td>Recibo #56115</td>
                             <td>Casas D' Água - Biguaçu</td>
                             <td style="font-weight: bold;">R$ 18,00</td>
                             <td>01/05/2026</td>
-                            <td><span style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Material de consumo</span></td>
+                            <td>
+                                <span class="tag">Material de consumo</span>
+                                <span class="tag" style="background: #fed7aa; color: #9a3412;">📎 Comprovante.pdf</span>
+                            </td>
+                            <td><button class="btn-action" onclick="alert('Visualizando detalhes do recibo #17829')">Ver Recibo</button></td>
                         </tr>
                         <tr>
                             <td style="font-weight: bold;">17836</td>
-                            <td>-</td>
+                            <td>Recibo Boleto</td>
                             <td>Casan</td>
                             <td style="font-weight: bold;">R$ 152,30</td>
                             <td>01/05/2026</td>
-                            <td><span style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Serviços</span></td>
+                            <td>
+                                <span class="tag">Serviços</span>
+                                <span class="tag" style="background: #e2e8f0;">📎 Boleto.pdf</span>
+                            </td>
+                            <td><button class="btn-action" onclick="alert('Visualizando detalhes do recibo #17836')">Ver Recibo</button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -197,3 +237,4 @@
     </script>
 </body>
 </html>
+```
