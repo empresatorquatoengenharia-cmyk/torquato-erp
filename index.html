@@ -1,13 +1,3 @@
-<ElicitationsGroup>
-
----
-
-Perfeito! Já insiri as suas chaves oficiais do Supabase (`[https://otsrxvqypfpflbpaobhl.supabase.co/](https://otsrxvqypfpflbpaobhl.supabase.co/)`) diretamente no código, deixando a aplicação **100% pronta e integrada** com a sua base de dados na nuvem.
-
-### Código Completo Pronto (`index.html`)
-
-Guarde este código atualizado no seu ficheiro `index.html`. Agora, sempre que cadastrar uma nota fiscal ou conta a pagar, os dados serão salvos e sincronizados diretamente no seu Supabase:
-
 ```html
 <!DOCTYPE html>
 <html lang="pt-PT">
@@ -15,7 +5,7 @@ Guarde este código atualizado no seu ficheiro `index.html`. Agora, sempre que c
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Torquato ERP - Módulo Financeiro (Supabase)</title>
-    <!-- Importação do cliente do Supabase -->
+    <!-- Importação oficial do cliente Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; background-color: #f8f9fa; display: flex; height: 100vh; }
@@ -68,7 +58,7 @@ Guarde este código atualizado no seu ficheiro `index.html`. Agora, sempre que c
     <main>
         <header>
             <h1 id="titulo-pagina">Fluxo de caixa</h1>
-            <div class="badge">● Supabase Conectado</div>
+            <div class="badge">● Supabase Sincronizado</div>
         </header>
 
         <!-- FLUXO DE CAIXA -->
@@ -110,7 +100,7 @@ Guarde este código atualizado no seu ficheiro `index.html`. Agora, sempre que c
                         </tr>
                     </thead>
                     <tbody id="tabela-pagar-corpo">
-                        <!-- Carregado via Supabase -->
+                        <!-- Dados carregados via Supabase -->
                     </tbody>
                 </table>
             </div>
@@ -129,7 +119,7 @@ Guarde este código atualizado no seu ficheiro `index.html`. Agora, sempre que c
                             <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tabela-receber-corpo">
                         <tr>
                             <td style="font-weight: bold;">Construtora Horizonte</td>
                             <td>Residencial Viena</td>
@@ -168,7 +158,7 @@ Guarde este código atualizado no seu ficheiro `index.html`. Agora, sempre que c
                         </tr>
                     </thead>
                     <tbody id="tabela-notas-corpo">
-                        <!-- Carregado via Supabase -->
+                        <!-- Dados carregados via Supabase -->
                     </tbody>
                 </table>
             </div>
@@ -200,13 +190,11 @@ Guarde este código atualizado no seu ficheiro `index.html`. Agora, sempre que c
     </main>
 
     <script>
-        // CREDENCIAIS DO SUPABASE CONFIGURADAS
-        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co/rest/v1/';
+        // CREDENCIAIS OFICIAIS DO SUPABASE
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
-        
-        // Inicialização limpa corrigindo o endpoint REST para a raiz do projeto Supabase
-        const cleanUrl = SUPABASE_URL.replace(/\/rest\/v1\/?$/, '');
-        const supabaseClient = supabase.createClient(cleanUrl, SUPABASE_ANON_KEY);
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         function mudarAba(idAba, elemento) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -228,7 +216,7 @@ Guarde este código atualizado no seu ficheiro `index.html`. Agora, sempre que c
             if (idAba === 'pagar') carregarContasPagarSupabase();
         }
 
-        // --- NOTAS FISCAIS (SUPABASE) ---
+        // --- SALVAR E CARREGAR NOTAS FISCAIS ---
         async function salvarNotaSupabase() {
             const numero = document.getElementById('nota-numero').value;
             const fornecedor = document.getElementById('nota-fornecedor').value;
@@ -247,10 +235,10 @@ Guarde este código atualizado no seu ficheiro `index.html`. Agora, sempre que c
                 .insert([{ numero, fornecedor, valor, obra, arquivo: nomeArquivo }]);
 
             if (error) {
-                console.error('Erro Supabase:', error);
-                alert('Erro ao guardar nota. Verifique se a tabela "notas_fiscais" existe no Supabase.');
+                console.error('Erro ao guardar nota:', error);
+                alert('Erro ao sincronizar nota com o Supabase. Verifique a consola.');
             } else {
-                alert('Nota fiscal sincronizada no Supabase com sucesso!');
+                alert('Nota fiscal guardada e sincronizada no Supabase com sucesso!');
                 document.getElementById('nota-numero').value = '';
                 document.getElementById('nota-fornecedor').value = '';
                 document.getElementById('nota-valor').value = '';
@@ -285,7 +273,7 @@ Guarde este código atualizado no seu ficheiro `index.html`. Agora, sempre que c
             }
         }
 
-        // --- CONTAS A PAGAR (SUPABASE) ---
+        // --- SALVAR E CARREGAR CONTAS A PAGAR ---
         async function salvarContaPagarSupabase() {
             const beneficiario = document.getElementById('pag-beneficiario').value;
             const valor = parseFloat(document.getElementById('pag-valor').value);
@@ -304,10 +292,10 @@ Guarde este código atualizado no seu ficheiro `index.html`. Agora, sempre que c
                 .insert([{ codigo, beneficiario, valor, vencimento, comprovante: nomeComp }]);
 
             if (error) {
-                console.error('Erro Supabase:', error);
-                alert('Erro ao guardar conta. Verifique se a tabela "contas_pagar" existe no Supabase.');
+                console.error('Erro ao guardar conta:', error);
+                alert('Erro ao sincronizar conta a pagar com o Supabase.');
             } else {
-                alert('Conta a pagar sincronizada no Supabase com sucesso!');
+                alert('Conta a pagar guardada e comprovante sincronizado com sucesso!');
                 document.getElementById('pag-beneficiario').value = '';
                 document.getElementById('pag-valor').value = '';
                 document.getElementById('pag-vencimento').value = '';
@@ -341,7 +329,7 @@ Guarde este código atualizado no seu ficheiro `index.html`. Agora, sempre que c
             }
         }
 
-        // Carregar dados iniciais ao abrir
+        // Carregar dados iniciais ao abrir a página
         window.onload = () => {
             carregarNotasSupabase();
             carregarContasPagarSupabase();
