@@ -61,13 +61,26 @@ export default function KoperStyleDashboard() {
     if (data) setRequests(data);
   }
 
+  // Leitura Direta sem bloquear registros caso obra_id seja null
   async function fetchFinancials() {
     setLoading(true);
-    const { data } = await supabase
+    const { data: finData, error } = await supabase
       .from('financeiro_lancamentos')
-      .select('*, projects!obra_id(name)')
+      .select('*')
       .order('created_at', { ascending: false });
-    if (data) setFinancials(data);
+
+    if (finData) {
+      // Cruzamento local simples com a lista de obras
+      const { data: projData } = await supabase.from('projects').select('*');
+      const projMap = new Map((projData || []).map((p: any) => [p.id, p.name]));
+
+      const formatted = finData.map((item: any) => ({
+        ...item,
+        projectName: item.obra_id ? projMap.get(item.obra_id) || 'Obra não informada' : 'Geral / ADM'
+      }));
+
+      setFinancials(formatted);
+    }
     setLoading(false);
   }
 
@@ -314,7 +327,7 @@ export default function KoperStyleDashboard() {
                               {f.descricao}
                               {f.fornecedor_nome && <span className="block text-[10px] text-slate-400 font-normal">Forn: {f.fornecedor_nome}</span>}
                             </td>
-                            <td className="p-4 text-slate-400">{f.projects?.name || 'Geral / ADM'}</td>
+                            <td className="p-4 text-slate-400">{f.projectName}</td>
                             <td className="p-4 text-slate-300 font-medium">
                               {f.data_vencimento ? new Date(f.data_vencimento).toLocaleDateString('pt-BR') : '-'}
                             </td>
