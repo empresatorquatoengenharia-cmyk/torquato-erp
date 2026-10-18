@@ -142,7 +142,7 @@
                 <input type="hidden" id="prod-id">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Código do Item</label>
-                    <input type="text" id="prod-codigo" required placeholder="Ex: 578" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                    <input type="text" id="prod-codigo" disabled value="[ Gerado Automático ]" class="w-full bg-slate-950/60 border border-slate-800 p-2.5 rounded-xl text-amber-400 font-bold cursor-not-allowed">
                 </div>
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Tipo de Produto</label>
@@ -242,7 +242,6 @@
             listaCategorias = c || [];
             listaSubcategorias = s || [];
 
-            // Preenche selects do modal
             document.getElementById('prod-unidade').innerHTML = listaUnidades.map(un => `<option value="${un.id}">${un.sigla} - ${un.descricao}</option>`).join('');
             document.getElementById('prod-categoria').innerHTML = listaCategorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
             carregarSubcategoriasSelect();
@@ -311,6 +310,12 @@
         }
 
         function abrirModalProduto() {
+            document.getElementById('prod-id').value = '';
+            document.getElementById('prod-codigo').value = '[ Gerado Automático ]';
+            document.getElementById('prod-nome').value = '';
+            document.getElementById('prod-apelido').value = '';
+            document.getElementById('prod-especificacoes').value = '';
+            document.getElementById('modal-produto-titulo').innerText = 'Cadastrar Novo Produto / Insumo';
             document.getElementById('modal-produto').classList.remove('hidden');
         }
 
@@ -326,10 +331,34 @@
             document.getElementById('modal-ajustar').classList.add('hidden');
         }
 
+        // Função para calcular o próximo código automático sequencial
+        async function gerarProximoCodigo() {
+            const { data } = await supabaseClient.from('produtos_erp').select('codigo');
+            let maiorCodigo = 0;
+
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    const num = parseInt(item.codigo, 10);
+                    if (!isNaN(num) && num > maiorCodigo) {
+                        maiorCodigo = num;
+                    }
+                });
+            }
+            return String(maiorCodigo + 1);
+        }
+
         async function salvarProduto(e) {
             e.preventDefault();
+            const prodId = document.getElementById('prod-id').value;
+            let codigoFinal = document.getElementById('prod-codigo').value;
+
+            // Se for novo cadastro, gera o próximo número sequencial
+            if (!prodId || codigoFinal === '[ Gerado Automático ]') {
+                codigoFinal = await gerarProximoCodigo();
+            }
+
             const payload = {
-                codigo: document.getElementById('prod-codigo').value.trim(),
+                codigo: codigoFinal,
                 nome: document.getElementById('prod-nome').value.trim(),
                 apelido: document.getElementById('prod-apelido').value.trim(),
                 tipo: document.getElementById('prod-tipo').value,
@@ -340,11 +369,17 @@
                 ativo: true
             };
 
-            const { error } = await supabaseClient.from('produtos_erp').insert([payload]);
-            if (error) {
-                alert('Erro ao guardar produto: ' + error.message);
+            let res;
+            if (prodId) {
+                res = await supabaseClient.from('produtos_erp').update(payload).eq('id', prodId);
             } else {
-                alert('Produto cadastrado com sucesso!');
+                res = await supabaseClient.from('produtos_erp').insert([payload]);
+            }
+
+            if (res.error) {
+                alert('Erro ao guardar produto: ' + res.error.message);
+            } else {
+                alert(`Produto cadastrado com sucesso! Código atribuído: ${codigoFinal}`);
                 fecharModalProduto();
                 carregarProdutos();
             }
