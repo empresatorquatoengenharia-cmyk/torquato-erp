@@ -13,11 +13,11 @@ import {
   Plus,
   Clock,
   CheckCircle2,
-  TrendingDown,
   ChevronRight,
   Search,
   Bell,
-  LayoutDashboard
+  LayoutDashboard,
+  X
 } from 'lucide-react';
 
 // Supabase Client
@@ -26,7 +26,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function KoperStyleDashboard() {
-  const [activeModule, setActiveModule] = useState('overview');
+  const [activeModule, setActiveModule] = useState('financeiro');
   const [selectedProject, setSelectedProject] = useState('todas');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -109,7 +109,7 @@ export default function KoperStyleDashboard() {
 
   async function handleSubmitFinancial(e: React.FormEvent) {
     e.preventDefault();
-    if (!finDesc || !finProject || !finValue) return alert('Preencha os campos!');
+    if (!finDesc || !finProject || !finValue) return alert('Preencha os campos obrigatórios!');
     setLoading(true);
 
     const { error } = await supabase.from('financeiro_lancamentos').insert([
@@ -125,8 +125,11 @@ export default function KoperStyleDashboard() {
     if (!error) {
       setFinDesc('');
       setFinValue('');
+      setFinProject('');
       setShowFinModal(false);
       fetchFinancials();
+    } else {
+      alert('Erro ao salvar no Supabase: ' + error.message);
     }
     setLoading(false);
   }
@@ -147,7 +150,6 @@ export default function KoperStyleDashboard() {
 
   return (
     <>
-      {/* Importação direta dos Estilos Tailwind CSS */}
       <script src="https://cdn.tailwindcss.com"></script>
 
       <div className="flex flex-col h-screen bg-slate-900 text-slate-100 font-sans">
@@ -369,7 +371,7 @@ export default function KoperStyleDashboard() {
                   </div>
                   <button
                     onClick={() => setShowFinModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition text-xs"
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition text-xs cursor-pointer"
                   >
                     <Plus className="w-4 h-4" /> Novo Lançamento
                   </button>
@@ -428,6 +430,93 @@ export default function KoperStyleDashboard() {
             )}
           </main>
         </div>
+
+        {/* MODAL LANÇAMENTO FINANCEIRO */}
+        {showFinModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-white">Novo Lançamento Financeiro</h3>
+                <button onClick={() => setShowFinModal(false)} className="text-slate-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmitFinancial} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Descrição</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: Nota Fiscal Cimento CP-II"
+                    value={finDesc}
+                    onChange={(e) => setFinDesc(e.target.value)}
+                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Obra / Centro de Custo</label>
+                  <select
+                    required
+                    value={finProject}
+                    onChange={(e) => setFinProject(e.target.value)}
+                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="">Selecione a Obra...</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Tipo</label>
+                    <select
+                      value={finType}
+                      onChange={(e) => setFinType(e.target.value)}
+                      className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="despesa">Despesa</option>
+                      <option value="receita">Receita</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Valor (R$)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      placeholder="0.00"
+                      value={finValue}
+                      onChange={(e) => setFinValue(e.target.value)}
+                      className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500 font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setShowFinModal(false)}
+                    className="px-4 py-2 border border-slate-800 text-slate-400 rounded-lg text-xs font-semibold hover:bg-slate-800"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-5 py-2 bg-amber-500 text-slate-950 rounded-lg text-xs font-bold hover:bg-amber-400 transition"
+                  >
+                    {loading ? 'Salvar...' : 'Salvar Lançamento'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
