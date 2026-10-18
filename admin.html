@@ -106,43 +106,35 @@
                 </form>
             </section>
 
-            <!-- SEÇÃO 2: GESTÃO DE UTILIZADORES -->
+            <!-- SEÇÃO 2: GESTÃO DE UTILIZADORES & PERMISSÕES -->
             <section id="secao-utilizadores" class="hidden space-y-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-xl font-bold text-white">Gestão de Utilizadores e Acessos</h2>
-                        <p class="text-xs text-slate-400">Controle e adicione os colaboradores com acesso autorizado ao Torquato ERP.</p>
+                        <h2 class="text-xl font-bold text-white">Gestão de Utilizadores e Controlo de Acessos</h2>
+                        <p class="text-xs text-slate-400">Configure permissões granulares por página para cada colaborador.</p>
                     </div>
                 </div>
 
                 <div id="mensagem-status-util" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
 
-                <!-- Formulário para Adicionar Utilizador -->
+                <!-- Formulário Adicionar Utilizador -->
                 <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
                     <h3 class="text-sm font-bold text-amber-400">Adicionar Novo Utilizador</h3>
                     <form onsubmit="adicionarUtilizador(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                         <div>
                             <label class="block text-slate-400 font-bold mb-1">Nome Completo</label>
-                            <input type="text" id="novo-nome" required placeholder="Ex: João Silva" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
+                            <input type="text" id="novo-nome" required placeholder="Ex: Carlos Engenheiro" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
                         </div>
                         <div>
                             <label class="block text-slate-400 font-bold mb-1">E-mail de Acesso</label>
-                            <input type="email" id="novo-email" required placeholder="joao@torquato.com" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
+                            <input type="email" id="novo-email" required placeholder="carlos@torquato.com" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
                         </div>
                         <div>
                             <label class="block text-slate-400 font-bold mb-1">Palavra-passe</label>
                             <input type="password" id="novo-senha" required placeholder="••••••" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
                         </div>
-                        <div>
-                            <label class="block text-slate-400 font-bold mb-1">Perfil de Acesso</label>
-                            <select id="novo-perfil" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
-                                <option value="master">Master</option>
-                                <option value="admin">Administrador</option>
-                                <option value="operacional" selected>Operacional</option>
-                            </select>
-                        </div>
                         <div class="md:col-span-3 flex justify-end">
-                            <button type="submit" id="btn-cadastrar-util" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer">
+                            <button type="submit" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer">
                                 Cadastrar Utilizador
                             </button>
                         </div>
@@ -151,7 +143,7 @@
 
                 <!-- Tabela de Listagem -->
                 <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
-                    <h3 class="text-sm font-bold text-amber-400">Utilizadores Cadastrados no Supabase</h3>
+                    <h3 class="text-sm font-bold text-amber-400">Utilizadores e Permissões Ativas</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
@@ -159,12 +151,13 @@
                                     <th class="p-3">Nome</th>
                                     <th class="p-3">E-mail</th>
                                     <th class="p-3">Perfil</th>
+                                    <th class="p-3">Páginas Permitidas</th>
                                     <th class="p-3 text-right">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tabela-utilizadores-corpo">
                                 <tr>
-                                    <td colspan="4" class="p-4 text-center text-slate-500">A carregar utilizadores...</td>
+                                    <td colspan="5" class="p-4 text-center text-slate-500">A carregar utilizadores...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -175,12 +168,122 @@
         </main>
     </div>
 
+    <!-- MODAL DE CONFIGURAÇÃO DE ACESSOS -->
+    <div id="modal-permissoes" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-white" id="modal-titulo-usuario">Configurar Permissões</h3>
+                    <p class="text-xs text-slate-400">Selecione as páginas e o nível de acesso (Visualizar vs. Editar).</p>
+                </div>
+                <button onclick="fecharModalPermissoes()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <input type="hidden" id="modal-user-id">
+
+            <!-- Lista de Módulos / Páginas do ERP -->
+            <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                <div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Módulos do Sistema</div>
+                
+                <!-- Módulo 1: Dashboard -->
+                <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-white text-xs">Dashboard Geral</div>
+                        <div class="text-[10px] text-slate-400">Visão geral executiva e métricas</div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
+                            <input type="checkbox" value="dashboard" class="chk-pagina accent-amber-500">
+                            <span>Permitir Acesso</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Módulo 2: Empresa Matriz -->
+                <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-white text-xs">Dados da Empresa Matriz</div>
+                        <div class="text-[10px] text-slate-400">Informações institucionais e fiscais</div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
+                            <input type="checkbox" value="admin" class="chk-pagina accent-amber-500">
+                            <span>Permitir Acesso</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Módulo 3: Módulo Financeiro -->
+                <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-white text-xs">Módulo Financeiro</div>
+                        <div class="text-[10px] text-slate-400">Contas, pagamentos e fluxo de caixa</div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
+                            <input type="checkbox" value="financeiro" class="chk-pagina accent-amber-500">
+                            <span>Permitir Acesso</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Módulo 4: Gestão de Notas Fiscais -->
+                <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-white text-xs">Notas Fiscais & Faturamento</div>
+                        <div class="text-[10px] text-slate-400">Emissão e consulta de NFS-e</div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
+                            <input type="checkbox" value="notas" class="chk-pagina accent-amber-500">
+                            <span>Permitir Acesso</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Módulo 5: Engenharia e Obras -->
+                <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-white text-xs">Engenharia & Obras</div>
+                        <div class="text-[10px] text-slate-400">Projetos, ARTs e insumos</div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <label class="flex items-center space-x-1 text-[11px] text-slate-300 cursor-pointer">
+                            <input type="checkbox" value="engenharia" class="chk-pagina accent-amber-500">
+                            <span>Permitir Acesso</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-3 space-y-2">
+                    <div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Nível de Operação Geral</div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center space-x-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-slate-300 cursor-pointer text-xs">
+                            <input type="checkbox" value="visualizar" id="op-visualizar" class="accent-amber-500">
+                            <span>Apenas Visualizar</span>
+                        </label>
+                        <label class="flex items-center space-x-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-slate-300 cursor-pointer text-xs">
+                            <input type="checkbox" value="editar" id="op-editar" class="accent-amber-500">
+                            <span>Pode Editar / Salvar</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+                <button onclick="fecharModalPermissoes()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer">Cancelar</button>
+                <button onclick="guardarPermissoes()" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer">Salvar Permissões</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let dadosMatrizOriginal = {};
+        let listaUtilizadoresCache = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
@@ -222,14 +325,6 @@
             }
         }
 
-        function exibirMensagemMatriz(texto, tipo) {
-            const el = document.getElementById('mensagem-status-matriz');
-            el.classList.remove('hidden', 'bg-red-950', 'text-red-300', 'border-red-800', 'bg-emerald-950', 'text-emerald-300', 'border-emerald-800');
-            el.classList.add('border');
-            el.className += (tipo === 'erro') ? ' bg-red-950 text-red-300 border-red-800' : ' bg-emerald-950 text-emerald-300 border-emerald-800';
-            el.innerText = texto;
-        }
-
         function exibirMensagemUtil(texto, tipo) {
             const el = document.getElementById('mensagem-status-util');
             el.classList.remove('hidden', 'bg-red-950', 'text-red-300', 'border-red-800', 'bg-emerald-950', 'text-emerald-300', 'border-emerald-800');
@@ -240,13 +335,7 @@
 
         async function carregarDadosMatriz() {
             try {
-                const { data, error } = await supabaseClient
-                    .from('empresa_matriz')
-                    .select('*')
-                    .eq('id', 1)
-                    .single();
-
-                if (error && error.code !== 'PGRST116') return;
+                const { data } = await supabaseClient.from('empresa_matriz').select('*').eq('id', 1).single();
                 if (data) {
                     dadosMatrizOriginal = data;
                     document.getElementById('razao_social').value = data.razao_social || '';
@@ -257,9 +346,7 @@
                     document.getElementById('estado').value = data.estado || '';
                     document.getElementById('pais').value = data.pais || '';
                 }
-            } catch (err) {
-                console.error(err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         function habilitarEdicao() {
@@ -273,7 +360,6 @@
             document.querySelectorAll('#form-matriz input').forEach(input => input.disabled = true);
             document.getElementById('container-botoes-salvar').classList.add('hidden');
             document.getElementById('btn-editar').classList.remove('hidden');
-            
             document.getElementById('razao_social').value = dadosMatrizOriginal.razao_social || '';
             document.getElementById('cnpj').value = dadosMatrizOriginal.cnpj || '';
             document.getElementById('inscricao_estadual').value = dadosMatrizOriginal.inscricao_estadual || '';
@@ -281,15 +367,10 @@
             document.getElementById('cep').value = dadosMatrizOriginal.cep || '';
             document.getElementById('estado').value = dadosMatrizOriginal.estado || '';
             document.getElementById('pais').value = dadosMatrizOriginal.pais || '';
-            document.getElementById('mensagem-status-matriz').classList.add('hidden');
         }
 
         async function salvarMatriz(e) {
             e.preventDefault();
-            const btn = document.getElementById('btn-salvar');
-            btn.disabled = true;
-            btn.innerText = 'A guardar...';
-
             const payload = {
                 id: 1,
                 razao_social: document.getElementById('razao_social').value.trim(),
@@ -301,20 +382,12 @@
                 pais: document.getElementById('pais').value.trim(),
                 atualizado_em: new Date().toISOString()
             };
-
-            const { error } = await supabaseClient.from('empresa_matriz').upsert([payload]);
-
-            if (error) {
-                exibirMensagemMatriz(`Erro ao salvar: ${error.message}`, 'erro');
-            } else {
-                dadosMatrizOriginal = payload;
-                exibirMensagemMatriz('Dados da Empresa Matriz salvos com sucesso!', 'sucesso');
-                document.querySelectorAll('#form-matriz input').forEach(input => input.disabled = true);
-                document.getElementById('container-botoes-salvar').classList.add('hidden');
-                document.getElementById('btn-editar').classList.remove('hidden');
-            }
-            btn.disabled = false;
-            btn.innerText = 'Salvar Alterações';
+            await supabaseClient.from('empresa_matriz').upsert([payload]);
+            dadosMatrizOriginal = payload;
+            document.querySelectorAll('#form-matriz input').forEach(input => input.disabled = true);
+            document.getElementById('container-botoes-salvar').classList.add('hidden');
+            document.getElementById('btn-editar').classList.remove('hidden');
+            alert('Dados da Matriz salvos com sucesso!');
         }
 
         async function carregarUtilizadores() {
@@ -322,21 +395,25 @@
             const { data, error } = await supabaseClient.from('usuarios_erp').select('*');
 
             if (error) {
-                corpoTabela.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-400">Erro: ${error.message}</td></tr>`;
+                corpoTabela.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-400">Erro: ${error.message}</td></tr>`;
                 return;
             }
 
-            if (!data || data.length === 0) {
-                corpoTabela.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">Nenhum utilizador encontrado.</td></tr>`;
+            listaUtilizadoresCache = data || [];
+
+            if (listaUtilizadoresCache.length === 0) {
+                corpoTabela.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Nenhum utilizador encontrado.</td></tr>`;
                 return;
             }
 
-            corpoTabela.innerHTML = data.map(u => `
+            corpoTabela.innerHTML = listaUtilizadoresCache.map(u => `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
                     <td class="p-3 font-medium text-white">${u.nome}</td>
                     <td class="p-3 text-slate-300">${u.email}</td>
-                    <td class="p-3"><span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded uppercase text-[10px] font-bold">${u.perfil}</span></td>
-                    <td class="p-3 text-right">
+                    <td class="p-3"><span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded uppercase text-[10px] font-bold">${u.perfil || 'operacional'}</span></td>
+                    <td class="p-3 text-slate-400 text-[11px]">${(u.paginas_permitidas || []).join(', ') || 'Nenhuma página'}</td>
+                    <td class="p-3 text-right space-x-2">
+                        <button onclick="abrirModalPermissoes(${u.id})" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 hover:bg-amber-950 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Configurar Acessos</button>
                         <button onclick="excluirUtilizador(${u.id})" class="text-red-400 hover:text-red-300 bg-red-950/40 hover:bg-red-950 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
                     </td>
                 </tr>
@@ -348,11 +425,10 @@
             const nome = document.getElementById('novo-nome').value.trim();
             const email = document.getElementById('novo-email').value.trim().toLowerCase();
             const senha = document.getElementById('novo-senha').value.trim();
-            const perfil = document.getElementById('novo-perfil').value;
 
             const { error } = await supabaseClient
                 .from('usuarios_erp')
-                .insert([{ nome, email, senha, perfil, paginas_permitidas: ['dashboard', 'admin'], operacoes_permitidas: ['criar', 'editar'] }]);
+                .insert([{ nome, email, senha, perfil: 'operacional', paginas_permitidas: ['dashboard', 'admin'], operacoes_permitidas: ['visualizar'] }]);
 
             if (error) {
                 exibirMensagemUtil(`Erro ao adicionar: ${error.message}`, 'erro');
@@ -365,15 +441,54 @@
             }
         }
 
-        async function excluirUtilizador(id) {
-            if (!confirm('Tem a certeza que deseja excluir este utilizador?')) return;
+        function abrirModalPermissoes(id) {
+            const usuario = listaUtilizadoresCache.find(u => u.id === id);
+            if (!usuario) return;
 
-            const { error } = await supabaseClient.from('usuarios_erp').delete().eq('id', id);
+            document.getElementById('modal-user-id').value = usuario.id;
+            document.getElementById('modal-titulo-usuario').innerText = `Configurar Acessos: ${usuario.nome}`;
+
+            // Limpa checkboxes
+            document.querySelectorAll('.chk-pagina').forEach(chk => {
+                chk.checked = (usuario.paginas_permitidas || []).includes(chk.value);
+            });
+
+            document.getElementById('op-visualizar').checked = (usuario.operacoes_permitidas || []).includes('visualizar');
+            document.getElementById('op-editar').checked = (usuario.operacoes_permitidas || []).includes('editar');
+
+            document.getElementById('modal-permissoes').classList.remove('hidden');
+        }
+
+        function fecharModalPermissoes() {
+            document.getElementById('modal-permissoes').classList.add('hidden');
+        }
+
+        async function guardarPermissoes() {
+            const id = parseInt(document.getElementById('modal-user-id').value);
+            
+            const paginas = Array.from(document.querySelectorAll('.chk-pagina:checked')).map(chk => chk.value);
+            const operacoes = [];
+            if (document.getElementById('op-visualizar').checked) operacoes.push('visualizar');
+            if (document.getElementById('op-editar').checked) operacoes.push('editar');
+
+            const { error } = await supabaseClient
+                .from('usuarios_erp')
+                .update({ paginas_permitidas: paginas, operacoes_permitidas: operacoes })
+                .eq('id', id);
+
             if (error) {
-                alert('Erro ao excluir: ' + error.message);
+                alert('Erro ao atualizar permissões: ' + error.message);
             } else {
+                alert('Permissões atualizadas com sucesso!');
+                fecharModalPermissoes();
                 carregarUtilizadores();
             }
+        }
+
+        async function excluirUtilizador(id) {
+            if (!confirm('Tem a certeza que deseja excluir este utilizador?')) return;
+            await supabaseClient.from('usuarios_erp').delete().eq('id', id);
+            carregarUtilizadores();
         }
     </script>
 </body>
