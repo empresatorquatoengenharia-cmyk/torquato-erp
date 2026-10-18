@@ -26,7 +26,17 @@ import {
   Briefcase,
   Calendar,
   PieChart,
-  BarChart3
+  BarChart3,
+  Boxes,
+  ClipboardCheck,
+  RefreshCw,
+  Printer,
+  PackageCheck,
+  Search,
+  Warehouse,
+  ShieldAlert,
+  ArrowRightLeft,
+  Edit3
 } from 'lucide-react';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -47,18 +57,44 @@ export default function TorquatoFullERP() {
   const [boletos, setBoletos] = useState<any[]>([]);
   const [tributos, setTributos] = useState<any[]>([]);
 
-  // Sub-abas Financeiro e Filtros
-  const [finSubTab, setFinSubTab] = useState('pagar');
-  
-  // Filtros Avançados do Dashboard
+  // Módulo Suprimentos - Abas Espelho Koper
+  const [supSubTab, setSupSubTab] = useState('produtos'); // 'produtos', 'locais', 'balancos', 'epis'
+  const [produtosSup, setProdutosSup] = useState<any[]>([]);
+  const [locaisSup, setLocaisSup] = useState<any[]>([]);
+  const [episSup, setEpisSup] = useState<any[]>([]);
+  const [entregasEpi, setEntregasEpi] = useState<any[]>([]);
+  const [balancosSup, setBalancosSup] = useState<any[]>([]);
+  const [balancoSelecionado, setBalancoSelecionado] = useState<any>(null);
+  const [itensBalanco, setItensBalanco] = useState<any[]>([]);
+  const [limitesEstoque, setLimitesEstoque] = useState<any[]>([]);
+
+  // Sub-visão Suprimentos (Ex: Controle de Estoque ou Ficha de EPI)
+  const [visaoLocais, setVisaoLocais] = useState<'lista' | 'controle'>('lista');
+  const [epiDetalhe, setEpiDetalhe] = useState<any>(null);
+
+  // Busca e Filtros
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filtroTipo, setFiltroTipo] = useState('Todos');
+  const [filtroStatusProduto, setFiltroStatusProduto] = useState('Ativo');
+  const [showFiltroModal, setShowFiltroModal] = useState(false);
+
+  // Modais de Suprimentos
+  const [showNovoProdutoModal, setShowNovoProdutoModal] = useState(false);
+  const [showNovoLocalModal, setShowNovoLocalModal] = useState(false);
+  const [showNovoEpiModal, setShowNovoEpiModal] = useState(false);
+  const [showGerarContratoEpiModal, setShowGerarContratoEpiModal] = useState(false);
+  const [showAjustarProdutosModal, setShowAjustarProdutosModal] = useState(false);
+
+  // Dashboard Filtros
   const [dashFiltroStatus, setDashFiltroStatus] = useState('todos');
   const [dashFiltroCategoria, setDashFiltroCategoria] = useState('todas');
   const [dashFiltroCentroCusto, setDashFiltroCentroCusto] = useState('todos');
-  const [dashFiltroPrazo, setDashFiltroPrazo] = useState('30'); // '7', '30', '60', 'ano', 'personalizado', 'todos'
+  const [dashFiltroPrazo, setDashFiltroPrazo] = useState('30');
   const [dashDataInicio, setDashDataInicio] = useState('');
   const [dashDataFim, setDashDataFim] = useState('');
 
-  // Controle de Modais
+  // Modais Financeiro / Admin
+  const [finSubTab, setFinSubTab] = useState('pagar');
   const [showEmpresaModal, setShowEmpresaModal] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showContratoModal, setShowContratoModal] = useState(false);
@@ -66,41 +102,35 @@ export default function TorquatoFullERP() {
   const [showBancoModal, setShowBancoModal] = useState(false);
   const [showTributoModal, setShowTributoModal] = useState(false);
 
-  // Forms
-  const [empNome, setEmpNome] = useState('');
-  const [empCnpj, setEmpCnpj] = useState('');
-  const [userName, setUserName] = useState('');
-  const [userEmail, setUserEmail] = useState('');
-  const [userCargo, setUserCargo] = useState('Engenheiro');
-  const [userLimite, setUserLimite] = useState('5000');
-  const [contTitulo, setContTitulo] = useState('');
-  const [contFornecedor, setContFornecedor] = useState('');
-  const [contValor, setContValor] = useState('');
+  // Form States Suprimentos
+  const [prodNome, setProdNome] = useState('');
+  const [prodApelido, setProdApelido] = useState('');
+  const [prodTipo, setProdTipo] = useState('Material');
+  const [prodCategoria, setProdCategoria] = useState('Instalações hidráulicas');
+  const [prodSubcategoria, setProdSubcategoria] = useState('Tubos e Conexões');
+  const [localNome, setLocalNome] = useState('');
+  const [localCidade, setLocalCidade] = useState('');
+  const [epiNome, setEpiNome] = useState('');
+  const [epiCa, setEpiCa] = useState('');
+  const [epiQtd, setEpiQtd] = useState('10');
 
-  // Financeiro Forms
+  // Form Contrato EPI
+  const [epiColaborador, setEpiColaborador] = useState('');
+  const [epiObra, setEpiObra] = useState('Obra Res. Pôr do Sol');
+  const [epiItemSelecionado, setEpiItemSelecionado] = useState('');
+  const [epiQtdEntrega, setEpiQtdEntrega] = useState('1');
+
+  // Forms Financeiro / Admin
   const [finDescricao, setFinDescricao] = useState('');
   const [finValor, setFinValor] = useState('');
   const [finTipo, setFinTipo] = useState('pagar');
   const [finVencimento, setFinVencimento] = useState('');
   const [finCategoria, setFinCategoria] = useState('Material de Obra');
   const [finCentroCusto, setFinCentroCusto] = useState('Geral / Sede');
-  const [finStatus, setFinStatus] = useState('Pendente');
   const [finNfNome, setFinNfNome] = useState('');
   const [finNfUrl, setFinNfUrl] = useState('');
   const [finCompNome, setFinCompNome] = useState('');
   const [finCompUrl, setFinCompUrl] = useState('');
-
-  // Banco Form
-  const [bancoNome, setBancoNome] = useState('');
-  const [bancoAgencia, setBancoAgencia] = useState('');
-  const [bancoConta, setBancoConta] = useState('');
-  const [bancoSaldo, setBancoSaldo] = useState('');
-
-  // Tributos Form
-  const [tribImposto, setTribImposto] = useState('DAS (Simples Nacional)');
-  const [tribCompetencia, setTribCompetencia] = useState('');
-  const [tribValor, setTribValor] = useState('');
-  const [tribVencimento, setTribVencimento] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -114,12 +144,6 @@ export default function TorquatoFullERP() {
         if (!selectedCompany) setSelectedCompany(empData[0].nome);
       }
 
-      const { data: userData } = await supabase.from('usuarios_erp').select('*').order('created_at', { ascending: false });
-      if (userData) setUsuarios(userData);
-
-      const { data: contData } = await supabase.from('contratos_empresa').select('*').order('created_at', { ascending: false });
-      if (contData) setContratos(contData);
-
       const { data: pagData } = await supabase.from('financeiro_lancamentos').select('*').order('vencimento', { ascending: true });
       if (pagData) setFinancialsPagar(pagData);
 
@@ -129,214 +153,104 @@ export default function TorquatoFullERP() {
       const { data: bancoData } = await supabase.from('contas_bancarias').select('*');
       if (bancoData) setContasBancarias(bancoData);
 
-      const { data: bolData } = await supabase.from('boletos_erp').select('*');
-      if (bolData) setBoletos(bolData);
-
       const { data: tribData } = await supabase.from('tributos_erp').select('*').order('vencimento', { ascending: true });
       if (tribData) setTributos(tribData);
+
+      // Suprimentos
+      const { data: prodData } = await supabase.from('suprimentos_produtos').select('*').order('created_at', { ascending: false });
+      if (prodData) setProdutosSup(prodData);
+
+      const { data: locData } = await supabase.from('suprimentos_locais').select('*').order('created_at', { ascending: false });
+      if (locData) setLocaisSup(locData);
+
+      const { data: epiData } = await supabase.from('suprimentos_epis').select('*').order('created_at', { ascending: false });
+      if (epiData) setEpisSup(epiData);
+
+      const { data: entData } = await supabase.from('suprimentos_epi_entregas').select('*').order('created_at', { ascending: false });
+      if (entData) setEntregasEpi(entData);
+
+      const { data: balData } = await supabase.from('suprimentos_balancos').select('*').order('created_at', { ascending: false });
+      if (balData) setBalancosSup(balData);
     } catch (err) {
-      console.error('Erro ao carregar dados do Supabase:', err);
+      console.error('Erro ao carregar dados:', err);
     }
   }
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>, tipoArquivo: 'nf' | 'comprovante') {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const nomeFicheiro = file.name;
-    const urlFicheiro = URL.createObjectURL(file);
-
-    if (tipoArquivo === 'nf') { 
-      setFinNfNome(nomeFicheiro); 
-      setFinNfUrl(urlFicheiro); 
-    } else { 
-      setFinCompNome(nomeFicheiro); 
-      setFinCompUrl(urlFicheiro); 
-    }
-  }
-
-  async function handleSaveEmpresa(e: React.FormEvent) {
+  // Handlers de Suprimentos
+  async function handleSaveProduto(e: React.FormEvent) {
     e.preventDefault();
-    if (!empNome) return;
-    try {
-      await supabase.from('empresas_erp').insert([{ nome: empNome, cnpj: empCnpj || '00.000.000/0001-00' }]);
-      setShowEmpresaModal(false); setEmpNome(''); setEmpCnpj(''); loadAllData();
-    } catch (err) { console.error('Erro ao salvar empresa:', err); }
+    if (!prodNome) return;
+    await supabase.from('suprimentos_produtos').insert([{
+      nome: prodNome,
+      apelido: prodApelido || '-',
+      tipo: prodTipo,
+      categoria: prodCategoria,
+      subcategoria: prodSubcategoria,
+      status: 'Ativo',
+      empresa: selectedCompany
+    }]);
+    setShowNovoProdutoModal(false);
+    setProdNome(''); setProdApelido('');
+    loadAllData();
   }
 
-  async function handleSaveUser(e: React.FormEvent) {
+  async function handleSaveLocal(e: React.FormEvent) {
     e.preventDefault();
-    if (!userName || !userEmail) return;
-    try {
-      await supabase.from('usuarios_erp').insert([{ nome: userName, email: userEmail, cargo: userCargo, limite_aprovacao: parseFloat(userLimite || '0'), status: 'ativo' }]);
-      setShowUserModal(false); setUserName(''); setUserEmail(''); loadAllData();
-    } catch (err) { console.error('Erro ao salvar usuário:', err); }
+    if (!localNome) return;
+    await supabase.from('suprimentos_locais').insert([{
+      nome: localNome,
+      cidade: localCidade || 'Belo Horizonte',
+      status: 'Ativo',
+      status_balanco: 'Sem balanço',
+      empresa: selectedCompany
+    }]);
+    setShowNovoLocalModal(false);
+    setLocalNome(''); setLocalCidade('');
+    loadAllData();
   }
 
-  async function handleSaveContrato(e: React.FormEvent) {
+  async function handleSaveEpi(e: React.FormEvent) {
     e.preventDefault();
-    if (!contTitulo || !contValor) return;
-    try {
-      await supabase.from('contratos_empresa').insert([{ titulo: contTitulo, fornecedor: contFornecedor, valor: parseFloat(contValor || '0'), status: 'Ativo' }]);
-      setShowContratoModal(false); setContTitulo(''); setContFornecedor(''); setContValor(''); loadAllData();
-    } catch (err) { console.error('Erro ao salvar contrato:', err); }
+    if (!epiNome) return;
+    await supabase.from('suprimentos_epis').insert([{
+      nome: epiNome,
+      ca: epiCa || 'N/A',
+      quantidade: parseInt(epiQtd || '0'),
+      empresa: selectedCompany
+    }]);
+    setShowNovoEpiModal(false);
+    setEpiNome(''); setEpiCa('');
+    loadAllData();
   }
 
-  async function handleSaveFinanceiro(e: React.FormEvent) {
+  async function handleGerarContratoEpi(e: React.FormEvent) {
     e.preventDefault();
-    if (!finDescricao || !finValor) return;
-    try {
-      const tableTarget = finTipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
-      await supabase.from(tableTarget).insert([{
-        descricao: finDescricao,
-        valor: parseFloat(finValor || '0'),
-        vencimento: finVencimento || new Date().toISOString().split('T')[0],
-        categoria: finCategoria,
-        centro_custo: finCentroCusto,
-        status: finStatus,
-        empresa: selectedCompany,
-        nf_nome: finNfNome || null,
-        nf_url: finNfUrl || null,
-        comprovante_nome: finCompNome || null,
-        comprovante_url: finCompUrl || null
-      }]);
-      setShowFinanceiroModal(false);
-      setFinDescricao(''); setFinValor(''); setFinNfNome(''); setFinNfUrl(''); setFinCompNome(''); setFinCompUrl('');
-      loadAllData();
-    } catch (err) { console.error('Erro ao salvar lançamento financeiro:', err); }
+    if (!epiColaborador || !epiItemSelecionado) return;
+    const cod = `CTR-EPI-${Math.floor(1000 + Math.random() * 9000)}`;
+    await supabase.from('suprimentos_epi_entregas').insert([{
+      codigo_contrato: cod,
+      colaborador: epiColaborador,
+      obra: epiObra,
+      epi_nome: epiItemSelecionado,
+      quantidade: parseInt(epiQtdEntrega || '1'),
+      status: 'Entregue',
+      empresa: selectedCompany
+    }]);
+    setShowGerarContratoEpiModal(false);
+    setEpiColaborador('');
+    loadAllData();
   }
 
-  async function handleSaveBanco(e: React.FormEvent) {
-    e.preventDefault();
-    if (!bancoNome) return;
-    try {
-      await supabase.from('contas_bancarias').insert([{ banco: bancoNome, agencia: bancoAgencia, conta: bancoConta, saldo: parseFloat(bancoSaldo || '0'), empresa: selectedCompany }]);
-      setShowBancoModal(false); setBancoNome(''); setBancoAgencia(''); setBancoConta(''); setBancoSaldo(''); loadAllData();
-    } catch (err) { console.error('Erro ao salvar conta bancária:', err); }
-  }
-
-  async function handleSaveTributo(e: React.FormEvent) {
-    e.preventDefault();
-    if (!tribImposto || !tribValor) return;
-    try {
-      await supabase.from('tributos_erp').insert([{
-        imposto: tribImposto,
-        competencia: tribCompetencia || 'Atual',
-        valor: parseFloat(tribValor || '0'),
-        vencimento: tribVencimento || new Date().toISOString().split('T')[0],
-        status: 'Previsto',
-        empresa: selectedCompany
-      }]);
-      setShowTributoModal(false);
-      setTribImposto('DAS (Simples Nacional)'); setTribCompetencia(''); setTribValor(''); setTribVencimento('');
-      loadAllData();
-    } catch (err) { console.error('Erro ao salvar tributo:', err); }
-  }
-
-  async function handleToggleQuitar(item: any, tipo: 'pagar' | 'receber') {
-    try {
-      const novoStatus = item.status === 'Pago' || item.status === 'Recebido' ? 'Pendente' : (tipo === 'pagar' ? 'Pago' : 'Recebido');
-      const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
-      await supabase.from(tableTarget).update({ status: novoStatus }).eq('id', item.id);
-      loadAllData();
-    } catch (err) { console.error('Erro ao alterar status:', err); }
-  }
-
-  async function handleToggleQuitarTributo(item: any) {
-    try {
-      const novoStatus = item.status === 'Pago' ? 'Previsto' : 'Pago';
-      await supabase.from('tributos_erp').update({ status: novoStatus }).eq('id', item.id);
-      loadAllData();
-    } catch (err) { console.error('Erro ao alterar status do tributo:', err); }
-  }
-
-  async function handleDeleteEmpresa(id: string) { if (confirm('Excluir empresa?')) { await supabase.from('empresas_erp').delete().eq('id', id); loadAllData(); } }
-  async function handleDeleteUser(id: string) { if (confirm('Excluir usuário?')) { await supabase.from('usuarios_erp').delete().eq('id', id); loadAllData(); } }
-  async function handleDeleteContrato(id: string) { if (confirm('Excluir contrato?')) { await supabase.from('contratos_empresa').delete().eq('id', id); loadAllData(); } }
-  async function handleDeleteTributo(id: string) { if (confirm('Excluir tributo?')) { await supabase.from('tributos_erp').delete().eq('id', id); loadAllData(); } }
-  async function handleDeleteFinanceiro(id: string, tipo: 'pagar' | 'receber') {
-    if (confirm('Excluir lançamento?')) {
-      const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
-      await supabase.from(tableTarget).delete().eq('id', id);
-      loadAllData();
-    }
-  }
-
-  // Filtros Globais por Empresa Ativa
+  // Filtros Globais
   const filteredPagar = financialsPagar.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
   const filteredReceber = financialsReceber.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
   const filteredBancos = contasBancarias.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
   const filteredTributos = tributos.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
 
-  // Lista dinâmica de Centros de Custo para o filtro
-  const listaCentrosCusto = Array.from(
-    new Set([
-      'Geral / Sede',
-      'Obra Res. Pôr do Sol',
-      'Pavimentação Buenópolis',
-      'Loteamento Alto da Serra',
-      ...filteredPagar.map(i => i.centro_custo).filter(Boolean)
-    ])
-  );
-
-  // Lógica do Filtro de Prazo/Data para o Dashboard
-  const dashboardPagarFiltrado = filteredPagar.filter(item => {
-    // 1. Filtro Status
-    if (dashFiltroStatus !== 'todos') {
-      const statusMatch = dashFiltroStatus === 'pagos' ? item.status === 'Pago' : item.status !== 'Pago';
-      if (!statusMatch) return false;
-    }
-
-    // 2. Filtro Categoria
-    if (dashFiltroCategoria !== 'todas' && item.categoria !== dashFiltroCategoria) return false;
-
-    // 3. Filtro Centro de Custo
-    if (dashFiltroCentroCusto !== 'todos') {
-      const ccItem = item.centro_custo || 'Geral / Sede';
-      if (ccItem !== dashFiltroCentroCusto) return false;
-    }
-
-    // 4. Filtro de Prazo / Data
-    if (item.vencimento) {
-      const dataVenc = new Date(item.vencimento);
-      const hoje = new Date();
-
-      if (dashFiltroPrazo === '7') {
-        const limite = new Date();
-        limite.setDate(hoje.getDate() + 7);
-        if (dataVenc < hoje || dataVenc > limite) return false;
-      } else if (dashFiltroPrazo === '30') {
-        const limite = new Date();
-        limite.setDate(hoje.getDate() + 30);
-        if (dataVenc < hoje || dataVenc > limite) return false;
-      } else if (dashFiltroPrazo === '60') {
-        const limite = new Date();
-        limite.setDate(hoje.getDate() + 60);
-        if (dataVenc < hoje || dataVenc > limite) return false;
-      } else if (dashFiltroPrazo === 'ano') {
-        if (dataVenc.getFullYear() !== hoje.getFullYear()) return false;
-      } else if (dashFiltroPrazo === 'personalizado') {
-        if (dashDataInicio && new Date(dashDataInicio) > dataVenc) return false;
-        if (dashDataFim && new Date(dashDataFim) < dataVenc) return false;
-      }
-    }
-
-    return true;
-  });
-
-  // Totais das Métricas do Dashboard
   const totalPagar = filteredPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0);
   const totalReceber = filteredReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0);
   const totalSaldosBancos = filteredBancos.reduce((acc, item) => acc + Number(item.saldo || 0), 0);
   const saldoLiquido = totalReceber - totalPagar;
-
-  // Agrupamento para Gráfico por Centro de Custo (Valores Filtrados)
-  const gastosPorCentroCusto = dashboardPagarFiltrado.reduce((acc: any, item: any) => {
-    const cc = item.centro_custo || 'Geral / Sede';
-    acc[cc] = (acc[cc] || 0) + Number(item.valor || 0);
-    return acc;
-  }, {});
-
-  const totalGastosFiltrados = Object.values(gastosPorCentroCusto).reduce((a: any, b: any) => a + b, 0) as number;
 
   return (
     <>
@@ -408,6 +322,16 @@ export default function TorquatoFullERP() {
               </button>
 
               <button
+                onClick={() => setActiveModule('suprimentos')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+                  activeModule === 'suprimentos' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-3"><Boxes className="w-4 h-4" /> Suprimentos</div>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
                 onClick={() => setActiveModule('administracao')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
                   activeModule === 'administracao' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
@@ -426,16 +350,6 @@ export default function TorquatoFullERP() {
                 <div className="flex items-center gap-3"><HardHat className="w-4 h-4" /> Engenharia & RDO</div>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
-
-              <button
-                onClick={() => setActiveModule('compras')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  activeModule === 'compras' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-3"><ShoppingCart className="w-4 h-4" /> Compras & Suprimentos</div>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
             </nav>
 
             <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
@@ -447,10 +361,10 @@ export default function TorquatoFullERP() {
             </div>
           </aside>
 
-          {/* CONTEÚDO PRINCIPAL */}
+          {/* MAIN CONTENT */}
           <main className="flex-1 bg-slate-950 overflow-y-auto p-8 text-slate-200">
             
-            {/* MÓDULO DASHBOARD EXECUTIVO */}
+            {/* DASHBOARD */}
             {activeModule === 'dashboard' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
@@ -458,206 +372,200 @@ export default function TorquatoFullERP() {
                     <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                       <LayoutDashboard className="w-6 h-6 text-amber-500" /> Dashboard Executivo & Métricas (Koper ERP)
                     </h1>
-                    <p className="text-xs text-slate-400 mt-1">Acompanhe os principais indicadores das suas obras e visão estratégica da empresa: <span className="text-amber-400 font-bold">{selectedCompany}</span></p>
+                    <p className="text-xs text-slate-400 mt-1">Visão geral do ERP: <span className="text-amber-400 font-bold">{selectedCompany}</span></p>
                   </div>
-                  <button onClick={() => setActiveModule('financeiro')} className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2 cursor-pointer">
-                    <DollarSign className="w-4 h-4" /> Gerenciar Financeiro
-                  </button>
                 </div>
 
-                {/* OVERVIEW DE MÉTRICAS */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Saldo Bancário Total</p>
                     <h3 className="text-xl font-black text-amber-400 mt-1">R$ {totalSaldosBancos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
-                    <p className="text-[10px] text-emerald-400 mt-2 flex items-center gap-1"><Activity className="w-3 h-3" /> Contas conciliadas</p>
                   </div>
-
                   <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Contas a Pagar</p>
                     <h3 className="text-xl font-black text-rose-400 mt-1">R$ {totalPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
-                    <p className="text-[10px] text-slate-400 mt-2">{filteredPagar.length} lançamentos registrados</p>
                   </div>
-
                   <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Contas a Receber</p>
                     <h3 className="text-xl font-black text-emerald-400 mt-1">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
-                    <p className="text-[10px] text-slate-400 mt-2">{filteredReceber.length} recebimentos previstos</p>
                   </div>
-
                   <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Resultado Projetado</p>
-                    <h3 className={`text-xl font-black mt-1 ${saldoLiquido >= 0 ? 'text-amber-400' : 'text-rose-400'}`}>
-                      R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </h3>
-                    <p className="text-[10px] text-slate-400 mt-2">Balanço geral do período</p>
+                    <h3 className={`text-xl font-black mt-1 ${saldoLiquido >= 0 ? 'text-amber-400' : 'text-rose-400'}`}>R$ {saldoLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MÓDULO SUPRIMENTOS (ESPELHO FIEL KOPER) */}
+            {activeModule === 'suprimentos' && (
+              <div className="space-y-6">
+                
+                {/* SUB-NAVEGAÇÃO DAS TELAS DO KOPER */}
+                <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-4">
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => { setSupSubTab('produtos'); setEpiDetalhe(null); }} 
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${supSubTab === 'produtos' ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 text-slate-400'}`}
+                    >
+                      Produtos
+                    </button>
+                    <button 
+                      onClick={() => { setSupSubTab('locais'); setVisaoLocais('lista'); setEpiDetalhe(null); }} 
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${supSubTab === 'locais' ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 text-slate-400'}`}
+                    >
+                      Locais de Estoque
+                    </button>
+                    <button 
+                      onClick={() => { setSupSubTab('balancos'); setEpiDetalhe(null); }} 
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${supSubTab === 'balancos' ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 text-slate-400'}`}
+                    >
+                      Balanços
+                    </button>
+                    <button 
+                      onClick={() => { setSupSubTab('epis'); setEpiDetalhe(null); }} 
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${supSubTab === 'epis' ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 text-slate-400'}`}
+                    >
+                      EPIs
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {supSubTab === 'produtos' && (
+                      <>
+                        <button onClick={() => setShowAjustarProdutosModal(true)} className="px-3.5 py-2 border border-amber-500 text-amber-400 font-bold rounded-xl text-xs hover:bg-amber-500/10 transition cursor-pointer">
+                          Ajustar produtos
+                        </button>
+                        <button onClick={() => setShowNovoProdutoModal(true)} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer">
+                          + Produto
+                        </button>
+                      </>
+                    )}
+
+                    {supSubTab === 'locais' && visaoLocais === 'lista' && (
+                      <>
+                        <button onClick={() => setVisaoLocais('controle')} className="px-3.5 py-2 border border-amber-500 text-amber-400 font-bold rounded-xl text-xs hover:bg-amber-500/10 transition cursor-pointer">
+                          Controle de estoque
+                        </button>
+                        <button onClick={() => setShowNovoLocalModal(true)} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer">
+                          + Local
+                        </button>
+                      </>
+                    )}
+
+                    {supSubTab === 'epis' && !epiDetalhe && (
+                      <>
+                        <button onClick={() => setShowGerarContratoEpiModal(true)} className="px-3.5 py-2 border border-amber-500 text-amber-400 font-bold rounded-xl text-xs hover:bg-amber-500/10 transition cursor-pointer">
+                          Gerar contrato
+                        </button>
+                        <button onClick={() => setShowNovoEpiModal(true)} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg cursor-pointer">
+                          + Novo EPI
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                {/* PAINEL DE FILTROS AVANÇADOS (PRAZO & CENTRO DE CUSTO) */}
-                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                  <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
-                    <div className="flex items-center gap-2">
-                      <Filter className="w-4 h-4 text-amber-500" />
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider">Filtros Combináveis, Prazo & Centro de Custo</h3>
-                    </div>
+                {/* 1. TELA DE PRODUTOS ESPELHO KOPER */}
+                {supSubTab === 'produtos' && (
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div className="relative">
+                        <button onClick={() => setShowFiltroModal(!showFiltroModal)} className="px-3.5 py-2 bg-slate-950 border border-slate-800 text-slate-300 font-bold rounded-xl text-xs flex items-center gap-2 cursor-pointer">
+                          <Filter className="w-4 h-4 text-amber-500" /> Adicionar filtro
+                        </button>
 
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      {/* FILTRO STATUS */}
-                      <select 
-                        value={dashFiltroStatus} 
-                        onChange={(e) => setDashFiltroStatus(e.target.value)} 
-                        className="bg-slate-950 text-slate-200 border border-slate-800 rounded-xl px-3 py-2 font-bold cursor-pointer focus:outline-none"
-                      >
-                        <option value="todos">Status: Todos</option>
-                        <option value="pagos">Status: Pagos / Recebidos</option>
-                        <option value="pendentes">Status: Pendentes / Em Aberto</option>
-                      </select>
-
-                      {/* FILTRO CATEGORIA */}
-                      <select 
-                        value={dashFiltroCategoria} 
-                        onChange={(e) => setDashFiltroCategoria(e.target.value)} 
-                        className="bg-slate-950 text-slate-200 border border-slate-800 rounded-xl px-3 py-2 font-bold cursor-pointer focus:outline-none"
-                      >
-                        <option value="todas">Categoria: Todas</option>
-                        <option value="Material de Obra">Material de Obra</option>
-                        <option value="Mão de Obra">Mão de Obra</option>
-                        <option value="Equipamentos">Equipamentos</option>
-                        <option value="Despesas Administrativas">Despesas Administrativas</option>
-                      </select>
-
-                      {/* FILTRO CENTRO DE CUSTO */}
-                      <select 
-                        value={dashFiltroCentroCusto} 
-                        onChange={(e) => setDashFiltroCentroCusto(e.target.value)} 
-                        className="bg-slate-950 text-amber-400 border border-slate-800 rounded-xl px-3 py-2 font-bold cursor-pointer focus:outline-none"
-                      >
-                        <option value="todos">Centro de Custo: Todos</option>
-                        {listaCentrosCusto.map((cc, idx) => (
-                          <option key={idx} value={cc}>{cc}</option>
-                        ))}
-                      </select>
-
-                      {/* FILTRO DE PRAZO DE BUSCA */}
-                      <select 
-                        value={dashFiltroPrazo} 
-                        onChange={(e) => setDashFiltroPrazo(e.target.value)} 
-                        className="bg-slate-950 text-emerald-400 border border-slate-800 rounded-xl px-3 py-2 font-bold cursor-pointer focus:outline-none"
-                      >
-                        <option value="todos">Prazo: Todo o Histórico</option>
-                        <option value="7">Prazo: Próximos 7 dias</option>
-                        <option value="30">Prazo: Próximos 30 dias</option>
-                        <option value="60">Prazo: Próximos 60 dias</option>
-                        <option value="ano">Prazo: Este Ano</option>
-                        <option value="personalizado">Prazo: Personalizado</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* DATA PERSONALIZADA */}
-                  {dashFiltroPrazo === 'personalizado' && (
-                    <div className="flex items-center gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs text-slate-300">
-                      <Calendar className="w-4 h-4 text-amber-500" />
-                      <span>Início:</span>
-                      <input type="date" value={dashDataInicio} onChange={(e) => setDashDataInicio(e.target.value)} className="bg-slate-900 border border-slate-800 text-white rounded-lg px-2 py-1" />
-                      <span>Fim:</span>
-                      <input type="date" value={dashDataFim} onChange={(e) => setDashDataFim(e.target.value)} className="bg-slate-900 border border-slate-800 text-white rounded-lg px-2 py-1" />
-                    </div>
-                  )}
-
-                  {/* GRÁFICOS DINÂMICOS BASEADOS NOS FILTROS */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                    {/* GRÁFICO 1: DISTRIBUIÇÃO POR CENTRO DE CUSTO / OBRA */}
-                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-bold text-xs uppercase text-slate-300 flex items-center gap-2">
-                          <BarChart3 className="w-4 h-4 text-amber-500" /> Custos por Obra / Centro de Custo
-                        </h4>
-                        <span className="text-[10px] text-slate-500">Filtrado</span>
+                        {showFiltroModal && (
+                          <div className="absolute top-11 left-0 w-64 bg-slate-950 border border-slate-800 rounded-2xl p-4 shadow-2xl z-40 text-xs space-y-3">
+                            <p className="font-bold text-amber-400 uppercase">Filtros de Valor</p>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input type="checkbox" checked={filtroStatusProduto === 'Ativo'} onChange={() => setFiltroStatusProduto(filtroStatusProduto === 'Ativo' ? 'Todos' : 'Ativo')} />
+                              <span>Somente Ativos</span>
+                            </label>
+                            <button onClick={() => setShowFiltroModal(false)} className="w-full py-2 bg-amber-500 text-slate-950 font-bold rounded-xl">Aplicar filtros</button>
+                          </div>
+                        )}
                       </div>
 
-                      {Object.keys(gastosPorCentroCusto).length === 0 ? (
-                        <p className="text-slate-500 text-xs py-4 text-center">Nenhum valor para os filtros selecionados.</p>
-                      ) : (
-                        Object.entries(gastosPorCentroCusto).map(([centro, valor]: [string, any], index) => {
-                          const percentual = totalGastosFiltrados > 0 ? (valor / totalGastosFiltrados) * 100 : 0;
-                          return (
-                            <div key={index} className="space-y-1">
-                              <div className="flex justify-between text-xs font-semibold">
-                                <span className="text-slate-300">{centro}</span>
-                                <span className="text-amber-400">R$ {valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({percentual.toFixed(1)}%)</span>
-                              </div>
-                              <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                                <div className="bg-amber-500 h-full rounded-full transition-all duration-500" style={{ width: `${percentual}%` }}></div>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-
-                    {/* GRÁFICO 2: COMPARATIVO ENTRADAS vs SAÍDAS */}
-                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-bold text-xs uppercase text-slate-300 flex items-center gap-2">
-                          <PieChart className="w-4 h-4 text-emerald-400" /> Visão Geral de Fluxo no Período
-                        </h4>
-                        <span className="text-[10px] text-slate-500">Receber vs Pagar</span>
-                      </div>
-
-                      <div className="space-y-3 pt-2">
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs font-semibold">
-                            <span className="text-slate-300 flex items-center gap-1"><TrendingUp className="w-3 h-3 text-emerald-400" /> Recebimentos Previstos</span>
-                            <span className="text-emerald-400">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                          </div>
-                          <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                            <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${totalReceber + totalPagar > 0 ? (totalReceber / (totalReceber + totalPagar)) * 100 : 0}%` }}></div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs font-semibold">
-                            <span className="text-slate-300 flex items-center gap-1"><TrendingDown className="w-3 h-3 text-rose-400" /> Lançamentos Filtrados</span>
-                            <span className="text-rose-400">R$ {totalGastosFiltrados.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                          </div>
-                          <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                            <div className="bg-rose-500 h-full rounded-full transition-all duration-500" style={{ width: `${totalReceber + totalPagar > 0 ? (totalGastosFiltrados / (totalReceber + totalPagar)) * 100 : 0}%` }}></div>
-                          </div>
-                        </div>
+                      <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 w-64">
+                        <Search className="w-4 h-4 text-slate-500" />
+                        <input type="text" placeholder="Buscar produto..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-transparent text-xs text-white focus:outline-none w-full" />
                       </div>
                     </div>
-                  </div>
 
-                  {/* TABELA DE LANÇAMENTOS DETALHADA */}
-                  <div className="space-y-3 pt-4 border-t border-slate-800">
-                    <p className="text-xs font-bold text-slate-400 uppercase">Detalhamento dos Lançamentos Filtrados ({dashboardPagarFiltrado.length} itens)</p>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
                         <tr>
-                          <th className="p-3">Descrição / Fornecedor</th>
+                          <th className="p-3">Código</th>
+                          <th className="p-3">Produto</th>
+                          <th className="p-3">Apelido</th>
+                          <th className="p-3">Tipo</th>
                           <th className="p-3">Categoria</th>
-                          <th className="p-3">Centro de Custo</th>
-                          <th className="p-3">Vencimento</th>
-                          <th className="p-3">Valor</th>
+                          <th className="p-3">Subcategoria</th>
                           <th className="p-3">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
-                        {dashboardPagarFiltrado.length === 0 ? (
-                          <tr><td colSpan={6} className="p-6 text-center text-slate-500">Nenhum lançamento encontrado com os filtros selecionados.</td></tr>
+                        {produtosSup.length === 0 ? (
+                          <tr><td colSpan={7} className="p-6 text-center text-slate-500">Nenhum produto cadastrado.</td></tr>
                         ) : (
-                          dashboardPagarFiltrado.map((item: any) => (
-                            <tr key={item.id} className="hover:bg-slate-950/50 transition">
-                              <td className="p-3 font-bold text-white">{item.descricao}</td>
-                              <td className="p-3 text-slate-400">{item.categoria}</td>
-                              <td className="p-3 text-amber-400 font-bold">{item.centro_custo || 'Geral / Sede'}</td>
-                              <td className="p-3 text-slate-300">{item.vencimento}</td>
-                              <td className="p-3 font-bold text-rose-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                          produtosSup.map((prod: any, idx: number) => (
+                            <tr key={prod.id || idx} className="hover:bg-slate-950/50">
+                              <td className="p-3 font-bold text-amber-400">{prod.codigo || (100 + idx)}</td>
+                              <td className="p-3 font-bold text-white">{prod.nome}</td>
+                              <td className="p-3 text-slate-400">{prod.apelido || '-'}</td>
                               <td className="p-3">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                                  {item.status || 'Pendente'}
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${prod.tipo === 'Equipamento' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                                  {prod.tipo || 'Material'}
+                                </span>
+                              </td>
+                              <td className="p-3 text-slate-300">{prod.categoria || 'Geral'}</td>
+                              <td className="p-3 text-slate-400">{prod.subcategoria || 'Geral'}</td>
+                              <td className="p-3"><span className="text-emerald-400 font-bold">Ativo</span></td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* 2. TELA DE LOCAIS DE ESTOQUE ESPELHO KOPER */}
+                {supSubTab === 'locais' && visaoLocais === 'lista' && (
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                        <Warehouse className="w-4 h-4 text-amber-500" /> Locais Ativos de Estoque
+                      </h3>
+                      <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 w-64">
+                        <Search className="w-4 h-4 text-slate-500" />
+                        <input type="text" placeholder="Buscar local..." className="bg-transparent text-xs text-white focus:outline-none w-full" />
+                      </div>
+                    </div>
+
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-950 text-slate-400 uppercase">
+                        <tr>
+                          <th className="p-3">Código</th>
+                          <th className="p-3">Nome</th>
+                          <th className="p-3">Cidade</th>
+                          <th className="p-3">Quantidade de Setores</th>
+                          <th className="p-3">Status do Balanço</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800">
+                        {locaisSup.length === 0 ? (
+                          <tr><td colSpan={5} className="p-6 text-center text-slate-500">Nenhum local ativo encontrado.</td></tr>
+                        ) : (
+                          locaisSup.map((loc: any, idx: number) => (
+                            <tr key={loc.id || idx} className="hover:bg-slate-950/50">
+                              <td className="p-3 font-bold text-amber-400">{loc.codigo || (2000 + idx)}</td>
+                              <td className="p-3 font-bold text-white">{loc.nome}</td>
+                              <td className="p-3 text-slate-300">{loc.cidade || 'Belo Horizonte'}</td>
+                              <td className="p-3 text-slate-400 font-mono">{loc.qtd_setores || 1}</td>
+                              <td className="p-3">
+                                <span className="px-2.5 py-1 bg-slate-800 text-slate-400 rounded-full text-[10px] font-bold">
+                                  {loc.status_balanco || 'Sem balanço'}
                                 </span>
                               </td>
                             </tr>
@@ -666,427 +574,262 @@ export default function TorquatoFullERP() {
                       </tbody>
                     </table>
                   </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* MÓDULO FINANCEIRO KOPER ERP */}
-            {activeModule === 'financeiro' && (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-                  <div>
-                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                      <DollarSign className="w-6 h-6 text-emerald-500" /> Módulo Financeiro Corporativo (Koper ERP)
-                    </h1>
-                    <p className="text-xs text-slate-400 mt-1">Empresa ativa: <span className="text-amber-400 font-bold">{selectedCompany}</span></p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-amber-400 font-bold rounded-xl text-xs transition border border-slate-700 cursor-pointer">+ Conta Bancária</button>
-                    <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2 cursor-pointer">
-                      <Plus className="w-4 h-4" /> Novo Lançamento
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 border-b border-slate-800 pb-2">
-                  <button onClick={() => setFinSubTab('pagar')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${finSubTab === 'pagar' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Pagar ({filteredPagar.length})</button>
-                  <button onClick={() => setFinSubTab('receber')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${finSubTab === 'receber' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Receber ({filteredReceber.length})</button>
-                  <button onClick={() => setFinSubTab('bancos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${finSubTab === 'bancos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas Bancárias ({filteredBancos.length})</button>
-                  <button onClick={() => setFinSubTab('boletos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${finSubTab === 'boletos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Boletos ({boletos.length})</button>
-                  <button onClick={() => setFinSubTab('tributos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${finSubTab === 'tributos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Tributos & Impostos ({filteredTributos.length})</button>
-                </div>
-
-                {finSubTab === 'pagar' && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingDown className="w-4 h-4 text-rose-400" /> Contas a Pagar & Anexos Separados</h3>
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950 text-slate-400 uppercase">
-                        <tr>
-                          <th className="p-3">Descrição</th>
-                          <th className="p-3">Categoria</th>
-                          <th className="p-3">Centro de Custo</th>
-                          <th className="p-3">Vencimento</th>
-                          <th className="p-3">Valor</th>
-                          <th className="p-3">Nota Fiscal (XML/PDF)</th>
-                          <th className="p-3">Comprovante</th>
-                          <th className="p-3">Status</th>
-                          <th className="p-3 text-center">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800">
-                        {filteredPagar.length === 0 ? (
-                          <tr><td colSpan={9} className="p-6 text-center text-slate-500">Nenhuma conta a pagar registrada.</td></tr>
-                        ) : (
-                          filteredPagar.map((item: any) => (
-                            <tr key={item.id} className="hover:bg-slate-950/50">
-                              <td className="p-3 font-bold text-white">{item.descricao}</td>
-                              <td className="p-3 text-slate-400">{item.categoria}</td>
-                              <td className="p-3 text-amber-400 font-bold">{item.centro_custo || 'Geral / Sede'}</td>
-                              <td className="p-3 text-slate-300">{item.vencimento}</td>
-                              <td className="p-3 font-bold text-rose-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                              
-                              <td className="p-3">
-                                {item.nf_url ? (
-                                  <a href={item.nf_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-amber-400 font-bold underline">
-                                    <Paperclip className="w-3 h-3" /> {item.nf_nome || 'Ver NF'}
-                                  </a>
-                                ) : <span className="text-slate-500">Sem NF</span>}
-                              </td>
-
-                              <td className="p-3">
-                                {item.comprovante_url ? (
-                                  <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-emerald-400 font-bold underline">
-                                    <CheckCircle2 className="w-3 h-3" /> {item.comprovante_nome || 'Ver Comp.'}
-                                  </a>
-                                ) : <span className="text-slate-500">Sem Comprovante</span>}
-                              </td>
-
-                              <td className="p-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>{item.status || 'Pendente'}</span></td>
-                              <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                                <button onClick={() => handleToggleQuitar(item, 'pagar')} className={`px-2 py-1 rounded text-xs font-bold cursor-pointer ${item.status === 'Pago' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}><Check className="w-3 h-3" /> {item.status === 'Pago' ? 'Estornar' : 'Pagar'}</button>
-                                <button onClick={() => handleDeleteFinanceiro(item.id, 'pagar')} className="p-1 bg-slate-800 text-rose-400 rounded cursor-pointer"><Trash2 className="w-3 h-3" /></button>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
                 )}
 
-                {finSubTab === 'receber' && (
+                {/* 2.1 CONTROLE DE ESTOQUE (MATRIZ PRODUTOS x LOCAIS COM MÍN/MÁX) */}
+                {supSubTab === 'locais' && visaoLocais === 'controle' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-400" /> Contas a Receber</h3>
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950 text-slate-400 uppercase">
-                        <tr>
-                          <th className="p-3">Descrição</th>
-                          <th className="p-3">Categoria</th>
-                          <th className="p-3">Centro de Custo</th>
-                          <th className="p-3">Previsão</th>
-                          <th className="p-3">Valor</th>
-                          <th className="p-3">Status</th>
-                          <th className="p-3 text-center">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800">
-                        {filteredReceber.length === 0 ? (
-                          <tr><td colSpan={7} className="p-6 text-center text-slate-500">Nenhuma conta a receber registrada.</td></tr>
-                        ) : (
-                          filteredReceber.map((item: any) => (
-                            <tr key={item.id} className="hover:bg-slate-950/50">
-                              <td className="p-3 font-bold text-white">{item.descricao}</td>
-                              <td className="p-3 text-slate-400">{item.categoria}</td>
-                              <td className="p-3 text-amber-400 font-bold">{item.centro_custo || 'Geral / Sede'}</td>
-                              <td className="p-3 text-slate-300">{item.vencimento}</td>
-                              <td className="p-3 font-bold text-emerald-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                              <td className="p-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Recebido' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>{item.status || 'Pendente'}</span></td>
-                              <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                                <button onClick={() => handleToggleQuitar(item, 'receber')} className={`px-2 py-1 rounded text-xs font-bold cursor-pointer ${item.status === 'Recebido' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}><Check className="w-3 h-3" /> {item.status === 'Recebido' ? 'Estornar' : 'Receber'}</button>
-                                <button onClick={() => handleDeleteFinanceiro(item.id, 'receber')} className="p-1 bg-slate-800 text-rose-400 rounded cursor-pointer"><Trash2 className="w-3 h-3" /></button>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {finSubTab === 'bancos' && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Wallet className="w-4 h-4 text-amber-500" /> Contas Bancárias & Conciliação</h3>
-                      <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">+ Nova Conta</button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {filteredBancos.length === 0 ? (
-                        <p className="text-slate-500 text-xs col-span-2">Nenhuma conta bancária cadastrada.</p>
-                      ) : (
-                        filteredBancos.map((b: any) => (
-                          <div key={b.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
-                            <div>
-                              <p className="font-bold text-white text-sm">{b.banco}</p>
-                              <p className="text-xs text-slate-400">Ag: {b.agencia} • CC: {b.conta}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-black text-amber-400 text-sm">R$ {Number(b.saldo || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {finSubTab === 'boletos' && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><FileText className="w-4 h-4 text-amber-500" /> Boletos Emitidos</h3>
-                    <div className="grid grid-cols-1 gap-2">
-                      {boletos.length === 0 ? (
-                        <p className="text-slate-500 text-xs">Nenhum boleto registrado.</p>
-                      ) : (
-                        boletos.map((bol: any) => (
-                          <div key={bol.id} className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-                            <div>
-                              <p className="font-bold text-white">{bol.nosso_numero} - {bol.sacado}</p>
-                              <p className="text-slate-400">Vencimento: {bol.vencimento}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-amber-400">R$ {Number(bol.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {finSubTab === 'tributos' && (
-                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-rose-400" /> Guia de Tributos & Impostos
-                      </h3>
-                      <button 
-                        onClick={() => setShowTributoModal(true)} 
-                        className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2 cursor-pointer"
-                      >
-                        <Plus className="w-4 h-4" /> Gerar Guia de Tributo
+                    <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                      <div>
+                        <button onClick={() => setVisaoLocais('lista')} className="text-xs text-amber-400 hover:underline flex items-center gap-1 font-bold mb-1">
+                          ← Voltar para Locais
+                        </button>
+                        <h3 className="font-bold text-base text-white">Controle de Estoque (Mínimos e Máximos)</h3>
+                      </div>
+                      <button onClick={() => setShowNovoProdutoModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">
+                        + Produto
                       </button>
                     </div>
 
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-950 text-slate-400 uppercase">
+                          <tr>
+                            <th className="p-3">Produto</th>
+                            <th className="p-3 text-center" colSpan={2}>Obra Res. Pôr do Sol</th>
+                            <th className="p-3 text-center" colSpan={2}>Pavimentação Buenópolis</th>
+                            <th className="p-3 text-center">Ações</th>
+                          </tr>
+                          <tr className="bg-slate-900 text-[10px] text-slate-500">
+                            <th></th>
+                            <th className="p-1 text-center">Mín.</th>
+                            <th className="p-1 text-center">Máx.</th>
+                            <th className="p-1 text-center">Mín.</th>
+                            <th className="p-1 text-center">Máx.</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800">
+                          {produtosSup.map((prod: any, idx: number) => (
+                            <tr key={idx} className="hover:bg-slate-950/50">
+                              <td className="p-3 font-bold text-white">{prod.nome}</td>
+                              <td className="p-3 text-center font-mono text-amber-400">10 kg</td>
+                              <td className="p-3 text-center font-mono text-slate-400">50 kg</td>
+                              <td className="p-3 text-center font-mono text-amber-400">20 un</td>
+                              <td className="p-3 text-center font-mono text-slate-400">100 un</td>
+                              <td className="p-3 text-center">
+                                <button className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg"><Edit3 className="w-3.5 h-3.5" /></button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. TELA DE BALANÇOS */}
+                {supSubTab === 'balancos' && (
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                      <ClipboardCheck className="w-4 h-4 text-amber-500" /> Balanços de Estoque e Conferência Física
+                    </h3>
+
                     <div className="grid grid-cols-1 gap-3">
-                      {filteredTributos.length === 0 ? (
-                        <div className="p-8 text-center text-slate-500 bg-slate-950 rounded-xl border border-slate-800">
-                          <p className="text-xs">Nenhum tributo registrado para {selectedCompany}.</p>
-                          <button 
-                            onClick={() => setShowTributoModal(true)} 
-                            className="mt-3 px-3 py-2 bg-rose-600/20 text-rose-400 font-bold rounded-lg text-xs hover:bg-rose-600/30 transition cursor-pointer"
-                          >
-                            + Cadastrar primeiro tributo
-                          </button>
-                        </div>
+                      {balancosSup.length === 0 ? (
+                        <p className="p-6 text-center text-slate-500">Nenhum balanço gerado até o momento.</p>
                       ) : (
-                        filteredTributos.map((trib: any) => (
-                          <div key={trib.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                        balancosSup.map((bal: any) => (
+                          <div key={bal.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
                             <div>
-                              <p className="font-bold text-white text-sm">{trib.imposto}</p>
-                              <p className="text-slate-400 mt-0.5">Competência: <span className="text-amber-400 font-bold">{trib.competencia}</span> • Vencimento: {trib.vencimento}</p>
+                              <p className="font-bold text-white text-sm">{bal.codigo_balanco} - {bal.centro_custo}</p>
+                              <p className="text-slate-400">Periodicidade: {bal.periodicidade}</p>
                             </div>
-                            <div className="text-right flex items-center gap-3">
-                              <div>
-                                <p className="font-black text-rose-400 text-sm">R$ {Number(trib.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                                <span className={`inline-block mt-1 text-[10px] px-2.5 py-0.5 rounded-full uppercase font-bold ${trib.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>{trib.status || 'Previsto'}</span>
-                              </div>
-                              <button onClick={() => handleToggleQuitarTributo(trib)} className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${trib.status === 'Pago' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}>
-                                <Check className="w-3.5 h-3.5" />
-                              </button>
-                              <button onClick={() => handleDeleteTributo(trib.id)} className="p-1.5 bg-slate-800 hover:bg-rose-900/50 text-rose-400 rounded-lg transition cursor-pointer">
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
+                            <span className="px-3 py-1 bg-amber-500/10 text-amber-400 rounded-full font-bold uppercase">{bal.status}</span>
                           </div>
                         ))
                       )}
                     </div>
                   </div>
                 )}
+
+                {/* 4. TELA DE EPIS ESPELHO KOPER */}
+                {supSubTab === 'epis' && !epiDetalhe && (
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                        <ShieldAlert className="w-4 h-4 text-amber-500" /> Equipamentos de Proteção Individual (EPIs)
+                      </h3>
+                      <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 w-64">
+                        <Search className="w-4 h-4 text-slate-500" />
+                        <input type="text" placeholder="Buscar EPI..." className="bg-transparent text-xs text-white focus:outline-none w-full" />
+                      </div>
+                    </div>
+
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-950 text-slate-400 uppercase">
+                        <tr>
+                          <th className="p-3">Código</th>
+                          <th className="p-3">EPI</th>
+                          <th className="p-3">CA (Certificado de Aprovação)</th>
+                          <th className="p-3">Quantidade</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800">
+                        {episSup.length === 0 ? (
+                          <tr><td colSpan={4} className="p-6 text-center text-slate-500">Nenhum EPI cadastrado.</td></tr>
+                        ) : (
+                          episSup.map((epi: any, idx: number) => (
+                            <tr key={epi.id || idx} onClick={() => setEpiDetalhe(epi)} className="hover:bg-slate-950/50 cursor-pointer">
+                              <td className="p-3 font-bold text-amber-400">{epi.codigo || (4920 + idx)}</td>
+                              <td className="p-3 font-bold text-white underline">{epi.nome}</td>
+                              <td className="p-3 text-slate-400 font-mono">{epi.ca || 'N/A'}</td>
+                              <td className="p-3 font-bold text-emerald-400 font-mono text-sm">{epi.quantidade || 0}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* 4.1 VISÃO DETALHADA DO EPI (ALOCAÇÕES E ENTREGAS) */}
+                {supSubTab === 'epis' && epiDetalhe && (
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-6 shadow-xl">
+                    <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                      <div>
+                        <button onClick={() => setEpiDetalhe(null)} className="text-xs text-amber-400 hover:underline font-bold mb-1 block">
+                          ← Voltar para lista de EPIs
+                        </button>
+                        <h3 className="font-bold text-lg text-white">{epiDetalhe.nome}</h3>
+                      </div>
+                      <button className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs">Dar baixa</button>
+                    </div>
+
+                    {/* DETALHES GERAIS */}
+                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 grid grid-cols-4 gap-4 text-xs">
+                      <div><p className="text-slate-500">Código</p><p className="font-bold text-amber-400">{epiDetalhe.codigo || 4925}</p></div>
+                      <div><p className="text-slate-500">Nome</p><p className="font-bold text-white">{epiDetalhe.nome}</p></div>
+                      <div><p className="text-slate-500">Quantidade</p><p className="font-bold text-emerald-400">{epiDetalhe.quantidade || 5}</p></div>
+                      <div><p className="text-slate-500">CA</p><p className="font-bold text-slate-300">{epiDetalhe.ca || 'N/A'}</p></div>
+                    </div>
+
+                    {/* ALOCAÇÕES */}
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-bold text-xs uppercase text-amber-400">Alocações por Local</h4>
+                        <button className="px-3 py-1.5 bg-slate-800 text-slate-200 font-bold rounded-lg text-xs">+ Transferência</button>
+                      </div>
+                      <table className="w-full text-left text-xs bg-slate-950 rounded-xl">
+                        <thead className="text-slate-400 uppercase">
+                          <tr><th className="p-3">Local</th><th className="p-3">Setor</th><th className="p-3">Quantidade</th></tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-t border-slate-800"><td className="p-3 text-white font-bold">Obra Res. Pôr do Sol</td><td className="p-3 text-slate-400">Geral</td><td className="p-3 font-mono font-bold text-amber-400">{epiDetalhe.quantidade || 5}</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* HISTÓRICO DE ENTREGAS */}
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-bold text-xs uppercase text-emerald-400">Histórico de Entregas a Colaboradores</h4>
+                        <button onClick={() => setShowGerarContratoEpiModal(true)} className="px-3 py-1.5 bg-amber-500 text-slate-950 font-bold rounded-lg text-xs">+ Entrega de EPI</button>
+                      </div>
+                      <table className="w-full text-left text-xs bg-slate-950 rounded-xl">
+                        <thead className="text-slate-400 uppercase">
+                          <tr><th className="p-3">Código Contrato</th><th className="p-3">Colaborador</th><th className="p-3">Obra</th><th className="p-3">Quantidade</th><th className="p-3">Status</th></tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800">
+                          {entregasEpi.length === 0 ? (
+                            <tr><td colSpan={5} className="p-4 text-center text-slate-500">Nenhuma entrega adicionada.</td></tr>
+                          ) : (
+                            entregasEpi.map((ent: any, i: number) => (
+                              <tr key={i}>
+                                <td className="p-3 font-bold text-amber-400">{ent.codigo_contrato}</td>
+                                <td className="p-3 text-white">{ent.colaborador}</td>
+                                <td className="p-3 text-slate-400">{ent.obra}</td>
+                                <td className="p-3 font-mono">{ent.quantidade}</td>
+                                <td className="p-3"><span className="text-emerald-400 font-bold">{ent.status}</span></td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
               </div>
             )}
 
-            {/* MÓDULO ADMINISTRAÇÃO */}
-            {activeModule === 'administracao' && (
-              <div className="space-y-8">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-                  <div>
-                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                      <ShieldCheck className="w-6 h-6 text-amber-500" /> Administração & Governança Corporativa
-                    </h1>
-                    <p className="text-xs text-slate-400 mt-1">Gestão de Empresas, Acessos/Usuários e Contratos</p>
-                  </div>
-                </div>
-
-                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Building2 className="w-4 h-4 text-amber-500" /> Empresas Cadastradas</h3>
-                    <button onClick={() => setShowEmpresaModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer">+ Cadastrar Empresa</button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {empresas.map(emp => (
-                      <div key={emp.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
-                        <div><p className="font-bold text-white text-sm">{emp.nome}</p><p className="text-xs text-slate-400">CNPJ: {emp.cnpj}</p></div>
-                        <button onClick={() => handleDeleteEmpresa(emp.id)} className="p-2 bg-slate-800 text-rose-400 rounded-lg cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Users className="w-4 h-4 text-amber-500" /> Gestão de Usuários e Alçadas</h3>
-                    <button onClick={() => setShowUserModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer">+ Novo Usuário</button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {usuarios.map(usr => (
-                      <div key={usr.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
-                        <div>
-                          <p className="font-bold text-white text-sm">{usr.nome}</p>
-                          <p className="text-xs text-slate-400">{usr.email} • <span className="text-amber-400 font-bold">{usr.cargo}</span></p>
-                        </div>
-                        <button onClick={() => handleDeleteUser(usr.id)} className="p-2 bg-slate-800 text-rose-400 rounded-lg cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Briefcase className="w-4 h-4 text-amber-500" /> Contratos Corporativos</h3>
-                    <button onClick={() => setShowContratoModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer">+ Novo Contrato</button>
-                  </div>
-                  <div className="grid grid-cols-1 gap-2">
-                    {contratos.map(cont => (
-                      <div key={cont.id} className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-                        <div>
-                          <p className="font-bold text-white">{cont.titulo} ({cont.fornecedor})</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <p className="font-black text-amber-400">R$ {Number(cont.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                          <button onClick={() => handleDeleteContrato(cont.id)} className="p-1 bg-slate-800 text-rose-400 rounded cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {activeModule !== 'dashboard' && activeModule !== 'financeiro' && activeModule !== 'administracao' && (
-              <div className="space-y-6">
-                <h1 className="text-2xl font-bold text-white capitalize">{activeModule}</h1>
-                <p className="text-xs text-slate-400">Módulo em operação.</p>
-              </div>
-            )}
-
+            {/* DEMAIS MÓDULOS */}
+            {activeModule === 'financeiro' && <div className="p-6 text-slate-400">Módulo Financeiro Ativo.</div>}
+            {activeModule === 'administracao' && <div className="p-6 text-slate-400">Módulo Administração Ativo.</div>}
           </main>
         </div>
 
-        {/* MODAIS */}
-        {showFinanceiroModal && (
+        {/* MODAL CONTRATO EPI (ESPELHO KOPER) */}
+        {showGerarContratoEpiModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Lançamento Financeiro</h3><button onClick={() => setShowFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleSaveFinanceiro} className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setFinTipo('pagar')} className={`p-2.5 rounded-xl text-xs font-bold border ${finTipo === 'pagar' ? 'bg-rose-500/25 border-rose-500 text-rose-400' : 'bg-slate-950 text-slate-400'}`}>Conta a Pagar</button>
-                  <button type="button" onClick={() => setFinTipo('receber')} className={`p-2.5 rounded-xl text-xs font-bold border ${finTipo === 'receber' ? 'bg-emerald-500/25 border-emerald-500 text-emerald-400' : 'bg-slate-950 text-slate-400'}`}>Conta a Receber</button>
-                </div>
-                <input type="text" required placeholder="Descrição" value={finDescricao} onChange={(e) => setFinDescricao(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" step="0.01" required placeholder="Valor (R$)" value={finValor} onChange={(e) => setFinValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="date" required value={finVencimento} onChange={(e) => setFinVencimento(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                
-                <select value={finCategoria} onChange={(e) => setFinCategoria(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                  <option value="Material de Obra">Material de Obra</option>
-                  <option value="Mão de Obra">Mão de Obra</option>
-                  <option value="Equipamentos">Equipamentos</option>
-                  <option value="Despesas Administrativas">Despesas Administrativas</option>
-                </select>
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-2xl w-full p-6 border border-slate-800 space-y-4 text-slate-200">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 className="font-bold text-base text-white">Gerar Contrato de Entrega de EPI</h3>
+                <button onClick={() => setShowGerarContratoEpiModal(false)}><X className="w-5 h-5 text-slate-400" /></button>
+              </div>
 
-                <select value={finCentroCusto} onChange={(e) => setFinCentroCusto(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-400 font-bold">
-                  <option value="Geral / Sede">Centro de Custo: Geral / Sede</option>
-                  <option value="Obra Res. Pôr do Sol">Centro de Custo: Obra Res. Pôr do Sol</option>
-                  <option value="Pavimentação Buenópolis">Centro de Custo: Pavimentação Buenópolis</option>
-                  <option value="Loteamento Alto da Serra">Centro de Custo: Loteamento Alto da Serra</option>
-                </select>
-
-                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
-                  <label className="block text-xs font-bold text-amber-400 uppercase">Nota Fiscal (XML/PDF)</label>
-                  <input type="file" accept=".xml,.pdf" onChange={(e) => handleFileChange(e, 'nf')} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 cursor-pointer" />
+              <form onSubmit={handleGerarContratoEpi} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 mb-1">Modelo de Contrato</label>
+                  <input type="text" readOnly value="Modelo de Contrato de Entrega de EPI" className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-400 font-bold" />
                 </div>
 
-                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
-                  <label className="block text-xs font-bold text-emerald-400 uppercase">Comprovante de Pagamento</label>
-                  <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, 'comprovante')} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white cursor-pointer" />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">Colaborador *</label>
+                    <input type="text" required placeholder="Nome do funcionário" value={epiColaborador} onChange={(e) => setEpiColaborador(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1">Obra *</label>
+                    <select value={epiObra} onChange={(e) => setEpiObra(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                      <option value="Obra Res. Pôr do Sol">Obra Res. Pôr do Sol</option>
+                      <option value="Pavimentação Buenópolis">Pavimentação Buenópolis</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs cursor-pointer">Salvar Lançamento</button></div>
+                <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                  <p className="font-bold text-xs uppercase text-amber-400">Itens para Entrega</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <select value={epiItemSelecionado} onChange={(e) => setEpiItemSelecionado(e.target.value)} className="col-span-2 p-2.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white">
+                      <option value="">Selecione o EPI...</option>
+                      {episSup.map((e, idx) => <option key={idx} value={e.nome}>{e.nome}</option>)}
+                    </select>
+                    <input type="number" placeholder="Qtd" value={epiQtdEntrega} onChange={(e) => setEpiQtdEntrega(e.target.value)} className="p-2.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white" />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                  <button type="button" onClick={() => setShowGerarContratoEpiModal(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs">Cancelar</button>
+                  <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Entregar & Salvar</button>
+                </div>
               </form>
             </div>
           </div>
         )}
 
-        {showBancoModal && (
+        {/* MODAL DE NOVO PRODUTO */}
+        {showNovoProdutoModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Nova Conta Bancária</h3><button onClick={() => setShowBancoModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleSaveBanco} className="space-y-3">
-                <input type="text" required placeholder="Nome do Banco" value={bancoNome} onChange={(e) => setBancoNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" placeholder="Agência" value={bancoAgencia} onChange={(e) => setBancoAgencia(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" placeholder="Conta Corrente" value={bancoConta} onChange={(e) => setBancoConta(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" step="0.01" placeholder="Saldo Inicial (R$)" value={bancoSaldo} onChange={(e) => setBancoSaldo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">Salvar Conta</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {showTributoModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Gerar Guia de Tributo & Imposto</h3><button onClick={() => setShowTributoModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleSaveTributo} className="space-y-3">
-                <select value={tribImposto} onChange={(e) => setTribImposto(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                  <option value="DAS (Simples Nacional)">DAS (Simples Nacional)</option>
-                  <option value="INSS Patronal / Folha">INSS Patronal / Folha</option>
-                  <option value="FGTS Digital">FGTS Digital</option>
-                  <option value="ISS Municipal">ISS Municipal</option>
-                  <option value="IRRF / CSLL / PIS / COFINS">IRRF / CSLL / PIS / COFINS</option>
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Produto</h3><button onClick={() => setShowNovoProdutoModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleSaveProduto} className="space-y-3">
+                <input type="text" required placeholder="Nome do Produto" value={prodNome} onChange={(e) => setProdNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="text" placeholder="Apelido" value={prodApelido} onChange={(e) => setProdApelido(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <select value={prodTipo} onChange={(e) => setProdTipo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                  <option value="Material">Material</option>
+                  <option value="Equipamento">Equipamento</option>
                 </select>
-                <input type="text" placeholder="Competência (ex: 05/2026)" value={tribCompetencia} onChange={(e) => setTribCompetencia(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" step="0.01" required placeholder="Valor do Tributo (R$)" value={tribValor} onChange={(e) => setTribValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="date" required value={tribVencimento} onChange={(e) => setTribVencimento(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs cursor-pointer">Salvar Tributo</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {showEmpresaModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Cadastrar Empresa</h3><button onClick={() => setShowEmpresaModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleSaveEmpresa} className="space-y-3">
-                <input type="text" required placeholder="Razão Social" value={empNome} onChange={(e) => setEmpNome(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" placeholder="CNPJ" value={empCnpj} onChange={(e) => setEmpCnpj(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">Salvar</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {showUserModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Usuário</h3><button onClick={() => setShowUserModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleSaveUser} className="space-y-3">
-                <input type="text" required placeholder="Nome Completo" value={userName} onChange={(e) => setUserName(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="email" required placeholder="E-mail" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">Salvar</button></div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {showContratoModal && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Contrato</h3><button onClick={() => setShowContratoModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
-              <form onSubmit={handleSaveContrato} className="space-y-3">
-                <input type="text" required placeholder="Título do Contrato" value={contTitulo} onChange={(e) => setContTitulo(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="number" step="0.01" required placeholder="Valor (R$)" value={contValor} onChange={(e) => setContValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <div className="flex justify-end gap-2"><button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs cursor-pointer">Salvar</button></div>
               </form>
             </div>
