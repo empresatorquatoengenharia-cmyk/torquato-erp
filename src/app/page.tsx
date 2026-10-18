@@ -23,7 +23,10 @@ import {
   Wallet,
   Filter,
   Users,
-  Briefcase
+  Briefcase,
+  Calendar,
+  PieChart,
+  BarChart3
 } from 'lucide-react';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -46,8 +49,14 @@ export default function TorquatoFullERP() {
 
   // Sub-abas Financeiro e Filtros
   const [finSubTab, setFinSubTab] = useState('pagar');
+  
+  // Filtros Avançados do Dashboard
   const [dashFiltroStatus, setDashFiltroStatus] = useState('todos');
   const [dashFiltroCategoria, setDashFiltroCategoria] = useState('todas');
+  const [dashFiltroCentroCusto, setDashFiltroCentroCusto] = useState('todos');
+  const [dashFiltroPrazo, setDashFiltroPrazo] = useState('30'); // '7', '30', '60', 'ano', 'personalizado', 'todos'
+  const [dashDataInicio, setDashDataInicio] = useState('');
+  const [dashDataFim, setDashDataFim] = useState('');
 
   // Controle de Modais
   const [showEmpresaModal, setShowEmpresaModal] = useState(false);
@@ -74,6 +83,7 @@ export default function TorquatoFullERP() {
   const [finTipo, setFinTipo] = useState('pagar');
   const [finVencimento, setFinVencimento] = useState('');
   const [finCategoria, setFinCategoria] = useState('Material de Obra');
+  const [finCentroCusto, setFinCentroCusto] = useState('Geral / Sede');
   const [finStatus, setFinStatus] = useState('Pendente');
   const [finNfNome, setFinNfNome] = useState('');
   const [finNfUrl, setFinNfUrl] = useState('');
@@ -181,6 +191,7 @@ export default function TorquatoFullERP() {
         valor: parseFloat(finValor || '0'),
         vencimento: finVencimento || new Date().toISOString().split('T')[0],
         categoria: finCategoria,
+        centro_custo: finCentroCusto,
         status: finStatus,
         empresa: selectedCompany,
         nf_nome: finNfNome || null,
@@ -256,19 +267,76 @@ export default function TorquatoFullERP() {
   const filteredBancos = contasBancarias.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
   const filteredTributos = tributos.filter(item => !selectedCompany || item.empresa === selectedCompany || !item.empresa);
 
+  // Lista dinâmica de Centros de Custo para o filtro
+  const listaCentrosCusto = Array.from(
+    new Set([
+      'Geral / Sede',
+      'Obra Res. Pôr do Sol',
+      'Pavimentação Buenópolis',
+      'Loteamento Alto da Serra',
+      ...filteredPagar.map(i => i.centro_custo).filter(Boolean)
+    ])
+  );
+
+  // Lógica do Filtro de Prazo/Data para o Dashboard
+  const dashboardPagarFiltrado = filteredPagar.filter(item => {
+    // 1. Filtro Status
+    if (dashFiltroStatus !== 'todos') {
+      const statusMatch = dashFiltroStatus === 'pagos' ? item.status === 'Pago' : item.status !== 'Pago';
+      if (!statusMatch) return false;
+    }
+
+    // 2. Filtro Categoria
+    if (dashFiltroCategoria !== 'todas' && item.categoria !== dashFiltroCategoria) return false;
+
+    // 3. Filtro Centro de Custo
+    if (dashFiltroCentroCusto !== 'todos') {
+      const ccItem = item.centro_custo || 'Geral / Sede';
+      if (ccItem !== dashFiltroCentroCusto) return false;
+    }
+
+    // 4. Filtro de Prazo / Data
+    if (item.vencimento) {
+      const dataVenc = new Date(item.vencimento);
+      const hoje = new Date();
+
+      if (dashFiltroPrazo === '7') {
+        const limite = new Date();
+        limite.setDate(hoje.getDate() + 7);
+        if (dataVenc < hoje || dataVenc > limite) return false;
+      } else if (dashFiltroPrazo === '30') {
+        const limite = new Date();
+        limite.setDate(hoje.getDate() + 30);
+        if (dataVenc < hoje || dataVenc > limite) return false;
+      } else if (dashFiltroPrazo === '60') {
+        const limite = new Date();
+        limite.setDate(hoje.getDate() + 60);
+        if (dataVenc < hoje || dataVenc > limite) return false;
+      } else if (dashFiltroPrazo === 'ano') {
+        if (dataVenc.getFullYear() !== hoje.getFullYear()) return false;
+      } else if (dashFiltroPrazo === 'personalizado') {
+        if (dashDataInicio && new Date(dashDataInicio) > dataVenc) return false;
+        if (dashDataFim && new Date(dashDataFim) < dataVenc) return false;
+      }
+    }
+
+    return true;
+  });
+
+  // Totais das Métricas do Dashboard
   const totalPagar = filteredPagar.reduce((acc, item) => acc + Number(item.valor || 0), 0);
   const totalReceber = filteredReceber.reduce((acc, item) => acc + Number(item.valor || 0), 0);
   const totalSaldosBancos = filteredBancos.reduce((acc, item) => acc + Number(item.saldo || 0), 0);
   const saldoLiquido = totalReceber - totalPagar;
 
-  const dashboardPagarFiltrado = filteredPagar.filter(item => {
-    if (dashFiltroStatus !== 'todos') {
-      const statusMatch = dashFiltroStatus === 'pagos' ? item.status === 'Pago' : item.status !== 'Pago';
-      if (!statusMatch) return false;
-    }
-    if (dashFiltroCategoria !== 'todas' && item.categoria !== dashFiltroCategoria) return false;
-    return true;
-  });
+  // Agrupamento para Gráfico por Centro de Custo (Valores Filtrados)
+  const gastosPorCentroCusto = dashboardPagarFiltrado.reduce((acc: any, item: any) => {
+    const cc = item.centro_custo || 'Geral / Sede';
+    acc[cc] = (acc[cc] || 0) + Number(item.valor || 0);
+    return acc;
+  }, {});
+
+  const totalGastosFiltrados = Object.values(gastosPorCentroCusto).reduce((a: any, b: any) => a + b, 0) as number;
 
   return (
     <>
@@ -392,7 +460,7 @@ export default function TorquatoFullERP() {
                     </h1>
                     <p className="text-xs text-slate-400 mt-1">Acompanhe os principais indicadores das suas obras e visão estratégica da empresa: <span className="text-amber-400 font-bold">{selectedCompany}</span></p>
                   </div>
-                  <button onClick={() => setActiveModule('financeiro')} className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2">
+                  <button onClick={() => setActiveModule('financeiro')} className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2 cursor-pointer">
                     <DollarSign className="w-4 h-4" /> Gerenciar Financeiro
                   </button>
                 </div>
@@ -426,15 +494,16 @@ export default function TorquatoFullERP() {
                   </div>
                 </div>
 
-                {/* FILTROS COMBINÁVEIS */}
+                {/* PAINEL DE FILTROS AVANÇADOS (PRAZO & CENTRO DE CUSTO) */}
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
                     <div className="flex items-center gap-2">
                       <Filter className="w-4 h-4 text-amber-500" />
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider">Filtros Combináveis & Insights Estratégicos</h3>
+                      <h3 className="font-bold text-sm text-white uppercase tracking-wider">Filtros Combináveis, Prazo & Centro de Custo</h3>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-center gap-2 text-xs">
+                      {/* FILTRO STATUS */}
                       <select 
                         value={dashFiltroStatus} 
                         onChange={(e) => setDashFiltroStatus(e.target.value)} 
@@ -445,6 +514,7 @@ export default function TorquatoFullERP() {
                         <option value="pendentes">Status: Pendentes / Em Aberto</option>
                       </select>
 
+                      {/* FILTRO CATEGORIA */}
                       <select 
                         value={dashFiltroCategoria} 
                         onChange={(e) => setDashFiltroCategoria(e.target.value)} 
@@ -456,16 +526,119 @@ export default function TorquatoFullERP() {
                         <option value="Equipamentos">Equipamentos</option>
                         <option value="Despesas Administrativas">Despesas Administrativas</option>
                       </select>
+
+                      {/* FILTRO CENTRO DE CUSTO */}
+                      <select 
+                        value={dashFiltroCentroCusto} 
+                        onChange={(e) => setDashFiltroCentroCusto(e.target.value)} 
+                        className="bg-slate-950 text-amber-400 border border-slate-800 rounded-xl px-3 py-2 font-bold cursor-pointer focus:outline-none"
+                      >
+                        <option value="todos">Centro de Custo: Todos</option>
+                        {listaCentrosCusto.map((cc, idx) => (
+                          <option key={idx} value={cc}>{cc}</option>
+                        ))}
+                      </select>
+
+                      {/* FILTRO DE PRAZO DE BUSCA */}
+                      <select 
+                        value={dashFiltroPrazo} 
+                        onChange={(e) => setDashFiltroPrazo(e.target.value)} 
+                        className="bg-slate-950 text-emerald-400 border border-slate-800 rounded-xl px-3 py-2 font-bold cursor-pointer focus:outline-none"
+                      >
+                        <option value="todos">Prazo: Todo o Histórico</option>
+                        <option value="7">Prazo: Próximos 7 dias</option>
+                        <option value="30">Prazo: Próximos 30 dias</option>
+                        <option value="60">Prazo: Próximos 60 dias</option>
+                        <option value="ano">Prazo: Este Ano</option>
+                        <option value="personalizado">Prazo: Personalizado</option>
+                      </select>
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  {/* DATA PERSONALIZADA */}
+                  {dashFiltroPrazo === 'personalizado' && (
+                    <div className="flex items-center gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs text-slate-300">
+                      <Calendar className="w-4 h-4 text-amber-500" />
+                      <span>Início:</span>
+                      <input type="date" value={dashDataInicio} onChange={(e) => setDashDataInicio(e.target.value)} className="bg-slate-900 border border-slate-800 text-white rounded-lg px-2 py-1" />
+                      <span>Fim:</span>
+                      <input type="date" value={dashDataFim} onChange={(e) => setDashDataFim(e.target.value)} className="bg-slate-900 border border-slate-800 text-white rounded-lg px-2 py-1" />
+                    </div>
+                  )}
+
+                  {/* GRÁFICOS DINÂMICOS BASEADOS NOS FILTROS */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    {/* GRÁFICO 1: DISTRIBUIÇÃO POR CENTRO DE CUSTO / OBRA */}
+                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-bold text-xs uppercase text-slate-300 flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4 text-amber-500" /> Custos por Obra / Centro de Custo
+                        </h4>
+                        <span className="text-[10px] text-slate-500">Filtrado</span>
+                      </div>
+
+                      {Object.keys(gastosPorCentroCusto).length === 0 ? (
+                        <p className="text-slate-500 text-xs py-4 text-center">Nenhum valor para os filtros selecionados.</p>
+                      ) : (
+                        Object.entries(gastosPorCentroCusto).map(([centro, valor]: [string, any], index) => {
+                          const percentual = totalGastosFiltrados > 0 ? (valor / totalGastosFiltrados) * 100 : 0;
+                          return (
+                            <div key={index} className="space-y-1">
+                              <div className="flex justify-between text-xs font-semibold">
+                                <span className="text-slate-300">{centro}</span>
+                                <span className="text-amber-400">R$ {valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({percentual.toFixed(1)}%)</span>
+                              </div>
+                              <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                                <div className="bg-amber-500 h-full rounded-full transition-all duration-500" style={{ width: `${percentual}%` }}></div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    {/* GRÁFICO 2: COMPARATIVO ENTRADAS vs SAÍDAS */}
+                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-bold text-xs uppercase text-slate-300 flex items-center gap-2">
+                          <PieChart className="w-4 h-4 text-emerald-400" /> Visão Geral de Fluxo no Período
+                        </h4>
+                        <span className="text-[10px] text-slate-500">Receber vs Pagar</span>
+                      </div>
+
+                      <div className="space-y-3 pt-2">
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs font-semibold">
+                            <span className="text-slate-300 flex items-center gap-1"><TrendingUp className="w-3 h-3 text-emerald-400" /> Recebimentos Previstos</span>
+                            <span className="text-emerald-400">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                            <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${totalReceber + totalPagar > 0 ? (totalReceber / (totalReceber + totalPagar)) * 100 : 0}%` }}></div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs font-semibold">
+                            <span className="text-slate-300 flex items-center gap-1"><TrendingDown className="w-3 h-3 text-rose-400" /> Lançamentos Filtrados</span>
+                            <span className="text-rose-400">R$ {totalGastosFiltrados.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                            <div className="bg-rose-500 h-full rounded-full transition-all duration-500" style={{ width: `${totalReceber + totalPagar > 0 ? (totalGastosFiltrados / (totalReceber + totalPagar)) * 100 : 0}%` }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TABELA DE LANÇAMENTOS DETALHADA */}
+                  <div className="space-y-3 pt-4 border-t border-slate-800">
                     <p className="text-xs font-bold text-slate-400 uppercase">Detalhamento dos Lançamentos Filtrados ({dashboardPagarFiltrado.length} itens)</p>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
                         <tr>
                           <th className="p-3">Descrição / Fornecedor</th>
-                          <th className="p-3">Categoria / Centro de Custo</th>
+                          <th className="p-3">Categoria</th>
+                          <th className="p-3">Centro de Custo</th>
                           <th className="p-3">Vencimento</th>
                           <th className="p-3">Valor</th>
                           <th className="p-3">Status</th>
@@ -473,12 +646,13 @@ export default function TorquatoFullERP() {
                       </thead>
                       <tbody className="divide-y divide-slate-800">
                         {dashboardPagarFiltrado.length === 0 ? (
-                          <tr><td colSpan={5} className="p-6 text-center text-slate-500">Nenhum lançamento encontrado com os filtros selecionados.</td></tr>
+                          <tr><td colSpan={6} className="p-6 text-center text-slate-500">Nenhum lançamento encontrado com os filtros selecionados.</td></tr>
                         ) : (
                           dashboardPagarFiltrado.map((item: any) => (
                             <tr key={item.id} className="hover:bg-slate-950/50 transition">
                               <td className="p-3 font-bold text-white">{item.descricao}</td>
                               <td className="p-3 text-slate-400">{item.categoria}</td>
+                              <td className="p-3 text-amber-400 font-bold">{item.centro_custo || 'Geral / Sede'}</td>
                               <td className="p-3 text-slate-300">{item.vencimento}</td>
                               <td className="p-3 font-bold text-rose-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                               <td className="p-3">
@@ -508,19 +682,19 @@ export default function TorquatoFullERP() {
                     <p className="text-xs text-slate-400 mt-1">Empresa ativa: <span className="text-amber-400 font-bold">{selectedCompany}</span></p>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-amber-400 font-bold rounded-xl text-xs transition border border-slate-700">+ Conta Bancária</button>
-                    <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2">
+                    <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-amber-400 font-bold rounded-xl text-xs transition border border-slate-700 cursor-pointer">+ Conta Bancária</button>
+                    <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2 cursor-pointer">
                       <Plus className="w-4 h-4" /> Novo Lançamento
                     </button>
                   </div>
                 </div>
 
                 <div className="flex gap-2 border-b border-slate-800 pb-2">
-                  <button onClick={() => setFinSubTab('pagar')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'pagar' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Pagar ({filteredPagar.length})</button>
-                  <button onClick={() => setFinSubTab('receber')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'receber' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Receber ({filteredReceber.length})</button>
-                  <button onClick={() => setFinSubTab('bancos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'bancos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas Bancárias ({filteredBancos.length})</button>
-                  <button onClick={() => setFinSubTab('boletos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'boletos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Boletos ({boletos.length})</button>
-                  <button onClick={() => setFinSubTab('tributos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition ${finSubTab === 'tributos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Tributos & Impostos ({filteredTributos.length})</button>
+                  <button onClick={() => setFinSubTab('pagar')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${finSubTab === 'pagar' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Pagar ({filteredPagar.length})</button>
+                  <button onClick={() => setFinSubTab('receber')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${finSubTab === 'receber' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas a Receber ({filteredReceber.length})</button>
+                  <button onClick={() => setFinSubTab('bancos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${finSubTab === 'bancos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Contas Bancárias ({filteredBancos.length})</button>
+                  <button onClick={() => setFinSubTab('boletos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${finSubTab === 'boletos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Boletos ({boletos.length})</button>
+                  <button onClick={() => setFinSubTab('tributos')} className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${finSubTab === 'tributos' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400'}`}>Tributos & Impostos ({filteredTributos.length})</button>
                 </div>
 
                 {finSubTab === 'pagar' && (
@@ -531,22 +705,24 @@ export default function TorquatoFullERP() {
                         <tr>
                           <th className="p-3">Descrição</th>
                           <th className="p-3">Categoria</th>
+                          <th className="p-3">Centro de Custo</th>
                           <th className="p-3">Vencimento</th>
                           <th className="p-3">Valor</th>
                           <th className="p-3">Nota Fiscal (XML/PDF)</th>
-                          <th className="p-3">Comprovante de Pagamento</th>
+                          <th className="p-3">Comprovante</th>
                           <th className="p-3">Status</th>
                           <th className="p-3 text-center">Ações</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
                         {filteredPagar.length === 0 ? (
-                          <tr><td colSpan={8} className="p-6 text-center text-slate-500">Nenhuma conta a pagar registrada.</td></tr>
+                          <tr><td colSpan={9} className="p-6 text-center text-slate-500">Nenhuma conta a pagar registrada.</td></tr>
                         ) : (
                           filteredPagar.map((item: any) => (
                             <tr key={item.id} className="hover:bg-slate-950/50">
                               <td className="p-3 font-bold text-white">{item.descricao}</td>
                               <td className="p-3 text-slate-400">{item.categoria}</td>
+                              <td className="p-3 text-amber-400 font-bold">{item.centro_custo || 'Geral / Sede'}</td>
                               <td className="p-3 text-slate-300">{item.vencimento}</td>
                               <td className="p-3 font-bold text-rose-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                               
@@ -568,8 +744,8 @@ export default function TorquatoFullERP() {
 
                               <td className="p-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>{item.status || 'Pendente'}</span></td>
                               <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                                <button onClick={() => handleToggleQuitar(item, 'pagar')} className={`px-2 py-1 rounded text-xs font-bold ${item.status === 'Pago' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}><Check className="w-3 h-3" /> {item.status === 'Pago' ? 'Estornar' : 'Pagar'}</button>
-                                <button onClick={() => handleDeleteFinanceiro(item.id, 'pagar')} className="p-1 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3 h-3" /></button>
+                                <button onClick={() => handleToggleQuitar(item, 'pagar')} className={`px-2 py-1 rounded text-xs font-bold cursor-pointer ${item.status === 'Pago' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}><Check className="w-3 h-3" /> {item.status === 'Pago' ? 'Estornar' : 'Pagar'}</button>
+                                <button onClick={() => handleDeleteFinanceiro(item.id, 'pagar')} className="p-1 bg-slate-800 text-rose-400 rounded cursor-pointer"><Trash2 className="w-3 h-3" /></button>
                               </td>
                             </tr>
                           ))
@@ -587,6 +763,7 @@ export default function TorquatoFullERP() {
                         <tr>
                           <th className="p-3">Descrição</th>
                           <th className="p-3">Categoria</th>
+                          <th className="p-3">Centro de Custo</th>
                           <th className="p-3">Previsão</th>
                           <th className="p-3">Valor</th>
                           <th className="p-3">Status</th>
@@ -595,18 +772,19 @@ export default function TorquatoFullERP() {
                       </thead>
                       <tbody className="divide-y divide-slate-800">
                         {filteredReceber.length === 0 ? (
-                          <tr><td colSpan={6} className="p-6 text-center text-slate-500">Nenhuma conta a receber registrada.</td></tr>
+                          <tr><td colSpan={7} className="p-6 text-center text-slate-500">Nenhuma conta a receber registrada.</td></tr>
                         ) : (
                           filteredReceber.map((item: any) => (
                             <tr key={item.id} className="hover:bg-slate-950/50">
                               <td className="p-3 font-bold text-white">{item.descricao}</td>
                               <td className="p-3 text-slate-400">{item.categoria}</td>
+                              <td className="p-3 text-amber-400 font-bold">{item.centro_custo || 'Geral / Sede'}</td>
                               <td className="p-3 text-slate-300">{item.vencimento}</td>
                               <td className="p-3 font-bold text-emerald-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                               <td className="p-3"><span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Recebido' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>{item.status || 'Pendente'}</span></td>
                               <td className="p-3 text-center flex items-center justify-center gap-1.5">
-                                <button onClick={() => handleToggleQuitar(item, 'receber')} className={`px-2 py-1 rounded text-xs font-bold ${item.status === 'Recebido' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}><Check className="w-3 h-3" /> {item.status === 'Recebido' ? 'Estornar' : 'Receber'}</button>
-                                <button onClick={() => handleDeleteFinanceiro(item.id, 'receber')} className="p-1 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3 h-3" /></button>
+                                <button onClick={() => handleToggleQuitar(item, 'receber')} className={`px-2 py-1 rounded text-xs font-bold cursor-pointer ${item.status === 'Recebido' ? 'bg-slate-800 text-slate-300' : 'bg-emerald-600 text-white'}`}><Check className="w-3 h-3" /> {item.status === 'Recebido' ? 'Estornar' : 'Receber'}</button>
+                                <button onClick={() => handleDeleteFinanceiro(item.id, 'receber')} className="p-1 bg-slate-800 text-rose-400 rounded cursor-pointer"><Trash2 className="w-3 h-3" /></button>
                               </td>
                             </tr>
                           ))
@@ -733,13 +911,13 @@ export default function TorquatoFullERP() {
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex justify-between items-center">
                     <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Building2 className="w-4 h-4 text-amber-500" /> Empresas Cadastradas</h3>
-                    <button onClick={() => setShowEmpresaModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition">+ Cadastrar Empresa</button>
+                    <button onClick={() => setShowEmpresaModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer">+ Cadastrar Empresa</button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {empresas.map(emp => (
                       <div key={emp.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
                         <div><p className="font-bold text-white text-sm">{emp.nome}</p><p className="text-xs text-slate-400">CNPJ: {emp.cnpj}</p></div>
-                        <button onClick={() => handleDeleteEmpresa(emp.id)} className="p-2 bg-slate-800 text-rose-400 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteEmpresa(emp.id)} className="p-2 bg-slate-800 text-rose-400 rounded-lg cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     ))}
                   </div>
@@ -748,7 +926,7 @@ export default function TorquatoFullERP() {
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex justify-between items-center">
                     <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Users className="w-4 h-4 text-amber-500" /> Gestão de Usuários e Alçadas</h3>
-                    <button onClick={() => setShowUserModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition">+ Novo Usuário</button>
+                    <button onClick={() => setShowUserModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer">+ Novo Usuário</button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {usuarios.map(usr => (
@@ -757,7 +935,7 @@ export default function TorquatoFullERP() {
                           <p className="font-bold text-white text-sm">{usr.nome}</p>
                           <p className="text-xs text-slate-400">{usr.email} • <span className="text-amber-400 font-bold">{usr.cargo}</span></p>
                         </div>
-                        <button onClick={() => handleDeleteUser(usr.id)} className="p-2 bg-slate-800 text-rose-400 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteUser(usr.id)} className="p-2 bg-slate-800 text-rose-400 rounded-lg cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     ))}
                   </div>
@@ -766,7 +944,7 @@ export default function TorquatoFullERP() {
                 <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
                   <div className="flex justify-between items-center">
                     <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><Briefcase className="w-4 h-4 text-amber-500" /> Contratos Corporativos</h3>
-                    <button onClick={() => setShowContratoModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition">+ Novo Contrato</button>
+                    <button onClick={() => setShowContratoModal(true)} className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer">+ Novo Contrato</button>
                   </div>
                   <div className="grid grid-cols-1 gap-2">
                     {contratos.map(cont => (
@@ -776,7 +954,7 @@ export default function TorquatoFullERP() {
                         </div>
                         <div className="flex items-center gap-3">
                           <p className="font-black text-amber-400">R$ {Number(cont.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                          <button onClick={() => handleDeleteContrato(cont.id)} className="p-1 bg-slate-800 text-rose-400 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => handleDeleteContrato(cont.id)} className="p-1 bg-slate-800 text-rose-400 rounded cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </div>
                     ))}
@@ -809,11 +987,19 @@ export default function TorquatoFullERP() {
                 <input type="text" required placeholder="Descrição" value={finDescricao} onChange={(e) => setFinDescricao(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="number" step="0.01" required placeholder="Valor (R$)" value={finValor} onChange={(e) => setFinValor(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="date" required value={finVencimento} onChange={(e) => setFinVencimento(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                
                 <select value={finCategoria} onChange={(e) => setFinCategoria(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
                   <option value="Material de Obra">Material de Obra</option>
                   <option value="Mão de Obra">Mão de Obra</option>
                   <option value="Equipamentos">Equipamentos</option>
                   <option value="Despesas Administrativas">Despesas Administrativas</option>
+                </select>
+
+                <select value={finCentroCusto} onChange={(e) => setFinCentroCusto(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-amber-400 font-bold">
+                  <option value="Geral / Sede">Centro de Custo: Geral / Sede</option>
+                  <option value="Obra Res. Pôr do Sol">Centro de Custo: Obra Res. Pôr do Sol</option>
+                  <option value="Pavimentação Buenópolis">Centro de Custo: Pavimentação Buenópolis</option>
+                  <option value="Loteamento Alto da Serra">Centro de Custo: Loteamento Alto da Serra</option>
                 </select>
 
                 <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
