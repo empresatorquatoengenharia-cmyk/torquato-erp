@@ -351,4 +351,125 @@ export default function KoperStyleDashboard() {
                 </div>
                 <button
                   onClick={() => setShowPurchaseModal(true)}
-                  className="
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition text-xs"
+                >
+                  <Plus className="w-4 h-4" /> Nova Solicitação
+                </button>
+              </div>
+
+              {/* Tabela de Compras Koper */}
+              <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
+                    <tr>
+                      <th className="p-4">Solicitação / Insumo</th>
+                      <th className="p-4">Obra / Centro de Custo</th>
+                      <th className="p-4">Urgência</th>
+                      <th className="p-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {requests.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="p-8 text-center text-slate-500">
+                          Nenhuma solicitação cadastrada.
+                        </td>
+                      </tr>
+                    ) : (
+                      requests.map((r) => (
+                        <tr key={r.id} className="hover:bg-slate-900/50 transition">
+                          <td className="p-4 font-semibold text-white">{r.title}</td>
+                          <td className="p-4 text-slate-400">{r.projects?.name || 'Geral'}</td>
+                          <td className="p-4">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                              {r.urgency}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                              {r.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* MÓDULO FINANCEIRO */}
+          {activeModule === 'financeiro' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                <div>
+                  <h1 className="text-xl font-bold text-white">Financeiro & Contas a Pagar</h1>
+                  <p className="text-xs text-slate-400 mt-1">Lançamento e baixa de custos por centro de custo/obra</p>
+                </div>
+                <button
+                  onClick={() => setShowFinModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-lg hover:bg-amber-400 transition text-xs"
+                >
+                  <Plus className="w-4 h-4" /> Novo Lançamento
+                </button>
+              </div>
+
+              {/* Tabela Financeira Koper */}
+              <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 font-bold uppercase">
+                    <tr>
+                      <th className="p-4">Descrição</th>
+                      <th className="p-4">Obra</th>
+                      <th className="p-4">Valor (R$)</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-center">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {financials.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="p-8 text-center text-slate-500">
+                          Nenhum lançamento financeiro registrado.
+                        </td>
+                      </tr>
+                    ) : (
+                      financials.map((f) => (
+                        <tr key={f.id} className="hover:bg-slate-900/50 transition">
+                          <td className="p-4 font-semibold text-white">{f.descricao}</td>
+                          <td className="p-4 text-slate-400">{f.projects?.name || 'Geral'}</td>
+                          <td className="p-4 font-bold text-white">
+                            R$ {Number(f.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                              f.status === 'pago' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                            }`}>
+                              {f.status === 'pago' ? 'PAGO' : 'PENDENTE'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <button
+                              onClick={() => handleToggleStatus(f.id, f.status)}
+                              className={`px-3 py-1 rounded text-[10px] font-bold transition ${
+                                f.status === 'pago' ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-emerald-500 text-slate-950 hover:bg-emerald-400'
+                              }`}
+                            >
+                              {f.status === 'pago' ? 'Desfazer' : 'Baixar'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+        </main>
+      </div>
+    </div>
+  );
+}
