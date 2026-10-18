@@ -28,28 +28,50 @@
 
     <!-- Layout Principal -->
     <div class="flex flex-1">
-        <!-- Sidebar do Módulo Suprimentos -->
-        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6">
-            <div>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Suprimentos</p>
-                <nav class="space-y-1 text-xs">
-                    <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                        <span>📦</span>
-                        <span>Balanços</span>
-                    </a>
-                    <a href="suprimentos_produtos.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
-                        <span>🏷️</span>
-                        <span>Produtos & Insumos</span>
-                    </a>
-                    <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                        <span>⚙️</span>
-                        <span>Cadastros Gerais</span>
-                    </a>
-                    <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                        <span>📊</span>
-                        <span>Dashboard Geral</span>
-                    </a>
-                </nav>
+        <!-- Sidebar de Navegação Unificada -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏢</span>
+                            <span>Matriz & Utilizadores</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>🏷️</span>
+                            <span>Produtos & Insumos</span>
+                        </a>
+                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📦</span>
+                            <span>Balanços de Estoque</span>
+                        </a>
+                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Cadastros Gerais</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
             </div>
         </aside>
 
@@ -331,7 +353,6 @@
             document.getElementById('modal-ajustar').classList.add('hidden');
         }
 
-        // Função para calcular o próximo código automático sequencial
         async function gerarProximoCodigo() {
             const { data } = await supabaseClient.from('produtos_erp').select('codigo');
             let maiorCodigo = 0;
@@ -352,7 +373,6 @@
             const prodId = document.getElementById('prod-id').value;
             let codigoFinal = document.getElementById('prod-codigo').value;
 
-            // Se for novo cadastro, gera o próximo número sequencial
             if (!prodId || codigoFinal === '[ Gerado Automático ]') {
                 codigoFinal = await gerarProximoCodigo();
             }
