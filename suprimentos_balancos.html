@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Balanços de Suprimentos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
+
+    <!-- Header Principal -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
+                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Controle de Estoque</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nome-usuario" class="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">A carregar...</span>
+            <button onclick="sair()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">Sair</button>
+        </div>
+    </header>
+
+    <!-- Layout Principal -->
+    <div class="flex flex-1">
+        <!-- Sidebar do Módulo Suprimentos -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6">
+            <div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Suprimentos</p>
+                <nav class="space-y-1 text-xs">
+                    <a href="suprimentos_balancos.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                        <span>📦</span>
+                        <span>Balanços</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <span>🛒</span>
+                        <span>Compras</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <span>📉</span>
+                        <span>Consumo</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <span>📥</span>
+                        <span>Entradas</span>
+                    </a>
+                    <a href="#" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <span>🏷️</span>
+                        <span>Produtos & Locais</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="pt-4 border-t border-slate-800">
+                <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white px-3 py-2 rounded-xl text-xs transition">
+                    <span>⬅️</span>
+                    <span>Voltar ao Dashboard</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Conteúdo Central -->
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
+            
+            <!-- VISTA 1: LISTAGEM DE BALANÇOS -->
+            <div id="vista-lista" class="space-y-6">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Balanços de Estoque</h2>
+                        <p class="text-xs text-slate-400">Conferências periódicas e conciliação de inventário no canteiro.</p>
+                    </div>
+                    <button onclick="abrirNovoBalancoModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition cursor-pointer shadow-lg">
+                        + Novo Balanço Periódico
+                    </button>
+                </div>
+
+                <!-- Filtros de Listagem -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl text-xs">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Local de Estoque</label>
+                        <select id="filtro-local" onchange="filtrarBalancos()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                            <option value="todos">Todos os Locais</option>
+                            <option value="Vila real">Vila Real</option>
+                            <option value="Matriz">Matriz</option>
+                            <option value="Buenópolis">Pavimentação - Buenópolis</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Setor</label>
+                        <select id="filtro-setor" onchange="filtrarBalancos()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                            <option value="todos">Todos os Setores</option>
+                            <option value="Geral">Geral</option>
+                            <option value="Materias de Elétrica">Materiais de Elétrica</option>
+                            <option value="Materiais de Hidráulica">Materiais de Hidráulica</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Pesquisar Código / Material</label>
+                        <input type="text" id="busca-balanco" oninput="filtrarBalancos()" placeholder="Ex: 2176 ou Vila Real..." class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                    </div>
+                </div>
+
+                <!-- Tabela de Balanços -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-950/60 border-b border-slate-800 text-slate-400">
+                                <th class="p-4">Código</th>
+                                <th class="p-4">Local</th>
+                                <th class="p-4">Setor</th>
+                                <th class="p-4">Última Alteração</th>
+                                <th class="p-4">Data Prevista</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4 text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-balancos-corpo" class="divide-y divide-slate-800/60">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VISTA 2: DETALHE DO BALANÇO (CONFERÊNCIA FÍSICA) -->
+            <div id="vista-detalhe" class="hidden space-y-6">
+                <div class="flex items-center justify-between bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="voltarParaLista()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
+                            ← Voltar
+                        </button>
+                        <div>
+                            <h2 class="text-xl font-bold text-white" id="detalhe-titulo">Balanço #2176</h2>
+                            <p class="text-xs text-slate-400" id="detalhe-subtitulo">Local: Vila Real • Setor: Geral</p>
+                        </div>
+                    </div>
+                    <button onclick="imprimirBalanco()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer">
+                        <span>🖨️</span>
+                        <span>Imprimir Balanço</span>
+                    </button>
+                </div>
+
+                <!-- Informações Gerais do Balanço Selecionado -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl text-xs">
+                    <div>
+                        <span class="text-slate-500 block">Status Atual</span>
+                        <span id="detalhe-status" class="font-bold text-amber-400">Atrasado</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">Data Prevista</span>
+                        <span id="detalhe-data" class="font-bold text-white">19/03/2026</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">Periodicidade</span>
+                        <span class="font-bold text-white">Mensal (Automática)</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">Última Modificação</span>
+                        <span id="detalhe-modificacao" class="font-bold text-white">18/05/2026 11:09</span>
+                    </div>
+                </div>
+
+                <!-- Tabela de Contagem de Itens e Ajuste -->
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-amber-400">Conferência de Materiais no Canteiro</h3>
+                        <span class="text-[10px] text-slate-400">Diferenças geram entradas ou consumo automático</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400">
+                                    <th class="p-3">Código</th>
+                                    <th class="p-3">Material / Descrição</th>
+                                    <th class="p-3">Categoria / Subcat.</th>
+                                    <th class="p-3">Quant. Atual (Sistema)</th>
+                                    <th class="p-3">Quant. Real (Físico)</th>
+                                    <th class="p-3 text-right">Ação / Ajuste</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-itens-corpo" class="divide-y divide-slate-800/60">
+                                <!-- Preenchido dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Script de Gestão de Balanços -->
+    <script>
+        // Dados simulados de balanços
+        let balancosData = [
+            { id: 2176, local: 'Vila real', setor: 'Geral', alteracao: '18/05/2026 11:09', previsao: '19/03/2026', status: 'Atrasado' },
+            { id: 2175, local: '1201', setor: 'Geral', alteracao: '-', previsao: '05/03/2026', status: 'Atrasado' },
+            { id: 2142, local: '1201', setor: 'Geral', alteracao: '19/02/2026 16:17', previsao: '27/01/2026', status: 'Realizado' },
+            { id: 2109, local: 'Vila real', setor: 'Geral', alteracao: '19/02/2026 16:27', previsao: '31/12/2025', status: 'Realizado' },
+            { id: 1948, local: 'Vila real', setor: 'Geral', alteracao: '03/12/2025 11:23', previsao: '03/09/2025', status: 'Realizado' },
+        ];
+
+        // Itens do balanço detalhado
+        let itensBalancoExemplo = [
+            { codigo: '3.2.1', nome: 'Cimento Portland CP-1 50kg', cat: 'Concretos e Argamassas', atual: 57, real: 55 },
+            { codigo: '3.2.2', nome: 'Cimento Portland CP-2 50kg', cat: 'Concretos e Argamassas', atual: 93, real: 90 },
+            { codigo: '137.1.3.1', nome: 'Cimento teste Portland CP-3 50kg', cat: 'Concretos', atual: 11, real: 11 },
+            { codigo: '579', nome: 'Materiais Gerais', cat: 'Geral / Geral', atual: 6, real: 5 },
+            { codigo: '3.2.3', nome: 'Vergalhão CA-50 10,0mm - 3/8"', cat: 'Armaduras / Vergalhões', atual: 32, real: 32 }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const usuarioJSON = localStorage.getItem('torquato_user');
+            if (!usuarioJSON) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const usuario = JSON.parse(usuarioJSON);
+            document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
+
+            renderizarTabelaBalancos(balancosData);
+        });
+
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
+
+        function renderizarTabelaBalancos(lista) {
+            const corpo = document.getElementById('tabela-balancos-corpo');
+            if (lista.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">Nenhum balanço encontrado.</td></tr>`;
+                return;
+            }
+
+            corpo.innerHTML = lista.map(b => `
+                <tr class="hover:bg-slate-800/40 transition">
+                    <td class="p-4 font-bold text-white">${b.id}</td>
+                    <td class="p-4 text-slate-300">${b.local}</td>
+                    <td class="p-4 text-slate-300">${b.setor}</td>
+                    <td class="p-4 text-slate-400">${b.alteracao}</td>
+                    <td class="p-4 text-slate-300">${b.previsao}</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${b.status === 'Realizado' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}">
+                            ● ${b.status}
+                        </span>
+                    </td>
+                    <td class="p-4 text-right">
+                        <button onclick="abrirDetalheBalanco(${b.id})" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer">
+                            Conferir / Lançar
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filtrarBalancos() {
+            const local = document.getElementById('filtro-local').value;
+            const setor = document.getElementById('filtro-setor').value;
+            const busca = document.getElementById('busca-balanco').value.toLowerCase();
+
+            let filtrado = balancosData.filter(b => {
+                let matchLocal = (local === 'todos' || b.local === local);
+                let matchSetor = (setor === 'todos' || b.setor === setor);
+                let matchBusca = (b.id.toString().includes(busca) || b.local.toLowerCase().includes(busca));
+                return matchLocal && matchSetor && matchBusca;
+            });
+
+            renderizarTabelaBalancos(filtrado);
+        }
+
+        function abrirDetalheBalanco(id) {
+            document.getElementById('vista-lista').classList.add('hidden');
+            document.getElementById('vista-detalhe').classList.remove('hidden');
+            document.getElementById('detalhe-titulo').innerText = `Balanço #${id}`;
+            
+            const tbody = document.getElementById('tabela-itens-corpo');
+            tbody.innerHTML = itensBalancoExemplo.map((item, index) => `
+                <tr class="hover:bg-slate-800/40 transition">
+                    <td class="p-3 font-medium text-white">${item.codigo}</td>
+                    <td class="p-3 text-slate-200">${item.nome}</td>
+                    <td class="p-3 text-slate-400">${item.cat}</td>
+                    <td class="p-3 text-white font-bold">${item.atual} un</td>
+                    <td class="p-3">
+                        <input type="number" id="real-${index}" value="${item.real}" class="w-20 bg-slate-950 border border-slate-800 p-1.5 rounded-lg text-white text-center font-bold">
+                    </td>
+                    <td class="p-3 text-right">
+                        <button onclick="salvarItemBalanco(${index})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-[11px] transition cursor-pointer shadow">
+                            Salvar Ajuste
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function voltarParaLista() {
+            document.getElementById('vista-detalhe').classList.add('hidden');
+            document.getElementById('vista-lista').classList.remove('hidden');
+        }
+
+        function salvarItemBalanco(index) {
+            const valReal = document.getElementById(`real-${index}`).value;
+            const item = itensBalancoExemplo[index];
+            const diferenca = valReal - item.atual;
+            
+            let tipoAjuste = diferenca > 0 ? 'Entrada Automática' : (diferenca < 0 ? 'Consumo / Baixa Automática' : 'Sem Divergência');
+            alert(`Ajuste salvo para ${item.nome}!\nEstoque Físico: ${valReal} | Sistema: ${item.atual}\nDiferença: ${diferenca > 0 ? '+' + diferenca : diferenca} (${tipoAjuste})`);
+        }
+
+        function imprimirBalanco() {
+            window.print();
+        }
+
+        function abrirNovoBalancoModal() {
+            const novoId = Math.floor(Math.random() * 1000) + 3000;
+            balancosData.unshift({ id: novoId, local: 'Vila real', setor: 'Geral', alteracao: '-', previsao: '2026-11-30', status: 'Atrasado' });
+            renderizarTabelaBalancos(balancosData);
+            alert(`Novo balanço periódico #${novoId} gerado automaticamente com sucesso!`);
+        }
+    </script>
+</body>
+</html>
