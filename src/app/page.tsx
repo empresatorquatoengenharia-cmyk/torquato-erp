@@ -40,10 +40,7 @@ export default function TorquatoFullERP() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Estados Globais
-  const [empresas, setEmpresas] = useState<any[]>([
-    { id: '1', nome: 'Torquato Engenharia Ltda', cnpj: '35.000.000/0001-00' },
-    { id: '2', nome: 'Torquato Incorporações e Empreendimentos', cnpj: '35.000.000/0002-88' }
-  ]);
+  const [empresas, setEmpresas] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [contratos, setContratos] = useState<any[]>([]);
@@ -57,7 +54,7 @@ export default function TorquatoFullERP() {
   const [showContratoModal, setShowContratoModal] = useState(false);
   const [showFinanceiroModal, setShowFinanceiroModal] = useState(false);
 
-  // Modais de Edição Administração
+  // Modais de Edição
   const [showEditEmpresaModal, setShowEditEmpresaModal] = useState(false);
   const [editingEmpresa, setEditingEmpresa] = useState<any>(null);
 
@@ -67,10 +64,11 @@ export default function TorquatoFullERP() {
   const [showEditContratoModal, setShowEditContratoModal] = useState(false);
   const [editingContrato, setEditingContrato] = useState<any>(null);
 
-  // Forms Criação
+  // Forms Criação Empresa
   const [empNome, setEmpNome] = useState('');
   const [empCnpj, setEmpCnpj] = useState('');
 
+  // Forms Criação Usuário
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userCargo, setUserCargo] = useState('Engenheiro');
@@ -83,6 +81,7 @@ export default function TorquatoFullERP() {
     administracao: 'visualizar'
   });
 
+  // Forms Criação Contrato
   const [contTitulo, setContTitulo] = useState('');
   const [contFornecedor, setContFornecedor] = useState('');
   const [contValor, setContValor] = useState('');
@@ -102,6 +101,14 @@ export default function TorquatoFullERP() {
 
   async function loadAllData() {
     setLoading(true);
+    
+    // Carregar Empresas do Supabase
+    const { data: empData } = await supabase.from('empresas_erp').select('*').order('created_at', { ascending: true });
+    if (empData && empData.length > 0) {
+      setEmpresas(empData);
+      if (!selectedCompany) setSelectedCompany(empData[0].nome);
+    }
+
     const { data: projData } = await supabase.from('projects').select('*');
     if (projData) setProjects(projData);
 
@@ -129,10 +136,19 @@ export default function TorquatoFullERP() {
   async function handleSaveEmpresa(e: React.FormEvent) {
     e.preventDefault();
     if (!empNome) return;
-    const novaEmp = { id: Date.now().toString(), nome: empNome, cnpj: empCnpj || '00.000.000/0001-00' };
-    setEmpresas([...empresas, novaEmp]);
+    const { error } = await supabase.from('empresas_erp').insert([{
+      nome: empNome,
+      cnpj: empCnpj || '00.000.000/0001-00'
+    }]);
+
+    if (error) {
+      alert('Erro ao salvar empresa: ' + error.message);
+      return;
+    }
+
     setShowEmpresaModal(false);
     setEmpNome(''); setEmpCnpj('');
+    loadAllData();
   }
 
   async function handleSaveUser(e: React.FormEvent) {
@@ -179,20 +195,28 @@ export default function TorquatoFullERP() {
     loadAllData();
   }
 
-  // Ações de Edição com Persistência Definitiva no Banco de Dados
+  // Ações de Edição com Persistência Definitiva no Supabase
   async function handleUpdateEmpresa(e: React.FormEvent) {
     e.preventDefault();
     if (!editingEmpresa) return;
-    // Se houver tabela de empresas no Supabase, atualizar aqui. Como usamos state local para multiempresa padrão, atualizamos o state e mantemos sincronizado.
-    setEmpresas(empresas.map(emp => emp.id === editingEmpresa.id ? editingEmpresa : emp));
+    const { error } = await supabase.from('empresas_erp').update({
+      nome: editingEmpresa.nome,
+      cnpj: editingEmpresa.cnpj
+    }).eq('id', editingEmpresa.id);
+
+    if (error) {
+      alert('Erro ao atualizar empresa no banco: ' + error.message);
+      return;
+    }
+
     setShowEditEmpresaModal(false);
     setEditingEmpresa(null);
+    loadAllData();
   }
 
   async function handleUpdateUser(e: React.FormEvent) {
     e.preventDefault();
     if (!editingUser) return;
-    // Persistindo alteração no Supabase na tabela usuarios_erp
     const { error } = await supabase.from('usuarios_erp').update({
       nome: editingUser.nome,
       email: editingUser.email,
@@ -203,7 +227,7 @@ export default function TorquatoFullERP() {
     }).eq('id', editingUser.id);
 
     if (error) {
-      alert('Erro ao atualizar usuário no banco de dados: ' + error.message);
+      alert('Erro ao atualizar usuário no banco: ' + error.message);
       return;
     }
 
@@ -215,7 +239,6 @@ export default function TorquatoFullERP() {
   async function handleUpdateContrato(e: React.FormEvent) {
     e.preventDefault();
     if (!editingContrato) return;
-    // Persistindo alteração no Supabase na tabela contratos_empresa
     const { error } = await supabase.from('contratos_empresa').update({
       titulo: editingContrato.titulo,
       fornecedor: editingContrato.fornecedor,
@@ -224,7 +247,7 @@ export default function TorquatoFullERP() {
     }).eq('id', editingContrato.id);
 
     if (error) {
-      alert('Erro ao atualizar contrato no banco de dados: ' + error.message);
+      alert('Erro ao atualizar contrato no banco: ' + error.message);
       return;
     }
 
@@ -501,7 +524,7 @@ export default function TorquatoFullERP() {
               </div>
             )}
 
-            {/* MÓDULO FINANCEIRO COMPLETO */}
+            {/* MÓDULO FINANCEIRO */}
             {activeModule === 'financeiro' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
@@ -594,7 +617,7 @@ export default function TorquatoFullERP() {
           </div>
         )}
 
-        {/* MODAL EDITAR EMPRESA */}
+        {/* MODAL EDITAR EMPRESA (Persistente no Banco) */}
         {showEditEmpresaModal && editingEmpresa && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
@@ -641,7 +664,7 @@ export default function TorquatoFullERP() {
           </div>
         )}
 
-        {/* MODAL EDITAR USUÁRIO & PERMISSÕES GRANULARES */}
+        {/* MODAL EDITAR USUÁRIO & PERMISSÕES */}
         {showEditUserModal && editingUser && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-800 text-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
