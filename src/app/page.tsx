@@ -139,20 +139,6 @@ export default function TorquatoFullERP() {
     setShowEmpresaModal(false); setEmpNome(''); setEmpCnpj(''); loadAllData();
   }
 
-  async function handleSaveUser(e: React.FormEvent) {
-    e.preventDefault();
-    if (!userName || !userEmail) return;
-    await supabase.from('usuarios_erp').insert([{ nome: userName, email: userEmail, cargo: userCargo, limite_aprovacao: parseFloat(userLimite), status: 'ativo' }]);
-    setShowUserModal(false); setUserName(''); setUserEmail(''); loadAllData();
-  }
-
-  async function handleSaveContrato(e: React.FormEvent) {
-    e.preventDefault();
-    if (!contTitulo || !contValor) return;
-    await supabase.from('contratos_empresa').insert([{ titulo: contTitulo, fornecedor: contFornecedor, valor: parseFloat(contValor), status: 'Ativo' }]);
-    setShowContratoModal(false); setContTitulo(''); setContFornecedor(''); setContValor(''); loadAllData();
-  }
-
   async function handleSaveFinanceiro(e: React.FormEvent) {
     e.preventDefault();
     if (!finDescricao || !finValor) return;
@@ -190,8 +176,6 @@ export default function TorquatoFullERP() {
   }
 
   async function handleDeleteEmpresa(id: string) { if (confirm('Excluir empresa?')) { await supabase.from('empresas_erp').delete().eq('id', id); loadAllData(); } }
-  async function handleDeleteUser(id: string) { if (confirm('Excluir usuário?')) { await supabase.from('usuarios_erp').delete().eq('id', id); loadAllData(); } }
-  async function handleDeleteContrato(id: string) { if (confirm('Excluir contrato?')) { await supabase.from('contratos_empresa').delete().eq('id', id); loadAllData(); } }
   async function handleDeleteFinanceiro(id: string, tipo: 'pagar' | 'receber') {
     if (confirm('Excluir lançamento?')) {
       const tableTarget = tipo === 'pagar' ? 'financeiro_lancamentos' : 'financeiro_receber';
@@ -260,12 +244,11 @@ export default function TorquatoFullERP() {
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* SIDEBAR COM CORRESPONDÊNCIA CORRETA DE MODULES */}
+          {/* SIDEBAR */}
           <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-4">
             <nav className="space-y-1.5">
               <div className="px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Módulos do Sistema</div>
 
-              {/* DASHBOARD EXECUTIVO */}
               <button
                 onClick={() => setActiveModule('dashboard')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
@@ -276,7 +259,6 @@ export default function TorquatoFullERP() {
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
 
-              {/* MÓDULO FINANCEIRO */}
               <button
                 onClick={() => setActiveModule('financeiro')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
@@ -287,7 +269,6 @@ export default function TorquatoFullERP() {
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
 
-              {/* ADMINISTRAÇÃO & GOVERNANÇA */}
               <button
                 onClick={() => setActiveModule('administracao')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
@@ -298,7 +279,6 @@ export default function TorquatoFullERP() {
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
 
-              {/* ENGENHARIA & RDO */}
               <button
                 onClick={() => setActiveModule('engenharia')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
@@ -309,7 +289,6 @@ export default function TorquatoFullERP() {
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
 
-              {/* COMPRAS & SUPRIMENTOS */}
               <button
                 onClick={() => setActiveModule('compras')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
