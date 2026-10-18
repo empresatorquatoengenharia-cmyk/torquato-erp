@@ -1,13 +1,3 @@
-<ElicitationsGroup>
-
----
-
-Perfeito! Vamos enriquecer o **Contas a Pagar** para incluir a modalidade de **recibo/comprovante**, filtros de centros de custo e detalhes visuais idênticos à interface do Koper ERP (com campos de anexo, identificação de etiquetas e botões de ação).
-
-### Código Atualizado (`index.html`)
-
-Substitua todo o conteúdo do seu ficheiro `index.html` por esta versão aprimorada:
-
 ```html
 <!DOCTYPE html>
 <html lang="pt-PT">
@@ -31,16 +21,17 @@ Substitua todo o conteúdo do seu ficheiro `index.html` por esta versão aprimor
         .card-header { background: #1f2937; color: #fff; padding: 15px 20px; border-radius: 8px 8px 0 0; font-weight: bold; }
         .card-body { background: #fff; border: 1px solid #e5e7eb; border-radius: 0 0 8px 8px; padding: 20px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
-        .filters { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
-        .filters select, .filters input { padding: 8px 12px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px; }
+        .form-box { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 6px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px; box-sizing: border-box; }
+        .btn-primary { background: #ea580c; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-primary:hover { background: #c2410c; }
         .table-container { background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
         th { background: #f3f4f6; padding: 12px; border-bottom: 1px solid #e5e7eb; color: #374151; }
         td { padding: 12px; border-bottom: 1px solid #f3f4f6; }
-        .alert-row { background: #fef3c7; }
         .tag { background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #374151; display: inline-block; margin-right: 4px; }
-        .btn-action { background: #ea580c; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .btn-action:hover { background: #c2410c; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
     </style>
@@ -82,21 +73,17 @@ Substitua todo o conteúdo do seu ficheiro `index.html` por esta versão aprimor
             </div>
         </div>
 
-        <!-- CONTAS A PAGAR (Com Recibos e Etiquetas estilo Koper) -->
+        <!-- CONTAS A PAGAR -->
         <div id="pagar" class="tab-content">
-            <div class="filters">
-                <div>
-                    <label style="font-size: 12px; color: #6b7280; display: block; margin-bottom: 4px;">CENTRO DE CUSTO:</label>
-                    <select>
-                        <option>Todos</option>
-                        <option>Casa Diário</option>
-                        <option>Obras Gerais</option>
-                    </select>
+            <div class="form-box">
+                <h3 style="margin-top: 0; color: #1f2937;">Registar Conta a Pagar & Anexar Comprovante</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Beneficiário / Fornecedor</label><input type="text" id="pag-beneficiario" placeholder="Ex: Casan"></div>
+                    <div class="form-group"><label>Valor (R$)</label><input type="number" id="pag-valor" placeholder="0.00"></div>
+                    <div class="form-group"><label>Vencimento</label><input type="date" id="pag-vencimento"></div>
+                    <div class="form-group"><label>Comprovante de Pagamento (PDF/Img)</label><input type="file" id="pag-comprovante"></div>
                 </div>
-                <div style="flex: 1;">
-                    <label style="font-size: 12px; color: #6b7280; display: block; margin-bottom: 4px;">PESQUISAR:</label>
-                    <input type="text" placeholder="Filtrar por beneficiário, recibo ou etiqueta..." style="width: 100%;">
-                </div>
+                <button class="btn-primary" onclick="adicionarContaPagar()">Registar e Guardar</button>
             </div>
 
             <div class="table-container">
@@ -104,38 +91,19 @@ Substitua todo o conteúdo do seu ficheiro `index.html` por esta versão aprimor
                     <thead>
                         <tr>
                             <th>Código</th>
-                            <th>NFe / Recibo</th>
                             <th>Beneficiário</th>
                             <th>Valor</th>
                             <th>Vencimento</th>
-                            <th>Etiquetas & Anexo</th>
-                            <th>Ação</th>
+                            <th>Comprovante de Pagamento</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr class="alert-row">
+                    <tbody id="tabela-pagar-corpo">
+                        <tr>
                             <td style="font-weight: bold;">17829</td>
-                            <td>Recibo #56115</td>
                             <td>Casas D' Água - Biguaçu</td>
                             <td style="font-weight: bold;">R$ 18,00</td>
                             <td>01/05/2026</td>
-                            <td>
-                                <span class="tag">Material de consumo</span>
-                                <span class="tag" style="background: #fed7aa; color: #9a3412;">📎 Comprovante.pdf</span>
-                            </td>
-                            <td><button class="btn-action" onclick="alert('Visualizando detalhes do recibo #17829')">Ver Recibo</button></td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: bold;">17836</td>
-                            <td>Recibo Boleto</td>
-                            <td>Casan</td>
-                            <td style="font-weight: bold;">R$ 152,30</td>
-                            <td>01/05/2026</td>
-                            <td>
-                                <span class="tag">Serviços</span>
-                                <span class="tag" style="background: #e2e8f0;">📎 Boleto.pdf</span>
-                            </td>
-                            <td><button class="btn-action" onclick="alert('Visualizando detalhes do recibo #17836')">Ver Recibo</button></td>
+                            <td><span class="tag" style="background: #fed7aa; color: #9a3412;">📎 Comprovante_17829.pdf</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -168,8 +136,20 @@ Substitua todo o conteúdo do seu ficheiro `index.html` por esta versão aprimor
             </div>
         </div>
 
-        <!-- NOTAS FISCAIS -->
+        <!-- NOTAS ELETRÔNICAS E MANUAIS -->
         <div id="notas" class="tab-content">
+            <div class="form-box">
+                <h3 style="margin-top: 0; color: #1f2937;">Cadastrar Nota Fiscal (Eletrônica / Manual)</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Número da Nota</label><input type="text" id="nota-numero" placeholder="Ex: 56116"></div>
+                    <div class="form-group"><label>Fornecedor</label><input type="text" id="nota-fornecedor" placeholder="Nome do fornecedor"></div>
+                    <div class="form-group"><label>Valor (R$)</label><input type="number" id="nota-valor" placeholder="0.00"></div>
+                    <div class="form-group"><label>Rateio da Obra</label><input type="text" id="nota-obra" placeholder="Ex: Casa Diário"></div>
+                    <div class="form-group" style="grid-column: span 2;"><label>Carregar Ficheiro XML / PDF da Nota</label><input type="file" id="nota-arquivo" accept=".xml,.pdf"></div>
+                </div>
+                <button class="btn-primary" onclick="adicionarNotaFiscal()">Cadastrar Nota</button>
+            </div>
+
             <div class="table-container">
                 <table>
                     <thead>
@@ -178,14 +158,16 @@ Substitua todo o conteúdo do seu ficheiro `index.html` por esta versão aprimor
                             <th>Fornecedor</th>
                             <th>Valor</th>
                             <th>Rateio Obra</th>
+                            <th>Ficheiro XML / PDF</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tabela-notas-corpo">
                         <tr>
                             <td style="font-weight: bold;">56115</td>
                             <td>Casas D' Água - Biguaçu</td>
                             <td>R$ 18,00</td>
                             <td>Casa Diário</td>
+                            <td><span class="tag" style="background: #e2e8f0;">📄 Nota_56115.xml</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -233,6 +215,69 @@ Substitua todo o conteúdo do seu ficheiro `index.html` por esta versão aprimor
                 'tributos': 'Gestão de Tributos'
             };
             document.getElementById('titulo-pagina').innerText = titulos[idAba];
+        }
+
+        function adicionarNotaFiscal() {
+            const numero = document.getElementById('nota-numero').value;
+            const fornecedor = document.getElementById('nota-fornecedor').value;
+            const valor = document.getElementById('nota-valor').value;
+            const obra = document.getElementById('nota-obra').value;
+            const arquivoInput = document.getElementById('nota-arquivo');
+            const nomeArquivo = arquivoInput.files.length > 0 ? arquivoInput.files[0].name : 'Nenhum ficheiro';
+
+            if (!numero || !fornecedor || !valor) {
+                alert('Por favor, preencha o número da nota, fornecedor e valor.');
+                return;
+            }
+
+            const tbody = document.getElementById('tabela-notas-corpo');
+            const novaLinha = document.createElement('tr');
+            novaLinha.innerHTML = `
+                <td style="font-weight: bold;">${numero}</td>
+                <td>${fornecedor}</td>
+                <td>R$ ${parseFloat(valor).toFixed(2)}</td>
+                <td>${obra || '-'}</td>
+                <td><span class="tag" style="background: #e2e8f0;">📄 ${nomeArquivo}</span></td>
+            `;
+            tbody.appendChild(novaLinha);
+
+            document.getElementById('nota-numero').value = '';
+            document.getElementById('nota-fornecedor').value = '';
+            document.getElementById('nota-valor').value = '';
+            document.getElementById('nota-obra').value = '';
+            arquivoInput.value = '';
+            alert('Nota fiscal cadastrada e ficheiro associado com sucesso!');
+        }
+
+        function adicionarContaPagar() {
+            const beneficiario = document.getElementById('pag-beneficiario').value;
+            const valor = document.getElementById('pag-valor').value;
+            const vencimento = document.getElementById('pag-vencimento').value;
+            const compInput = document.getElementById('pag-comprovante');
+            const nomeComp = compInput.files.length > 0 ? compInput.files[0].name : 'Comprovante_Pago.pdf';
+
+            if (!beneficiario || !valor) {
+                alert('Preencha o beneficiário e o valor.');
+                return;
+            }
+
+            const codigoAleatorio = Math.floor(10000 + Math.random() * 90000);
+            const tbody = document.getElementById('tabela-pagar-corpo');
+            const novaLinha = document.createElement('tr');
+            novaLinha.innerHTML = `
+                <td style="font-weight: bold;">${codigoAleatorio}</td>
+                <td>${beneficiario}</td>
+                <td style="font-weight: bold;">R$ ${parseFloat(valor).toFixed(2)}</td>
+                <td>${vencimento || '01/05/2026'}</td>
+                <td><span class="tag" style="background: #fed7aa; color: #9a3412;">📎 ${nomeComp}</span></td>
+            `;
+            tbody.appendChild(novaLinha);
+
+            document.getElementById('pag-beneficiario').value = '';
+            document.getElementById('pag-valor').value = '';
+            document.getElementById('pag-vencimento').value = '';
+            compInput.value = '';
+            alert('Conta a pagar registada e comprovante anexado com sucesso!');
         }
     </script>
 </body>
