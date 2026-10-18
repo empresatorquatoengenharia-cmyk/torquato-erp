@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Catálogo de Produtos e Insumos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
+
+    <!-- Header Principal -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
+                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Catálogo de Produtos</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nome-usuario" class="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">A carregar...</span>
+            <button onclick="sair()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">Sair</button>
+        </div>
+    </header>
+
+    <!-- Layout Principal -->
+    <div class="flex flex-1">
+        <!-- Sidebar do Módulo Suprimentos -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6">
+            <div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Suprimentos</p>
+                <nav class="space-y-1 text-xs">
+                    <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <span>📦</span>
+                        <span>Balanços</span>
+                    </a>
+                    <a href="suprimentos_produtos.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                        <span>🏷️</span>
+                        <span>Produtos & Insumos</span>
+                    </a>
+                    <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <span>⚙️</span>
+                        <span>Cadastros Gerais</span>
+                    </a>
+                    <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <span>📊</span>
+                        <span>Dashboard Geral</span>
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Conteúdo Central -->
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
+            
+            <!-- Cabeçalho de Ações -->
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Catálogo Geral de Produtos e Insumos</h2>
+                    <p class="text-xs text-slate-400">Central de cadastro de materiais, equipamentos e insumos de obra.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="alternarPopoverFiltros()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer">
+                        <span>🔍</span>
+                        <span>Adicionar filtro</span>
+                    </button>
+                    <button onclick="abrirModalProduto()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer shadow-lg">
+                        + Novo Produto
+                    </button>
+                    <button onclick="abrirModalAjustar()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
+                        Ajustar Produtos
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtro Popover / Flutuante -->
+            <div id="popover-filtros" class="hidden bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-2xl space-y-4 max-w-sm border-amber-500/20">
+                <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Filtros de Pesquisa</h4>
+                <div class="space-y-3 text-xs">
+                    <div>
+                        <label class="block text-slate-400 mb-1">Buscar por Nome / Código</label>
+                        <input type="text" id="filtro-busca" oninput="carregarProdutos()" placeholder="Digite para buscar..." class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Tipo de Item</label>
+                        <select id="filtro-tipo" onchange="carregarProdutos()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                            <option value="todos">Todos os Tipos</option>
+                            <option value="Material">Material</option>
+                            <option value="Equipamento">Equipamento</option>
+                            <option value="EPI">EPI</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Status</label>
+                        <select id="filtro-status" onchange="carregarProdutos()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                            <option value="todos">Todos os Status</option>
+                            <option value="ativo" selected>Ativos</option>
+                            <option value="inativo">Inativos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Produtos -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-950/60 border-b border-slate-800 text-slate-400">
+                                <th class="p-4">Código</th>
+                                <th class="p-4">Produto / Material</th>
+                                <th class="p-4">Apelido</th>
+                                <th class="p-4">Tipo</th>
+                                <th class="p-4">Categoria</th>
+                                <th class="p-4">Subcategoria</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4 text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-produtos-corpo" class="divide-y divide-slate-800/60">
+                            <tr><td colspan="8" class="p-4 text-center text-slate-500">A carregar produtos do Supabase...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL DE CADASTRO/EDIÇÃO DE PRODUTO -->
+    <div id="modal-produto" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white" id="modal-produto-titulo">Cadastrar Novo Produto / Insumo</h3>
+                <button onclick="fecharModalProduto()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+            </div>
+
+            <form onsubmit="salvarProduto(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <input type="hidden" id="prod-id">
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Código do Item</label>
+                    <input type="text" id="prod-codigo" required placeholder="Ex: 578" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Tipo de Produto</label>
+                    <select id="prod-tipo" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                        <option value="Material">Material</option>
+                        <option value="Equipamento">Equipamento</option>
+                        <option value="EPI">EPI / Segurança</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-slate-400 font-bold mb-1">Nome do Produto</label>
+                    <input type="text" id="prod-nome" required placeholder="Ex: Adaptador roscável para caixa d'água" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Apelido / Nome Comercial</label>
+                    <input type="text" id="prod-apelido" placeholder="Ex: Adaptador 3/4" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Unidade de Medida</label>
+                    <select id="prod-unidade" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Categoria</label>
+                    <select id="prod-categoria" onchange="carregarSubcategoriasSelect()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Subcategoria</label>
+                    <select id="prod-subcategoria" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-slate-400 font-bold mb-1">Especificações Técnicas / Embalagem</label>
+                    <textarea id="prod-especificacoes" rows="2" placeholder="Descreva especificações técnicas e embalagens personalizadas..." class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></textarea>
+                </div>
+
+                <div class="md:col-span-2 flex justify-end space-x-3 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="fecharModalProduto()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Salvar Produto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE AJUSTAR PRODUTOS -->
+    <div id="modal-ajustar" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <h3 class="text-base font-bold text-amber-400">Ajustar Produtos</h3>
+            <div class="space-y-3 text-xs">
+                <button onclick="alert('Opção de associar produtos equivalentes ativada!')" class="w-full text-left p-3 bg-slate-950 border border-slate-800 hover:border-amber-500/50 rounded-xl transition font-bold text-white">
+                    🔗 Associar produtos equivalentes
+                </button>
+                <button onclick="alert('Selecione os produtos para mover de subcategoria!')" class="w-full text-left p-3 bg-slate-950 border border-slate-800 hover:border-amber-500/50 rounded-xl transition font-bold text-white">
+                    📂 Mover produtos para outra subcategoria
+                </button>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button onclick="fecharModalAjustar()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let listaUnidades = [];
+        let listaCategorias = [];
+        let listaSubcategorias = [];
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            verificarSessao();
+            await carregarAuxiliares();
+            await carregarProdutos();
+        });
+
+        function verificarSessao() {
+            const usuarioJSON = localStorage.getItem('torquato_user');
+            if (!usuarioJSON) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const usuario = JSON.parse(usuarioJSON);
+            document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
+        }
+
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
+
+        async function carregarAuxiliares() {
+            const { data: u } = await supabaseClient.from('unidades_medida').select('*');
+            const { data: c } = await supabaseClient.from('categorias_produtos').select('*');
+            const { data: s } = await supabaseClient.from('subcategorias_produtos').select('*');
+
+            listaUnidades = u || [];
+            listaCategorias = c || [];
+            listaSubcategorias = s || [];
+
+            // Preenche selects do modal
+            document.getElementById('prod-unidade').innerHTML = listaUnidades.map(un => `<option value="${un.id}">${un.sigla} - ${un.descricao}</option>`).join('');
+            document.getElementById('prod-categoria').innerHTML = listaCategorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
+            carregarSubcategoriasSelect();
+        }
+
+        function carregarSubcategoriasSelect() {
+            const catId = document.getElementById('prod-categoria').value;
+            const subsFiltradas = listaSubcategorias.filter(sub => String(sub.categoria_id) === String(catId));
+            document.getElementById('prod-subcategoria').innerHTML = subsFiltradas.length > 0
+                ? subsFiltradas.map(s => `<option value="${s.id}">${s.nome}</option>`).join('')
+                : '<option value="">Sem subcategoria</option>';
+        }
+
+        async function carregarProdutos() {
+            const corpo = document.getElementById('tabela-produtos-corpo');
+            const busca = document.getElementById('filtro-busca').value.toLowerCase();
+            const tipo = document.getElementById('filtro-tipo').value;
+            const status = document.getElementById('filtro-status').value;
+
+            let query = supabaseClient.from('produtos_erp').select('*, categorias_produtos(nome), subcategorias_produtos(nome)');
+
+            if (status === 'ativo') query = query.eq('ativo', true);
+            else if (status === 'inativo') query = query.eq('ativo', false);
+
+            if (tipo !== 'todos') query = query.eq('tipo', tipo);
+
+            const { data, error } = await query.order('id', { ascending: true });
+
+            if (error) {
+                corpo.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-red-400">Erro: ${error.message}</td></tr>`;
+                return;
+            }
+
+            let filtrados = data || [];
+            if (busca) {
+                filtrados = filtrados.filter(p => p.nome.toLowerCase().includes(busca) || (p.codigo && p.codigo.toLowerCase().includes(busca)));
+            }
+
+            if (filtrados.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-500">Nenhum produto cadastrado.</td></tr>`;
+                return;
+            }
+
+            corpo.innerHTML = filtrados.map(p => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                    <td class="p-4 font-bold text-amber-400">${p.codigo || p.id}</td>
+                    <td class="p-4 font-medium text-white">${p.nome}</td>
+                    <td class="p-4 text-slate-400">${p.apelido || '-'}</td>
+                    <td class="p-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${p.tipo === 'Equipamento' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}">${p.tipo}</span></td>
+                    <td class="p-4 text-slate-300">${p.categorias_produtos?.nome || '-'}</td>
+                    <td class="p-4 text-slate-400">${p.subcategorias_produtos?.nome || '-'}</td>
+                    <td class="p-4">
+                        <button onclick="alternarStatusProduto(${p.id}, ${p.ativo})" class="px-2 py-0.5 rounded text-[10px] font-bold ${p.ativo ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}">
+                            ${p.ativo ? '● Ativo' : '○ Inativo'}
+                        </button>
+                    </td>
+                    <td class="p-4 text-right">
+                        <button onclick="excluirProduto(${p.id})" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px]">Excluir</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function alternarPopoverFiltros() {
+            document.getElementById('popover-filtros').classList.toggle('hidden');
+        }
+
+        function abrirModalProduto() {
+            document.getElementById('modal-produto').classList.remove('hidden');
+        }
+
+        function fecharModalProduto() {
+            document.getElementById('modal-produto').classList.add('hidden');
+        }
+
+        function abrirModalAjustar() {
+            document.getElementById('modal-ajustar').classList.remove('hidden');
+        }
+
+        function fecharModalAjustar() {
+            document.getElementById('modal-ajustar').classList.add('hidden');
+        }
+
+        async function salvarProduto(e) {
+            e.preventDefault();
+            const payload = {
+                codigo: document.getElementById('prod-codigo').value.trim(),
+                nome: document.getElementById('prod-nome').value.trim(),
+                apelido: document.getElementById('prod-apelido').value.trim(),
+                tipo: document.getElementById('prod-tipo').value,
+                unidade_medida_id: document.getElementById('prod-unidade').value || null,
+                categoria_id: document.getElementById('prod-categoria').value || null,
+                subcategoria_id: document.getElementById('prod-subcategoria').value || null,
+                especificacoes: document.getElementById('prod-especificacoes').value.trim(),
+                ativo: true
+            };
+
+            const { error } = await supabaseClient.from('produtos_erp').insert([payload]);
+            if (error) {
+                alert('Erro ao guardar produto: ' + error.message);
+            } else {
+                alert('Produto cadastrado com sucesso!');
+                fecharModalProduto();
+                carregarProdutos();
+            }
+        }
+
+        async function alternarStatusProduto(id, statusAtual) {
+            await supabaseClient.from('produtos_erp').update({ ativo: !statusAtual }).eq('id', id);
+            carregarProdutos();
+        }
+
+        async function excluirProduto(id) {
+            if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+            await supabaseClient.from('produtos_erp').delete().eq('id', id);
+            carregarProdutos();
+        }
+    </script>
+</body>
+</html>
