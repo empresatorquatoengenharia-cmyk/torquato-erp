@@ -4,18 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Torquato ERP - Módulo Financeiro</title>
-    <!-- Importação oficial do Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Cliente oficial Supabase JS -->
+    <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
     <style>
+        * { box-sizing: border-box; }
         body { font-family: Arial, sans-serif; margin: 0; background-color: #f8f9fa; display: flex; height: 100vh; }
-        aside { width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px; box-sizing: border-box; }
+        aside { width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px; }
         .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
         .logo-box { background: #f97316; color: #fff; padding: 8px 12px; border-radius: 6px; font-weight: bold; }
         .menu-title { font-size: 12px; color: #9ca3af; font-weight: bold; margin-bottom: 10px; }
         ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
         li { padding: 10px 12px; border-radius: 6px; cursor: pointer; color: #4b5563; }
         li.active { background: #fff7ed; color: #ea580c; font-weight: bold; border-left: 4px solid #ea580c; }
-        main { flex: 1; padding: 30px; overflow-y: auto; box-sizing: border-box; }
+        main { flex: 1; padding: 30px; overflow-y: auto; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         h1 { font-size: 24px; color: #1f2937; margin: 0; }
         .badge { background: #16a34a; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: 600; }
@@ -25,7 +26,7 @@
         .form-box { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
         .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 6px; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px; box-sizing: border-box; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px; }
         .btn-primary { background: #ea580c; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .btn-primary:hover { background: #c2410c; }
         .table-container { background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; }
@@ -57,7 +58,7 @@
     <main>
         <header>
             <h1 id="titulo-pagina">Fluxo de caixa</h1>
-            <div class="badge">● Supabase Sincronizado</div>
+            <div class="badge">● Supabase Conectado</div>
         </header>
 
         <!-- FLUXO DE CAIXA -->
@@ -189,8 +190,7 @@
     </main>
 
     <script>
-        // CONFIGURAÇÃO DO CLIENTE SUPABASE
-        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
+        const SUPABASE_URL = '[https://otsrxvqypfpflbpaobhl.supabase.co](https://otsrxvqypfpflbpaobhl.supabase.co)';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -215,7 +215,6 @@
             if (idAba === 'pagar') carregarContasPagarSupabase();
         }
 
-        // --- SALVAR E CARREGAR NOTAS FISCAIS ---
         async function salvarNotaSupabase() {
             const numero = document.getElementById('nota-numero').value;
             const fornecedor = document.getElementById('nota-fornecedor').value;
@@ -235,7 +234,7 @@
 
             if (error) {
                 console.error('Erro Supabase:', error);
-                alert('Erro ao guardar nota. Certifique-se de que executou o SQL de criação das tabelas no Supabase.');
+                alert('Erro ao guardar nota. Certifique-se de que executou o SQL no Supabase.');
             } else {
                 alert('Nota fiscal sincronizada no Supabase com sucesso!');
                 document.getElementById('nota-numero').value = '';
@@ -275,7 +274,6 @@
             }
         }
 
-        // --- SALVAR E CARREGAR CONTAS A PAGAR ---
         async function salvarContaPagarSupabase() {
             const beneficiario = document.getElementById('pag-beneficiario').value;
             const valor = parseFloat(document.getElementById('pag-valor').value);
@@ -334,7 +332,6 @@
             }
         }
 
-        // Executar na abertura da página
         window.onload = () => {
             carregarNotasSupabase();
             carregarContasPagarSupabase();
