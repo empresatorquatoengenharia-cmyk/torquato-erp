@@ -13,9 +13,6 @@ class FinanceiroModule:
     # 1. FLUXO DE CAIXA E SALDOS
     # ==========================================
     def calcular_fluxo_caixa(self, saldo_anterior, entradas_efetivadas, saidas_efetivadas, entradas_previstas, saidas_previstas):
-        """
-        Calcula o panorama geral do fluxo de caixa espelhando a tela de saldos.
-        """
         saldo_atual = saldo_anterior + entradas_efetivadas - saidas_efetivadas
         saldo_final_previsto = saldo_atual + entradas_previstas - saidas_previstas
         
@@ -32,36 +29,54 @@ class FinanceiroModule:
         return panorama
 
     def adicionar_estatistica_grafico(self, tipo_grafico, periodo, dados):
-        """
-        Simula a adição e visualização de gráficos estatísticos (ex: Contas pagas vs Contas recebidas, Análise de Engenharia).
-        """
         print(f"[Financeiro] Gráfico '{tipo_grafico}' configurado para o período: {periodo}.")
 
     # ==========================================
-    # 2. CONTAS A PAGAR
+    # 2. CONTAS A PAGAR (Com etiquetas, anexos e relatórios)
     # ==========================================
-    def registrar_conta_pagar(self, id_conta, descricao, valor, vencimento, obra, etiquetas, recorrente=False):
+    def registrar_conta_pagar(self, codigo, nfe_recibo, beneficiario, valor, vencimento, centro_custo, etiquetas=None, recorrente=False):
         conta = {
-            "id": id_conta,
-            "descricao": descricao,
+            "codigo": codigo,
+            "nfe_recibo": nfe_recibo,
+            "beneficiario": beneficiario,
             "valor": valor,
             "vencimento": vencimento,
-            "obra": obra,
-            "etiquetas": etiquetas,
+            "centro_custo": centro_custo,
+            "etiquetas": etiquetas or [],
             "recorrente": recorrente,
             "status": "Pendente",
-            "anexo": None
+            "anexo_comprovante": None,
+            "anexo_boleto": None
         }
         self.contas_pagar.append(conta)
-        print(f"[Financeiro] Conta a Pagar registrada: {descricao} - R$ {valor} (Venc: {vencimento})")
+        print(f"[Financeiro] Conta a Pagar #{codigo} registrada: {beneficiario} - R$ {valor} (Venc: {vencimento})")
 
-    def anexar_comprovante_pagar(self, id_conta, caminho_arquivo):
+    def adicionar_etiqueta_conta_pagar(self, codigo, etiqueta):
         for conta in self.contas_pagar:
-            if conta["id"] == id_conta:
-                conta["anexo"] = caminho_arquivo
-                print(f"[Financeiro] Anexo (boleto/comprovante) adicionado à conta {id_conta}.")
+            if conta["codigo"] == codigo:
+                if etiqueta not in conta["etiquetas"]:
+                    conta["etiquetas"].append(etiqueta)
+                    print(f"[Financeiro] Etiqueta '{etiqueta}' adicionada à conta #{codigo}.")
                 return True
         return False
+
+    def anexar_documento_pagar(self, codigo, tipo, caminho_arquivo):
+        """Tipo pode ser 'comprovante' ou 'boleto'"""
+        for conta in self.contas_pagar:
+            if conta["codigo"] == codigo:
+                if tipo == "comprovante":
+                    conta["anexo_comprovante"] = caminho_arquivo
+                elif tipo == "boleto":
+                    conta["anexo_boleto"] = caminho_arquivo
+                print(f"[Financeiro] Anexo de {tipo} adicionado com sucesso à conta #{codigo}.")
+                return True
+        return False
+
+    def exportar_relatorio_contas_pagar(self, filtro_centro_custo="Todos", filtro_periodo="Todos"):
+        print(f"[Financeiro] Gerando relatório de Contas a Pagar | Centro de Custo: {filtro_centro_custo} | Período: {filtro_periodo}")
+        # Simula a exportação estruturada em PDF/Excel vista nos relatórios
+        relatorio = [c for c in self.contas_pagar]
+        return relatorio
 
     # ==========================================
     # 3. CONTAS A RECEBER
