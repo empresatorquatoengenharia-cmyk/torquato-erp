@@ -125,7 +125,7 @@ export default function TorquatoFullERP() {
   async function handleSaveUser(e: React.FormEvent) {
     e.preventDefault();
     if (!userName || !userEmail) return;
-    await supabase.from('usuarios_erp'].insert([{
+    await supabase.from('usuarios_erp').insert([{
       nome: userName, 
       email: userEmail, 
       cargo: userCargo, 
@@ -141,7 +141,7 @@ export default function TorquatoFullERP() {
   async function handleSaveContrato(e: React.FormEvent) {
     e.preventDefault();
     if (!contTitulo || !contValor) return;
-    await supabase.from('contratos_empresa'].insert([{
+    await supabase.from('contratos_empresa').insert([{
       titulo: contTitulo, fornecedor: contFornecedor, valor: parseFloat(contValor), status: contStatus
     }]);
     setShowContratoModal(false);
