@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torquato ERP - Módulo Financeiro</title>
-    <!-- Cliente oficial Supabase JS -->
+    <title>Torquato ERP</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; }
         body { font-family: Arial, sans-serif; margin: 0; background-color: #f8f9fa; display: flex; height: 100vh; }
-        aside { width: 260px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px; flex-shrink: 0; }
+        aside { width: 250px; background: #fff; border-right: 1px solid #e5e7eb; padding: 20px; flex-shrink: 0; }
         .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
         .logo-box { background: #f97316; color: #fff; padding: 8px 12px; border-radius: 6px; font-weight: bold; }
         .menu-title { font-size: 12px; color: #9ca3af; font-weight: bold; margin-bottom: 10px; }
@@ -23,17 +22,17 @@
         .card-header { background: #1f2937; color: #fff; padding: 15px 20px; border-radius: 8px 8px 0 0; font-weight: bold; }
         .card-body { background: #fff; border: 1px solid #e5e7eb; border-radius: 0 0 8px 8px; padding: 20px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
-        .form-box { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .form-box { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 25px; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
         .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 6px; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px; }
+        .form-group input { width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #d1d5db; font-size: 14px; }
         .btn-primary { background: #ea580c; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .btn-primary:hover { background: #c2410c; }
         .table-container { background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
         th { background: #f3f4f6; padding: 12px; border-bottom: 1px solid #e5e7eb; color: #374151; }
         td { padding: 12px; border-bottom: 1px solid #f3f4f6; }
-        .tag { background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #374151; display: inline-block; margin-right: 4px; }
+        .tag { background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #374151; display: inline-block; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
     </style>
@@ -61,7 +60,7 @@
             <div class="badge">● Supabase Conectado</div>
         </header>
 
-        <!-- MÓDULO 1: FLUXO DE CAIXA -->
+        <!-- FLUXO DE CAIXA -->
         <div id="fluxo" class="tab-content active">
             <div class="card-header">Saldo Mês Atual - Todos os Bancos / Caixas</div>
             <div class="card-body">
@@ -75,12 +74,12 @@
             </div>
         </div>
 
-        <!-- MÓDULO 2: CONTAS A PAGAR -->
+        <!-- CONTAS A PAGAR -->
         <div id="pagar" class="tab-content">
             <div class="form-box">
-                <h3 style="margin-top: 0; color: #1f2937;">Cadastrar Conta a Pagar & Anexar Comprovante</h3>
+                <h3 style="margin-top: 0;">Cadastrar Conta a Pagar</h3>
                 <div class="form-grid">
-                    <div class="form-group"><label>Beneficiário / Fornecedor</label><input type="text" id="pag-beneficiario" placeholder="Ex: Casan"></div>
+                    <div class="form-group"><label>Beneficiário</label><input type="text" id="pag-beneficiario" placeholder="Ex: Casan"></div>
                     <div class="form-group"><label>Valor (R$)</label><input type="number" id="pag-valor" placeholder="0.00"></div>
                     <div class="form-group"><label>Vencimento</label><input type="date" id="pag-vencimento"></div>
                     <div class="form-group"><label>Comprovante (PDF/Imagem)</label><input type="file" id="pag-comprovante"></div>
@@ -106,7 +105,7 @@
             </div>
         </div>
 
-        <!-- MÓDULO 3: CONTAS A RECEBER -->
+        <!-- CONTAS A RECEBER -->
         <div id="receber" class="tab-content">
             <div class="table-container">
                 <table>
@@ -119,7 +118,7 @@
                             <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody id="tabela-receber-corpo">
+                    <tbody>
                         <tr>
                             <td style="font-weight: bold;">Construtora Horizonte</td>
                             <td>Residencial Viena</td>
@@ -132,10 +131,10 @@
             </div>
         </div>
 
-        <!-- MÓDULO 4: NOTAS FISCAIS -->
+        <!-- NOTAS ELETRÔNICAS E MANUAIS -->
         <div id="notas" class="tab-content">
             <div class="form-box">
-                <h3 style="margin-top: 0; color: #1f2937;">Cadastrar Nota Fiscal (Eletrônica / Manual)</h3>
+                <h3 style="margin-top: 0;">Cadastrar Nota Fiscal (Eletrônica / Manual)</h3>
                 <div class="form-grid">
                     <div class="form-group"><label>Número da Nota</label><input type="text" id="nota-numero" placeholder="Ex: 56116"></div>
                     <div class="form-group"><label>Fornecedor</label><input type="text" id="nota-fornecedor" placeholder="Ex: Casas D' Água"></div>
@@ -164,7 +163,7 @@
             </div>
         </div>
 
-        <!-- MÓDULO 5: TRIBUTOS -->
+        <!-- TRIBUTOS -->
         <div id="tributos" class="tab-content">
             <div class="table-container">
                 <table>
@@ -190,12 +189,10 @@
     </main>
 
     <script>
-        // CONFIGURAÇÃO CONSOLIDADA DO SUPABASE
         const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // GERENCIADOR DE ABAS E NAVEGAÇÃO
         function mudarAba(idAba, elemento) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('aside li').forEach(el => el.classList.remove('active'));
@@ -216,7 +213,6 @@
             if (idAba === 'pagar') carregarContasPagar();
         }
 
-        // --- MÓDULO: NOTAS FISCAIS ---
         async function salvarNota() {
             const numero = document.getElementById('nota-numero').value;
             const fornecedor = document.getElementById('nota-fornecedor').value;
@@ -226,17 +222,17 @@
             const arquivo = arquivoInput.files.length > 0 ? arquivoInput.files[0].name : 'Nota_Manual.pdf';
 
             if (!numero || !fornecedor || isNaN(valor)) {
-                alert('Preencha os campos obrigatórios da nota.');
+                alert('Preencha o número, fornecedor e valor.');
                 return;
             }
 
             const { error } = await supabaseClient.from('notas_fiscais').insert([{ numero, fornecedor, valor, obra, arquivo }]);
 
             if (error) {
-                alert('Erro ao salvar nota no Supabase.');
+                alert('Erro ao salvar no Supabase. Verifique se criou as tabelas no SQL Editor.');
                 console.error(error);
             } else {
-                alert('Nota salva com sucesso!');
+                alert('Nota salva e sincronizada com sucesso!');
                 document.getElementById('nota-numero').value = '';
                 document.getElementById('nota-fornecedor').value = '';
                 document.getElementById('nota-valor').value = '';
@@ -251,7 +247,7 @@
             const { data, error } = await supabaseClient.from('notas_fiscais').select('*');
             
             if (error) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Erro ao carregar notas do Supabase.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #dc2626;">Erro ao buscar notas do Supabase.</td></tr>`;
                 return;
             }
 
@@ -269,11 +265,10 @@
                     `;
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #6b7280;">Nenhuma nota cadastrada.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #6b7280;">Nenhuma nota cadastrada no banco.</td></tr>`;
             }
         }
 
-        // --- MÓDULO: CONTAS A PAGAR ---
         async function salvarContaPagar() {
             const beneficiario = document.getElementById('pag-beneficiario').value;
             const valor = parseFloat(document.getElementById('pag-valor').value);
@@ -290,7 +285,7 @@
             const { error } = await supabaseClient.from('contas_pagar').insert([{ codigo, beneficiario, valor, vencimento, comprovante }]);
 
             if (error) {
-                alert('Erro ao salvar conta a pagar.');
+                alert('Erro ao salvar no Supabase.');
                 console.error(error);
             } else {
                 alert('Conta salva com sucesso!');
@@ -325,11 +320,10 @@
                     `;
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #6b7280;">Nenhuma conta cadastrada.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #6b7280;">Nenhuma conta cadastrada no banco.</td></tr>`;
             }
         }
 
-        // CARREGAMENTO INICIAL DA APLICAÇÃO
         window.onload = () => {
             carregarNotas();
             carregarContasPagar();
