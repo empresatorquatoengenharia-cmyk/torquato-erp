@@ -482,7 +482,6 @@ export default function TorquatoFullERP() {
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => setShowBancoModal(true)} className="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-amber-400 font-bold rounded-xl text-xs transition border border-slate-700">+ Conta Bancária</button>
-                    <button onClick={() => setShowTributoModal(true)} className="px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition">+ Gerar Tributo</button>
                     <button onClick={() => setShowFinanceiroModal(true)} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2">
                       <Plus className="w-4 h-4" /> Novo Lançamento
                     </button>
@@ -641,23 +640,41 @@ export default function TorquatoFullERP() {
 
                 {finSubTab === 'tributos' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><FileText className="w-4 h-4 text-rose-400" /> Guia de Tributos & Impostos</h3>
-                      <button onClick={() => setShowTributoModal(true)} className="px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition">+ Gerar Guia de Tributo</button>
+                    <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                      <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-rose-400" /> Guia de Tributos & Impostos
+                      </h3>
+                      <button 
+                        onClick={() => setShowTributoModal(true)} 
+                        className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs transition shadow-lg flex items-center gap-2 cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4" /> Gerar Guia de Tributo
+                      </button>
                     </div>
-                    <div className="grid grid-cols-1 gap-2">
+
+                    <div className="grid grid-cols-1 gap-3">
                       {filteredTributos.length === 0 ? (
-                        <p className="text-slate-500 text-xs">Nenhum tributo registrado.</p>
+                        <div className="p-8 text-center text-slate-500 bg-slate-950 rounded-xl border border-slate-800">
+                          <p className="text-xs">Nenhum tributo registrado para {selectedCompany}.</p>
+                          <button 
+                            onClick={() => setShowTributoModal(true)} 
+                            className="mt-3 px-3 py-2 bg-rose-600/20 text-rose-400 font-bold rounded-lg text-xs hover:bg-rose-600/30 transition"
+                          >
+                            + Cadastrar primeiro tributo
+                          </button>
+                        </div>
                       ) : (
                         filteredTributos.map((trib: any) => (
-                          <div key={trib.id} className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                          <div key={trib.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
                             <div>
-                              <p className="font-bold text-white">{trib.imposto} (Competência: {trib.competencia})</p>
-                              <p className="text-slate-400">Vencimento: {trib.vencimento} • Empresa: {trib.empresa}</p>
+                              <p className="font-bold text-white text-sm">{trib.imposto}</p>
+                              <p className="text-slate-400 mt-0.5">Competência: <span className="text-amber-400 font-bold">{trib.competencia}</span> • Vencimento: {trib.vencimento}</p>
                             </div>
-                            <div className="text-right">
-                              <p className="font-bold text-rose-400">R$ {Number(trib.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                              <span className="text-[10px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded uppercase font-bold">{trib.status || 'Previsto'}</span>
+                            <div className="text-right flex items-center gap-4">
+                              <div>
+                                <p className="font-black text-rose-400 text-sm">R$ {Number(trib.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                <span className="inline-block mt-1 text-[10px] bg-rose-500/10 text-rose-400 px-2.5 py-0.5 rounded-full uppercase font-bold">{trib.status || 'Previsto'}</span>
+                              </div>
                             </div>
                           </div>
                         ))
