@@ -17,31 +17,61 @@ import {
   X,
   FileText,
   Truck,
-  CheckCircle2
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Sliders,
+  Lock,
+  CheckCircle2,
+  Clock
 } from 'lucide-react';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export default function TorquatoComprasERP() {
-  const [activeModule, setActiveModule] = useState('compras');
+export default function TorquatoFullERP() {
+  const [activeModule, setActiveModule] = useState('dashboard');
   const [selectedProject, setSelectedProject] = useState('todas');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Estados de Dados
+  // Estados de Dados Globais
   const [projects, setProjects] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
   const [fornecedores, setFornecedores] = useState<any[]>([]);
   const [ordensCompra, setOrdensCompra] = useState<any[]>([]);
+  const [financialsPagar, setFinancialsPagar] = useState<any[]>([]);
+  const [financialsReceber, setFinancialsReceber] = useState<any[]>([]);
+  const [rdos, setRdos] = useState<any[]>([]);
+  const [estoque, setEstoque] = useState<any[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Modais
+  const [showFinPagarModal, setShowFinPagarModal] = useState(false);
+  const [showFinReceberModal, setShowFinReceberModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
+  const [showRdoModal, setShowRdoModal] = useState(false);
+  const [showEstoqueModal, setShowEstoqueModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
 
-  // Forms Solicitação de Compra
+  // Forms Financeiro Pagar
+  const [finDesc, setFinDesc] = useState('');
+  const [finProject, setFinProject] = useState('');
+  const [finType, setFinType] = useState('despesa');
+  const [finValue, setFinValue] = useState('');
+  const [finDueDate, setFinDueDate] = useState(new Date().toISOString().split('T')[0]);
+  const [finSupplier, setFinSupplier] = useState('');
+
+  // Forms Financeiro Receber
+  const [recClient, setRecClient] = useState('');
+  const [recDesc, setRecDesc] = useState('');
+  const [recProject, setRecProject] = useState('');
+  const [recValue, setRecValue] = useState('');
+  const [recDueDate, setRecDueDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // Forms Compras
   const [reqTitle, setReqTitle] = useState('');
   const [reqProject, setReqProject] = useState('');
   const [reqUrgency, setReqUrgency] = useState('media');
@@ -51,6 +81,24 @@ export default function TorquatoComprasERP() {
   const [supName, setSupName] = useState('');
   const [supCnpj, setSupCnpj] = useState('');
   const [supPhone, setSupPhone] = useState('');
+
+  // Forms RDO
+  const [rdoProject, setRdoProject] = useState('');
+  const [rdoAtividades, setRdoAtividades] = useState('');
+  const [rdoEfetivoProprio, setRdoEfetivoProprio] = useState('0');
+  const [rdoEfetivoTerceiro, setRdoEfetivoTerceiro] = useState('0');
+
+  // Forms Estoque
+  const [estProject, setEstProject] = useState('');
+  const [estProduto, setEstProduto] = useState('');
+  const [estQtd, setEstQtd] = useState('');
+  const [estUnidade, setEstUnidade] = useState('un');
+  const [estTipo, setEstTipo] = useState('entrada');
+
+  // Forms Usuários
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userCargo, setUserCargo] = useState('Engenheiro');
 
   useEffect(() => {
     loadAllData();
@@ -70,50 +118,118 @@ export default function TorquatoComprasERP() {
     const { data: supData } = await supabase.from('fornecedores').select('*').order('created_at', { ascending: false });
     if (supData) setFornecedores(supData);
 
-    const { data: ocData } = await supabase.from('ordens_compra').select('*').order('created_at', { ascending: false });
-    if (ocData) {
-      const supMap = new Map((supData || []).map((s: any) => [s.id, s.razao_social]));
-      setOrdensCompra(ocData.map((i: any) => ({
-        ...i,
-        projectName: i.obra_id ? projMap.get(i.obra_id) || 'Geral' : 'Geral',
-        fornecedorName: i.fornecedor_id ? supMap.get(i.fornecedor_id) || 'Fornecedor' : 'Fornecedor'
-      })));
+    const { data: pagData } = await supabase.from('financeiro_lancamentos').select('*').order('created_at', { ascending: false });
+    if (pagData) {
+      setFinancialsPagar(pagData.map((i: any) => ({ ...i, projectName: i.obra_id ? projMap.get(i.obra_id) || 'Geral' : 'Geral' })));
     }
 
-    const { data: userData } = await supabase.from('usuarios_erp').select('*');
+    const { data: recData } = await supabase.from('financeiro_receber').select('*').order('created_at', { ascending: false });
+    if (recData) {
+      setFinancialsReceber(recData.map((i: any) => ({ ...i, projectName: i.obra_id ? projMap.get(i.obra_id) || 'Geral' : 'Geral' })));
+    }
+
+    const { data: rdoData } = await supabase.from('rdo_registros').select('*').order('created_at', { ascending: false });
+    if (rdoData) {
+      setRdos(rdoData.map((i: any) => ({ ...i, projectName: i.obra_id ? projMap.get(i.obra_id) || 'Obra' : 'Obra' })));
+    }
+
+    const { data: estData } = await supabase.from('movimentacoes_estoque').select('*').order('created_at', { ascending: false });
+    if (estData) {
+      setEstoque(estData.map((i: any) => ({ ...i, projectName: i.obra_id ? projMap.get(i.obra_id) || 'Geral' : 'Geral' })));
+    }
+
+    const { data: userData } = await supabase.from('usuarios_erp').select('*').order('created_at', { ascending: false });
     if (userData) setUsuarios(userData);
 
     setLoading(false);
   }
 
+  // Ações de salvamento
+  async function handleSavePagar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!finDesc || !finValue) return;
+    await supabase.from('financeiro_lancamentos').insert([{
+      descricao: finDesc, obra_id: finProject || null, tipo: finType, valor: parseFloat(finValue), data_vencimento: finDueDate, fornecedor_nome: finSupplier || null, status: 'pendente'
+    }]);
+    setShowFinPagarModal(false);
+    setFinDesc(''); setFinValue(''); setFinSupplier('');
+    loadAllData();
+  }
+
+  async function handleSaveReceber(e: React.FormEvent) {
+    e.preventDefault();
+    if (!recClient || !recValue) return;
+    await supabase.from('financeiro_receber').insert([{
+      cliente_nome: recClient, descricao: recDesc, obra_id: recProject || null, valor: parseFloat(recValue), data_vencimento: recDueDate, status: 'pendente'
+    }]);
+    setShowFinReceberModal(false);
+    setRecClient(''); setRecDesc(''); setRecValue('');
+    loadAllData();
+  }
+
   async function handleSaveRequest(e: React.FormEvent) {
     e.preventDefault();
     if (!reqTitle || !reqProject) return;
-    const { error } = await supabase.from('purchase_requests').insert([{
+    await supabase.from('purchase_requests').insert([{
       title: reqTitle, project_id: reqProject, urgency: reqUrgency, observation: reqObs, status: 'pendente'
     }]);
-    if (!error) {
-      setShowRequestModal(false);
-      setReqTitle(''); setReqObs('');
-      loadAllData();
-    } else {
-      alert('Erro ao salvar solicitação: ' + error.message);
-    }
+    setShowRequestModal(false);
+    setReqTitle(''); setReqObs('');
+    loadAllData();
   }
 
   async function handleSaveSupplier(e: React.FormEvent) {
     e.preventDefault();
     if (!supName) return;
-    const { error } = await supabase.from('fornecedores').insert([{
+    await supabase.from('fornecedores').insert([{
       razao_social: supName, cnpj: supCnpj, telefone: supPhone
     }]);
-    if (!error) {
-      setShowSupplierModal(false);
-      setSupName(''); setSupCnpj(''); setSupPhone('');
-      loadAllData();
-    } else {
-      alert('Erro ao salvar fornecedor: ' + error.message);
-    }
+    setShowSupplierModal(false);
+    setSupName(''); setSupCnpj(''); setSupPhone('');
+    loadAllData();
+  }
+
+  async function handleSaveRdo(e: React.FormEvent) {
+    e.preventDefault();
+    if (!rdoProject || !rdoAtividades) return;
+    await supabase.from('rdo_registros').insert([{
+      obra_id: rdoProject, atividades_realizadas: rdoAtividades, efetivo_proprio: parseInt(rdoEfetivoProprio), efetivo_terceiro: parseInt(rdoEfetivoTerceiro)
+    }]);
+    setShowRdoModal(false);
+    setRdoAtividades('');
+    loadAllData();
+  }
+
+  async function handleSaveEstoque(e: React.FormEvent) {
+    e.preventDefault();
+    if (!estProduto || !estQtd) return;
+    await supabase.from('movimentacoes_estoque').insert([{
+      obra_id: estProject || null, produto_nome: estProduto, quantidade: parseFloat(estQtd), unidade: estUnidade, tipo: estTipo
+    }]);
+    setShowEstoqueModal(false);
+    setEstProduto(''); setEstQtd('');
+    loadAllData();
+  }
+
+  async function handleSaveUser(e: React.FormEvent) {
+    e.preventDefault();
+    if (!userName || !userEmail) return;
+    await supabase.from('usuarios_erp').insert([{
+      nome: userName, email: userEmail, cargo: userCargo, status: 'ativo'
+    }]);
+    setShowUserModal(false);
+    setUserName(''); setUserEmail('');
+    loadAllData();
+  }
+
+  async function toggleStatusPagar(id: string, currentStatus: string) {
+    await supabase.from('financeiro_lancamentos').update({ status: currentStatus === 'pago' ? 'pendente' : 'pago' }).eq('id', id);
+    loadAllData();
+  }
+
+  async function toggleStatusReceber(id: string, currentStatus: string) {
+    await supabase.from('financeiro_receber').update({ status: currentStatus === 'recebido' ? 'pendente' : 'recebido' }).eq('id', id);
+    loadAllData();
   }
 
   async function approveRequest(id: string) {
@@ -121,12 +237,16 @@ export default function TorquatoComprasERP() {
     loadAllData();
   }
 
+  // Totais Executivos
+  const totalPagar = financialsPagar.filter(f => f.status === 'pendente').reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
+  const totalReceber = financialsReceber.filter(f => f.status === 'pendente').reduce((acc, curr) => acc + Number(curr.valor || 0), 0);
+
   return (
     <>
       <script src="https://cdn.tailwindcss.com"></script>
 
       <div className="flex flex-col h-screen bg-slate-950 text-slate-100 font-sans">
-        {/* HEADER EXECUTIVO KOPER */}
+        {/* HEADER EXECUTIVO CORPORATIVO */}
         <header className="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 z-30">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2.5">
@@ -160,7 +280,7 @@ export default function TorquatoComprasERP() {
               <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
               <input 
                 type="text" 
-                placeholder="Buscar solicitação ou fornecedor..."
+                placeholder="Busca corporativa..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-slate-950 text-xs text-slate-200 pl-9 pr-4 py-2 rounded-lg border border-slate-800 focus:outline-none focus:border-amber-500 w-64 transition"
@@ -174,7 +294,7 @@ export default function TorquatoComprasERP() {
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* SIDEBAR NAVEGAÇÃO */}
+          {/* SIDEBAR NAVEGAÇÃO COMPLETA KOPER */}
           <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-4">
             <nav className="space-y-1.5">
               <div className="px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
@@ -189,18 +309,6 @@ export default function TorquatoComprasERP() {
               >
                 <div className="flex items-center gap-3">
                   <LayoutDashboard className="w-4 h-4" /> Dashboard Executivo
-                </div>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-
-              <button
-                onClick={() => setActiveModule('compras')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  activeModule === 'compras' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <ShoppingCart className="w-4 h-4" /> Compras & Suprimentos
                 </div>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -230,6 +338,18 @@ export default function TorquatoComprasERP() {
               </button>
 
               <button
+                onClick={() => setActiveModule('compras')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+                  activeModule === 'compras' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <ShoppingCart className="w-4 h-4" /> Compras & Suprimentos
+                </div>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
                 onClick={() => setActiveModule('financeiro')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
                   activeModule === 'financeiro' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
@@ -240,172 +360,282 @@ export default function TorquatoComprasERP() {
                 </div>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
+
+              <button
+                onClick={() => setActiveModule('estoque')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+                  activeModule === 'estoque' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Boxes className="w-4 h-4" /> Almoxarifado / Estoque
+                </div>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
             </nav>
 
             <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
               <div>
                 <p className="font-bold text-slate-200">Torquato ERP</p>
-                <p className="text-[10px] text-slate-500">Módulo Compras</p>
+                <p className="text-[10px] text-slate-500">Versão Consolidada</p>
               </div>
               <LogOut className="w-4 h-4 cursor-pointer hover:text-rose-400 transition" />
             </div>
           </aside>
 
-          {/* CONTEÚDO PRINCIPAL */}
+          {/* CONTEÚDO PRINCIPAL DINÂMICO */}
           <main className="flex-1 bg-slate-950 overflow-y-auto p-8 text-slate-200">
             
-            {/* DASHBOARD */}
+            {/* 1. DASHBOARD EXECUTIVO */}
             {activeModule === 'dashboard' && (
               <div className="space-y-8">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
                   <div>
                     <h1 className="text-2xl font-bold text-white tracking-tight">Dashboard Executivo</h1>
-                    <p className="text-xs text-slate-400 mt-1">Visão geral das operações da Torquato Engenharia Ltda</p>
+                    <p className="text-xs text-slate-400 mt-1">Acompanhe os principais indicadores da Torquato Engenharia em tempo real</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setShowFinPagarModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-2">
+                      <Plus className="w-4 h-4" /> Novo Lançamento
+                    </button>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Obras em Andamento</span>
+                    <p className="text-3xl font-black text-white mt-3">{projects.length}</p>
+                  </div>
+                  <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Contas a Receber</span>
+                    <p className="text-3xl font-black text-emerald-400 mt-3">R$ {totalReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                  <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Contas a Pagar</span>
+                    <p className="text-3xl font-black text-rose-400 mt-3">R$ {totalPagar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                  <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
                     <span className="text-[11px] font-bold text-slate-400 uppercase">Solicitações de Compra</span>
-                    <p className="text-3xl font-black text-white mt-3">{requests.length}</p>
-                  </div>
-                  <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase">Parceiros / Fornecedores</span>
-                    <p className="text-3xl font-black text-amber-500 mt-3">{fornecedores.length}</p>
-                  </div>
-                  <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase">Ordens de Compra</span>
-                    <p className="text-3xl font-black text-blue-400 mt-3">{ordensCompra.length}</p>
-                  </div>
-                  <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase">Obras Ativas</span>
-                    <p className="text-3xl font-black text-emerald-400 mt-3">{projects.length}</p>
+                    <p className="text-3xl font-black text-blue-400 mt-3">{requests.length}</p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* MÓDULO COMPRAS & SUPRIMENTOS (IGUAL KOPER) */}
+            {/* 2. ADMINISTRAÇÃO & GOVERNANÇA */}
+            {activeModule === 'administracao' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <ShieldCheck className="w-6 h-6 text-amber-500" /> Administração & Governança
+                    </h1>
+                    <p className="text-xs text-slate-400 mt-1">Gestão de acessos, perfis de usuários e licença corporativa</p>
+                  </div>
+                  <button onClick={() => setShowUserModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-2">
+                    <Plus className="w-4 h-4" /> Novo Usuário
+                  </button>
+                </div>
+
+                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
+                  <h3 className="font-bold text-sm text-white uppercase tracking-wider">Colaboradores Cadastrados</h3>
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-950 text-slate-400 uppercase">
+                      <tr>
+                        <th className="p-3">Nome</th>
+                        <th className="p-3">E-mail</th>
+                        <th className="p-3">Cargo / Perfil</th>
+                        <th className="p-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {usuarios.map((u: any) => (
+                        <tr key={u.id}>
+                          <td className="p-3 font-bold text-white">{u.nome}</td>
+                          <td className="p-3 text-slate-400">{u.email}</td>
+                          <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-500 font-bold">{u.cargo}</span></td>
+                          <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 font-bold">{u.status}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* 3. ENGENHARIA & RDO */}
+            {activeModule === 'engenharia' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <HardHat className="w-6 h-6 text-amber-500" /> Engenharia & Registro Diário de Obra (RDO)
+                    </h1>
+                    <p className="text-xs text-slate-400 mt-1">Acompanhamento diário de campo e efetivo</p>
+                  </div>
+                  <button onClick={() => setShowRdoModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-2">
+                    <Plus className="w-4 h-4" /> Novo RDO
+                  </button>
+                </div>
+
+                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-950 text-slate-400 uppercase">
+                      <tr>
+                        <th className="p-3">Data</th>
+                        <th className="p-3">Obra</th>
+                        <th className="p-3">Efetivo Total</th>
+                        <th className="p-3">Atividades Executadas</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {rdos.map((r: any) => (
+                        <tr key={r.id}>
+                          <td className="p-3">{new Date(r.data).toLocaleDateString('pt-BR')}</td>
+                          <td className="p-3 font-bold text-white">{r.projectName}</td>
+                          <td className="p-3 text-amber-500 font-bold">{r.efetivo_proprio + r.efetivo_terceiro} Pessoas</td>
+                          <td className="p-3 text-slate-300">{r.atividades_realizadas}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* 4. COMPRAS & SUPRIMENTOS */}
             {activeModule === 'compras' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <ShoppingCart className="w-6 h-6 text-amber-500" /> Compras & Suprimentos
+                    </h1>
+                    <p className="text-xs text-slate-400 mt-1">Solicitações de materiais e cotações com fornecedores</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setShowSupplierModal(true)} className="px-4 py-2 bg-slate-800 text-white font-bold rounded-xl text-xs">Novo Fornecedor</button>
+                    <button onClick={() => setShowRequestModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Solicitar Material</button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
+                    <h3 className="font-bold text-sm text-white uppercase">Solicitações de Campo</h3>
+                    <div className="space-y-2">
+                      {requests.map((req: any) => (
+                        <div key={req.id} className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                          <div>
+                            <p className="font-bold text-white">{req.title}</p>
+                            <p className="text-slate-400">{req.projectName}</p>
+                          </div>
+                          {req.status !== 'aprovado' ? (
+                            <button onClick={() => approveRequest(req.id)} className="px-3 py-1 bg-emerald-600 text-white rounded font-bold">Aprovar</button>
+                          ) : (
+                            <span className="text-emerald-400 font-bold uppercase">Aprovado</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
+                    <h3 className="font-bold text-sm text-white uppercase">Parceiros / Fornecedores</h3>
+                    <div className="space-y-2">
+                      {fornecedores.map((sup: any) => (
+                        <div key={sup.id} className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs">
+                          <p className="font-bold text-white">{sup.razao_social}</p>
+                          <p className="text-slate-400">CNPJ: {sup.cnpj || 'Não informado'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 5. FINANCEIRO COMPLETO */}
+            {activeModule === 'financeiro' && (
               <div className="space-y-8">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
                   <div>
                     <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                      <ShoppingCart className="w-6 h-6 text-amber-500" /> Gestão de Suprimentos & Compras
+                      <DollarSign className="w-6 h-6 text-amber-500" /> Gestão Financeira (Pagar & Receber)
                     </h1>
-                    <p className="text-xs text-slate-400 mt-1">Aprovação de solicitações de campo, cotação com parceiros e emissão de ordens de compra</p>
+                    <p className="text-xs text-slate-400 mt-1">Controle de custos de obras e medições de clientes</p>
                   </div>
                   <div className="flex gap-2">
-                    <button 
-                      onClick={() => setShowSupplierModal(true)}
-                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs flex items-center gap-2 transition border border-slate-700"
-                    >
-                      <Plus className="w-4 h-4" /> Novo Fornecedor
-                    </button>
-                    <button 
-                      onClick={() => setShowRequestModal(true)}
-                      className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-2 transition shadow-lg shadow-amber-500/10"
-                    >
-                      <Plus className="w-4 h-4" /> Solicitar Material
-                    </button>
+                    <button onClick={() => setShowFinPagarModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Nova Conta Pagar</button>
+                    <button onClick={() => setShowFinReceberModal(true)} className="px-4 py-2 bg-emerald-500 text-slate-950 font-bold rounded-xl text-xs">Novo Recebimento</button>
                   </div>
                 </div>
 
-                {/* 1. SEÇÃO DE SOLICITAÇÕES DE COMPRA */}
-                <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl p-6 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-amber-500" /> Solicitações de Materiais Pendentes / Cotações
-                    </h3>
-                  </div>
-
+                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
+                  <h3 className="font-bold text-sm text-white uppercase">Contas a Pagar / Custos de Obras</h3>
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-950 text-slate-400 uppercase">
                       <tr>
-                        <th className="p-3.5">Título / Insumo</th>
-                        <th className="p-3.5">Obra / Centro de Custo</th>
-                        <th className="p-3.5">Urgência</th>
-                        <th className="p-3.5">Status</th>
-                        <th className="p-3.5 text-center">Ação</th>
+                        <th className="p-3">Descrição</th>
+                        <th className="p-3">Obra</th>
+                        <th className="p-3">Vencimento</th>
+                        <th className="p-3">Valor</th>
+                        <th className="p-3">Status</th>
+                        <th className="p-3 text-center">Ação</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                      {requests.length === 0 ? (
-                        <tr><td colSpan={5} className="p-6 text-center text-slate-500">Nenhuma solicitação de compra cadastrada.</td></tr>
-                      ) : (
-                        requests.map((req: any) => (
-                          <tr key={req.id} className="hover:bg-slate-950/50 transition">
-                            <td className="p-3.5 font-bold text-white">{req.title}</td>
-                            <td className="p-3.5 text-slate-400">{req.projectName}</td>
-                            <td className="p-3.5">
-                              <span className="px-2.5 py-1 bg-amber-500/10 text-amber-500 rounded-lg border border-amber-500/20 font-bold uppercase text-[10px]">
-                                {req.urgency}
-                              </span>
-                            </td>
-                            <td className="p-3.5">
-                              <span className={`px-2.5 py-1 rounded-lg border font-bold uppercase text-[10px] ${
-                                req.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                              }`}>
-                                {req.status}
-                              </span>
-                            </td>
-                            <td className="p-3.5 text-center">
-                              {req.status !== 'aprovado' && (
-                                <button
-                                  onClick={() => approveRequest(req.id)}
-                                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold text-[10px] transition"
-                                >
-                                  Aprovar / Cotar
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* 2. SEÇÃO DE FORNECEDORES (PARCEIROS) */}
-                <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl p-6 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                      <Truck className="w-4 h-4 text-blue-400" /> Cadastro de Parceiros & Fornecedores
-                    </h3>
-                  </div>
-
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-950 text-slate-400 uppercase">
-                      <tr>
-                        <th className="p-3.5">Razão Social</th>
-                        <th className="p-3.5">CNPJ</th>
-                        <th className="p-3.5">Telefone</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800">
-                      {fornecedores.length === 0 ? (
-                        <tr><td colSpan={3} className="p-6 text-center text-slate-500">Nenhum fornecedor cadastrado.</td></tr>
-                      ) : (
-                        fornecedores.map((sup: any) => (
-                          <tr key={sup.id} className="hover:bg-slate-950/50 transition">
-                            <td className="p-3.5 font-bold text-white">{sup.razao_social}</td>
-                            <td className="p-3.5 text-slate-400">{sup.cnpj || 'Não informado'}</td>
-                            <td className="p-3.5 text-slate-300">{sup.telefone || 'Não informado'}</td>
-                          </tr>
-                        ))
-                      )}
+                      {financialsPagar.map((f: any) => (
+                        <tr key={f.id}>
+                          <td className="p-3 font-bold text-white">{f.descricao}</td>
+                          <td className="p-3 text-slate-400">{f.projectName}</td>
+                          <td className="p-3">{new Date(f.data_vencimento).toLocaleDateString('pt-BR')}</td>
+                          <td className="p-3 font-bold">R$ {Number(f.valor).toFixed(2)}</td>
+                          <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-500 font-bold">{f.status}</span></td>
+                          <td className="p-3 text-center">
+                            <button onClick={() => toggleStatusPagar(f.id, f.status)} className="px-3 py-1 bg-slate-800 text-white rounded font-bold">Baixar</button>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
               </div>
             )}
 
-            {/* Outros módulos */}
-            {activeModule !== 'dashboard' && activeModule !== 'compras' && (
+            {/* 6. ALMOXARIFADO & ESTOQUE */}
+            {activeModule === 'estoque' && (
               <div className="space-y-6">
-                <h1 className="text-2xl font-bold text-white capitalize">{activeModule}</h1>
-                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6">
-                  <p className="text-xs text-slate-400">Módulo {activeModule} operacional integrado ao Supabase.</p>
+                <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <Boxes className="w-6 h-6 text-amber-500" /> Almoxarifado & Estoque por Obra
+                    </h1>
+                    <p className="text-xs text-slate-400 mt-1">Controle de entrada e saída de insumos</p>
+                  </div>
+                  <button onClick={() => setShowEstoqueModal(true)} className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Nova Movimentação</button>
+                </div>
+
+                <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-950 text-slate-400 uppercase">
+                      <tr>
+                        <th className="p-3">Insumo</th>
+                        <th className="p-3">Obra</th>
+                        <th className="p-3">Quantidade</th>
+                        <th className="p-3">Tipo</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {estoque.map((e: any) => (
+                        <tr key={e.id}>
+                          <td className="p-3 font-bold text-white">{e.produto_nome}</td>
+                          <td className="p-3 text-slate-400">{e.projectName}</td>
+                          <td className="p-3 font-bold">{e.quantidade} {e.unidade}</td>
+                          <td className="p-3"><span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 font-bold uppercase">{e.tipo}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
@@ -413,51 +643,93 @@ export default function TorquatoComprasERP() {
           </main>
         </div>
 
-        {/* MODAL SOLICITAÇÃO DE COMPRA */}
-        {showRequestModal && (
+        {/* MODAIS GLOBAIS */}
+        {showFinPagarModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-bold text-white">Nova Solicitação de Materiais</h3>
-                <button onClick={() => setShowRequestModal(false)}><X className="w-5 h-5 text-slate-400" /></button>
-              </div>
-              <form onSubmit={handleSaveRequest} className="space-y-3">
-                <input type="text" required placeholder="Ex: 50 sacos de Cimento CP-II" value={reqTitle} onChange={(e) => setReqTitle(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <select required value={reqProject} onChange={(e) => setReqProject(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                  <option value="">Selecione a Obra...</option>
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Nova Conta a Pagar</h3><button onClick={() => setShowFinPagarModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleSavePagar} className="space-y-3">
+                <input type="text" required placeholder="Descrição" value={finDesc} onChange={(e) => setFinDesc(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <select value={finProject} onChange={(e) => setFinProject(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                  <option value="">Geral</option>
                   {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
-                <select value={reqUrgency} onChange={(e) => setReqUrgency(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
-                  <option value="baixa">Urgência: Baixa</option>
-                  <option value="media">Urgência: Média</option>
-                  <option value="alta">Urgência: Alta (Crítica)</option>
-                </select>
-                <textarea rows={3} placeholder="Observações adicionais para a compra..." value={reqObs} onChange={(e) => setReqObs(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"></textarea>
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-                  <button type="button" onClick={() => setShowRequestModal(false)} className="px-4 py-2 border border-slate-800 text-slate-400 rounded-xl text-xs">Cancelar</button>
-                  <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Enviar Solicitação</button>
+                <div className="grid grid-cols-2 gap-3">
+                  <input type="date" required value={finDueDate} onChange={(e) => setFinDueDate(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                  <input type="number" step="0.01" required placeholder="Valor R$" value={finValue} onChange={(e) => setFinValue(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-bold" />
                 </div>
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
               </form>
             </div>
           </div>
         )}
 
-        {/* MODAL NOVO FORNECEDOR */}
+        {showRdoModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Registrar RDO</h3><button onClick={() => setShowRdoModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleSaveRdo} className="space-y-3">
+                <select required value={rdoProject} onChange={(e) => setRdoProject(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                  <option value="">Selecione a Obra...</option>
+                  {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+                <textarea rows={3} required placeholder="Atividades realizadas..." value={rdoAtividades} onChange={(e) => setRdoAtividades(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white"></textarea>
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar RDO</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {showRequestModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Solicitar Material</h3><button onClick={() => setShowRequestModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleSaveRequest} className="space-y-3">
+                <input type="text" required placeholder="Título / Insumo" value={reqTitle} onChange={(e) => setReqTitle(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <select required value={reqProject} onChange={(e) => setReqProject(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                  <option value="">Selecione a Obra...</option>
+                  {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Enviar</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {showSupplierModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-bold text-white">Cadastrar Novo Fornecedor (Parceiro)</h3>
-                <button onClick={() => setShowSupplierModal(false)}><X className="w-5 h-5 text-slate-400" /></button>
-              </div>
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Fornecedor</h3><button onClick={() => setShowSupplierModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
               <form onSubmit={handleSaveSupplier} className="space-y-3">
                 <input type="text" required placeholder="Razão Social" value={supName} onChange={(e) => setSupName(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="text" placeholder="CNPJ" value={supCnpj} onChange={(e) => setSupCnpj(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <input type="text" placeholder="Telefone / Contato" value={supPhone} onChange={(e) => setSupPhone(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
-                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-                  <button type="button" onClick={() => setShowSupplierModal(false)} className="px-4 py-2 border border-slate-800 text-slate-400 rounded-xl text-xs">Cancelar</button>
-                  <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar Fornecedor</button>
-                </div>
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {showEstoqueModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Movimentação Estoque</h3><button onClick={() => setShowEstoqueModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleSaveEstoque} className="space-y-3">
+                <input type="text" required placeholder="Nome do Produto / Insumo" value={estProduto} onChange={(e) => setEstProduto(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="number" step="0.01" required placeholder="Quantidade" value={estQtd} onChange={(e) => setEstQtd(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {showUserModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Usuário</h3><button onClick={() => setShowUserModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+              <form onSubmit={handleSaveUser} className="space-y-3">
+                <input type="text" required placeholder="Nome Completo" value={userName} onChange={(e) => setUserName(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <input type="email" required placeholder="E-mail" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">Salvar</button></div>
               </form>
             </div>
           </div>
