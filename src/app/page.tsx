@@ -74,7 +74,7 @@ export default function TorquatoFullERP() {
   const [showEditFinanceiroModal, setShowEditFinanceiroModal] = useState(false);
   const [editingFinanceiro, setEditingFinanceiro] = useState<any>(null);
 
-  // Forms Criação Empresa & Usuários & Contratos
+  // Forms Administração
   const [empNome, setEmpNome] = useState('');
   const [empCnpj, setEmpCnpj] = useState('');
   const [userName, setUserName] = useState('');
@@ -93,15 +93,17 @@ export default function TorquatoFullERP() {
   const [contValor, setContValor] = useState('');
   const [contStatus, setContStatus] = useState('Ativo');
 
-  // Forms Financeiro com Anexo XML / PDF / Comprovante
+  // Forms Financeiro com NF e Comprovante separados
   const [finDescricao, setFinDescricao] = useState('');
   const [finValor, setFinValor] = useState('');
   const [finTipo, setFinTipo] = useState('pagar');
   const [finVencimento, setFinVencimento] = useState('');
   const [finCategoria, setFinCategoria] = useState('Material de Obra');
   const [finStatus, setFinStatus] = useState('Pendente');
-  const [finAnexoNome, setFinAnexoNome] = useState('');
-  const [finAnexoUrl, setFinAnexoUrl] = useState('');
+  const [finNfNome, setFinNfNome] = useState('');
+  const [finNfUrl, setFinNfUrl] = useState('');
+  const [finCompNome, setFinCompNome] = useState('');
+  const [finCompUrl, setFinCompUrl] = useState('');
 
   useEffect(() => {
     loadAllData();
@@ -139,20 +141,28 @@ export default function TorquatoFullERP() {
     setLoading(false);
   }
 
-  // Simulador de Upload de Ficheiro (XML, PDF ou Comprovante)
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>, isEditing = false) {
+  // Manipuladores de Upload (NF ou Comprovante)
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>, tipoArquivo: 'nf' | 'comprovante', isEditing = false) {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Simula a URL e nome do ficheiro anexo
     const nomeFicheiro = file.name;
-    const urlFicheiro = URL.createObjectURL(file); // ou URL real de armazenamento
+    const urlFicheiro = URL.createObjectURL(file);
 
     if (isEditing) {
-      setEditingFinanceiro({ ...editingFinanceiro, anexo_nome: nomeFicheiro, anexo_url: urlFicheiro });
+      if (tipoArquivo === 'nf') {
+        setEditingFinanceiro({ ...editingFinanceiro, nf_nome: nomeFicheiro, nf_url: urlFicheiro });
+      } else {
+        setEditingFinanceiro({ ...editingFinanceiro, comprovante_nome: nomeFicheiro, comprovante_url: urlFicheiro });
+      }
     } else {
-      setFinAnexoNome(nomeFicheiro);
-      setFinAnexoUrl(urlFicheiro);
+      if (tipoArquivo === 'nf') {
+        setFinNfNome(nomeFicheiro);
+        setFinNfUrl(urlFicheiro);
+      } else {
+        setFinCompNome(nomeFicheiro);
+        setFinCompUrl(urlFicheiro);
+      }
     }
   }
 
@@ -189,13 +199,15 @@ export default function TorquatoFullERP() {
       categoria: finCategoria,
       status: finStatus,
       empresa: selectedCompany,
-      anexo_nome: finAnexoNome || null,
-      anexo_url: finAnexoUrl || null
+      nf_nome: finNfNome || null,
+      nf_url: finNfUrl || null,
+      comprovante_nome: finCompNome || null,
+      comprovante_url: finCompUrl || null
     }]);
 
     if (error) { alert('Erro ao salvar lançamento: ' + error.message); return; }
     setShowFinanceiroModal(false);
-    setFinDescricao(''); setFinValor(''); setFinAnexoNome(''); setFinAnexoUrl('');
+    setFinDescricao(''); setFinValor(''); setFinNfNome(''); setFinNfUrl(''); setFinCompNome(''); setFinCompUrl('');
     loadAllData();
   }
 
@@ -231,8 +243,10 @@ export default function TorquatoFullERP() {
       vencimento: editingFinanceiro.vencimento,
       categoria: editingFinanceiro.categoria,
       status: editingFinanceiro.status,
-      anexo_nome: editingFinanceiro.anexo_nome,
-      anexo_url: editingFinanceiro.anexo_url
+      nf_nome: editingFinanceiro.nf_nome,
+      nf_url: editingFinanceiro.nf_url,
+      comprovante_nome: editingFinanceiro.comprovante_nome,
+      comprovante_url: editingFinanceiro.comprovante_url
     }).eq('id', editingFinanceiro.id);
 
     if (error) { alert('Erro ao atualizar: ' + error.message); return; }
@@ -515,7 +529,7 @@ export default function TorquatoFullERP() {
                 {/* TABELA PAGAR */}
                 {finTab === 'pagar' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingDown className="w-4 h-4 text-rose-400" /> Contas a Pagar & Notas Fiscais / Comprovantes</h3>
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingDown className="w-4 h-4 text-rose-400" /> Contas a Pagar & Documentos</h3>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
                         <tr>
@@ -523,14 +537,15 @@ export default function TorquatoFullERP() {
                           <th className="p-3">Categoria</th>
                           <th className="p-3">Vencimento</th>
                           <th className="p-3">Valor</th>
-                          <th className="p-3">Documento (XML / PDF / Comprovante)</th>
+                          <th className="p-3">Nota Fiscal (XML/PDF)</th>
+                          <th className="p-3">Comprovante de Pagamento</th>
                           <th className="p-3">Status</th>
                           <th className="p-3 text-center">Ações / Quitação</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
                         {filteredPagar.length === 0 ? (
-                          <tr><td colSpan={7} className="p-6 text-center text-slate-500">Nenhuma conta a pagar registrada.</td></tr>
+                          <tr><td colSpan={8} className="p-6 text-center text-slate-500">Nenhuma conta a pagar registrada.</td></tr>
                         ) : (
                           filteredPagar.map((item: any) => (
                             <tr key={item.id} className="hover:bg-slate-950/50">
@@ -538,15 +553,29 @@ export default function TorquatoFullERP() {
                               <td className="p-3 text-slate-400">{item.categoria}</td>
                               <td className="p-3 text-slate-300">{item.vencimento}</td>
                               <td className="p-3 font-bold text-rose-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                              
+                              {/* NOTA FISCAL */}
                               <td className="p-3">
-                                {item.anexo_url ? (
-                                  <a href={item.anexo_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg text-[11px] font-bold hover:bg-amber-500/20 transition">
-                                    <Paperclip className="w-3 h-3" /> {item.anexo_nome || 'Ver Anexo (XML/PDF)'}
+                                {item.nf_url ? (
+                                  <a href={item.nf_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg text-[11px] font-bold hover:bg-amber-500/20 transition">
+                                    <Paperclip className="w-3 h-3" /> {item.nf_nome || 'Ver NF'}
                                   </a>
                                 ) : (
-                                  <span className="text-slate-500 text-[11px]">Nenhum anexo</span>
+                                  <span className="text-slate-500 text-[11px]">Sem NF</span>
                                 )}
                               </td>
+
+                              {/* COMPROVANTE DE PAGAMENTO */}
+                              <td className="p-3">
+                                {item.comprovante_url ? (
+                                  <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-[11px] font-bold hover:bg-emerald-500/20 transition">
+                                    <CheckCircle2 className="w-3 h-3" /> {item.comprovante_nome || 'Ver Comprovante'}
+                                  </a>
+                                ) : (
+                                  <span className="text-slate-500 text-[11px]">Sem Comprovante</span>
+                                )}
+                              </td>
+
                               <td className="p-3">
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Pago' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
                                   {item.status || 'Pendente'}
@@ -570,7 +599,7 @@ export default function TorquatoFullERP() {
                 {/* TABELA RECEBER */}
                 {finTab === 'receber' && (
                   <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
-                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-400" /> Contas a Receber & Notas Fiscais</h3>
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-400" /> Contas a Receber & Documentos</h3>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-950 text-slate-400 uppercase">
                         <tr>
@@ -578,14 +607,15 @@ export default function TorquatoFullERP() {
                           <th className="p-3">Categoria</th>
                           <th className="p-3">Previsão</th>
                           <th className="p-3">Valor</th>
-                          <th className="p-3">Documento (NF / Fatura)</th>
+                          <th className="p-3">Nota Fiscal / Fatura</th>
+                          <th className="p-3">Comprovante de Recebimento</th>
                           <th className="p-3">Status</th>
                           <th className="p-3 text-center">Ações</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800">
                         {filteredReceber.length === 0 ? (
-                          <tr><td colSpan={7} className="p-6 text-center text-slate-500">Nenhuma conta a receber registrada.</td></tr>
+                          <tr><td colSpan={8} className="p-6 text-center text-slate-500">Nenhuma conta a receber registrada.</td></tr>
                         ) : (
                           filteredReceber.map((item: any) => (
                             <tr key={item.id} className="hover:bg-slate-950/50">
@@ -593,15 +623,27 @@ export default function TorquatoFullERP() {
                               <td className="p-3 text-slate-400">{item.categoria}</td>
                               <td className="p-3 text-slate-300">{item.vencimento}</td>
                               <td className="p-3 font-bold text-emerald-400">R$ {Number(item.valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                              
                               <td className="p-3">
-                                {item.anexo_url ? (
-                                  <a href={item.anexo_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-[11px] font-bold hover:bg-emerald-500/20 transition">
-                                    <Paperclip className="w-3 h-3" /> {item.anexo_nome || 'Ver Fatura'}
+                                {item.nf_url ? (
+                                  <a href={item.nf_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg text-[11px] font-bold hover:bg-amber-500/20 transition">
+                                    <Paperclip className="w-3 h-3" /> {item.nf_nome || 'Ver NF'}
                                   </a>
                                 ) : (
-                                  <span className="text-slate-500 text-[11px]">Nenhum anexo</span>
+                                  <span className="text-slate-500 text-[11px]">Sem NF</span>
                                 )}
                               </td>
+
+                              <td className="p-3">
+                                {item.comprovante_url ? (
+                                  <a href={item.comprovante_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-[11px] font-bold hover:bg-emerald-500/20 transition">
+                                    <CheckCircle2 className="w-3 h-3" /> {item.comprovante_nome || 'Ver Comprovante'}
+                                  </a>
+                                ) : (
+                                  <span className="text-slate-500 text-[11px]">Sem Comprovante</span>
+                                )}
+                              </td>
+
                               <td className="p-3">
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.status === 'Recebido' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
                                   {item.status || 'Pendente'}
@@ -645,11 +687,11 @@ export default function TorquatoFullERP() {
           </main>
         </div>
 
-        {/* MODAL NOVO LANÇAMENTO FINANCEIRO COM ANEXO */}
+        {/* MODAL NOVO LANÇAMENTO COM NF E COMPROVANTE SEPARADOS */}
         {showFinanceiroModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Lançamento com Anexo (XML/PDF)</h3><button onClick={() => setShowFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Novo Lançamento & Anexos</h3><button onClick={() => setShowFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
               <form onSubmit={handleSaveFinanceiro} className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <button type="button" onClick={() => setFinTipo('pagar')} className={`p-2.5 rounded-xl text-xs font-bold border transition ${finTipo === 'pagar' ? 'bg-rose-500/25 border-rose-500 text-rose-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>Conta a Pagar</button>
@@ -665,11 +707,18 @@ export default function TorquatoFullERP() {
                   <option value="Despesas Administrativas">Despesas Administrativas</option>
                 </select>
 
-                {/* CAMPO DE ANEXO XML / PDF / COMPROVANTE */}
+                {/* ANEXO 1: NOTA FISCAL (XML / PDF) */}
                 <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
-                  <label className="block text-xs font-bold text-amber-400 uppercase">Anexar Nota Fiscal (XML/PDF) ou Comprovante</label>
-                  <input type="file" accept=".xml,.pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, false)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer" />
-                  {finAnexoNome && <p className="text-[11px] text-emerald-400">Selecionado: {finAnexoNome}</p>}
+                  <label className="block text-xs font-bold text-amber-400 uppercase">1. Nota Fiscal (XML ou PDF)</label>
+                  <input type="file" accept=".xml,.pdf" onChange={(e) => handleFileChange(e, 'nf', false)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer" />
+                  {finNfNome && <p className="text-[11px] text-amber-400">NF Selecionada: {finNfNome}</p>}
+                </div>
+
+                {/* ANEXO 2: COMPROVANTE DE PAGAMENTO */}
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                  <label className="block text-xs font-bold text-emerald-400 uppercase">2. Comprovante de Pagamento</label>
+                  <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, 'comprovante', false)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer" />
+                  {finCompNome && <p className="text-[11px] text-emerald-400">Comprovante Selecionado: {finCompNome}</p>}
                 </div>
 
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800"><button type="submit" className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl text-xs">Salvar Lançamento</button></div>
@@ -678,11 +727,11 @@ export default function TorquatoFullERP() {
           </div>
         )}
 
-        {/* MODAL EDITAR LANÇAMENTO FINANCEIRO COM ANEXO */}
+        {/* MODAL EDITAR LANÇAMENTO COM NF E COMPROVANTE SEPARADOS */}
         {showEditFinanceiroModal && editingFinanceiro && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4">
-              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Lançamento & Anexos</h3><button onClick={() => setShowEditFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
+            <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 text-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center"><h3 className="font-bold text-white">Editar Lançamento & Documentos</h3><button onClick={() => setShowEditFinanceiroModal(false)}><X className="w-5 h-5 text-slate-400" /></button></div>
               <form onSubmit={handleUpdateFinanceiro} className="space-y-3">
                 <input type="text" required value={editingFinanceiro.descricao} onChange={(e) => setEditingFinanceiro({ ...editingFinanceiro, descricao: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
                 <input type="number" step="0.01" required value={editingFinanceiro.valor} onChange={(e) => setEditingFinanceiro({ ...editingFinanceiro, valor: e.target.value })} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" />
@@ -695,9 +744,15 @@ export default function TorquatoFullERP() {
                 </select>
 
                 <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
-                  <label className="block text-xs font-bold text-amber-400 uppercase">Substituir / Anexar Documento (XML/PDF)</label>
-                  <input type="file" accept=".xml,.pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, true)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer" />
-                  {editingFinanceiro.anexo_nome && <p className="text-[11px] text-emerald-400">Atual: {editingFinanceiro.anexo_nome}</p>}
+                  <label className="block text-xs font-bold text-amber-400 uppercase">Nota Fiscal (XML/PDF)</label>
+                  <input type="file" accept=".xml,.pdf" onChange={(e) => handleFileChange(e, 'nf', true)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer" />
+                  {editingFinanceiro.nf_nome && <p className="text-[11px] text-amber-400">NF Atual: {editingFinanceiro.nf_nome}</p>}
+                </div>
+
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                  <label className="block text-xs font-bold text-emerald-400 uppercase">Comprovante de Pagamento</label>
+                  <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(e) => handleFileChange(e, 'comprovante', true)} className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer" />
+                  {editingFinanceiro.comprovante_nome && <p className="text-[11px] text-emerald-400">Comprovante Atual: {editingFinanceiro.comprovante_nome}</p>}
                 </div>
 
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
@@ -709,7 +764,7 @@ export default function TorquatoFullERP() {
           </div>
         )}
 
-        {/* MODAIS ADMIN (Empresas, Usuários, Contratos) */}
+        {/* MODAIS ADMIN */}
         {showEmpresaModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-800 space-y-4">
