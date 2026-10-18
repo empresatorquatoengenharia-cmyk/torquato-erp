@@ -260,31 +260,12 @@ export default function TorquatoFullERP() {
         </header>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* SIDEBAR */}
+          {/* SIDEBAR COM CORRESPONDÊNCIA CORRETA DE MODULES */}
           <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-4">
             <nav className="space-y-1.5">
               <div className="px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Módulos do Sistema</div>
 
-              <button
-                onClick={() => setActiveModule('administracao')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  activeModule === 'administracao' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-3"><ShieldCheck className="w-4 h-4" /> Administração & Governança</div>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-
-              <button
-                onClick={() => setActiveModule('financeiro')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  activeModule === 'financeiro' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-3"><DollarSign className="w-4 h-4" /> Módulo Financeiro Koper</div>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-
+              {/* DASHBOARD EXECUTIVO */}
               <button
                 onClick={() => setActiveModule('dashboard')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
@@ -295,6 +276,29 @@ export default function TorquatoFullERP() {
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
 
+              {/* MÓDULO FINANCEIRO */}
+              <button
+                onClick={() => setActiveModule('financeiro')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+                  activeModule === 'financeiro' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-3"><DollarSign className="w-4 h-4" /> Módulo Financeiro Koper</div>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+
+              {/* ADMINISTRAÇÃO & GOVERNANÇA */}
+              <button
+                onClick={() => setActiveModule('administracao')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+                  activeModule === 'administracao' ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-3"><ShieldCheck className="w-4 h-4" /> Administração & Governança</div>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+
+              {/* ENGENHARIA & RDO */}
               <button
                 onClick={() => setActiveModule('engenharia')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
@@ -305,6 +309,7 @@ export default function TorquatoFullERP() {
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
 
+              {/* COMPRAS & SUPRIMENTOS */}
               <button
                 onClick={() => setActiveModule('compras')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
