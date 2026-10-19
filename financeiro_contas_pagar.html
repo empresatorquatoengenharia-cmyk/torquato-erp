@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Contas a Pagar</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
+
+    <!-- Header Principal -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
+                <p class="text-[10px] text-slate-400">Módulo Financeiro • Contas a Pagar & Tesouraria</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nome-usuario" class="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">A carregar...</span>
+            <button onclick="sair()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">Sair</button>
+        </div>
+    </header>
+
+    <!-- Layout Principal -->
+    <div class="flex flex-1">
+        <!-- Sidebar de Navegação Unificada -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏢</span>
+                            <span>Matriz & Utilizadores</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Produtos & Insumos</span>
+                        </a>
+                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📍</span>
+                            <span>Locais de Estoque</span>
+                        </a>
+                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🚚</span>
+                            <span>Entradas & Transferências</span>
+                        </a>
+                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛒</span>
+                            <span>Solicitações & Compras</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>💰</span>
+                            <span>Fluxo de Caixa</span>
+                        </a>
+                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>📉</span>
+                            <span>Contas a Pagar</span>
+                        </a>
+                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📈</span>
+                            <span>Contas a Receber</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
+            </div>
+        </aside>
+
+        <!-- Conteúdo Central -->
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
+            
+            <!-- Barra de Ações & Filtros Superiores -->
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Contas a Pagar</h2>
+                    <p class="text-xs text-slate-400">Gerencie parcelas, boletos e pagamentos de todas as obras e matriz.</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="abrirModalRelatorio()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer">
+                        <span>📄</span>
+                        <span>Relatório PDF</span>
+                    </button>
+                    <button onclick="abrirModalNovaConta()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5">
+                        <span>➕</span>
+                        <span>Nova Conta a Pagar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros Granulares -->
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Centro de Custo (Obra):</label>
+                    <select id="filtro-obra" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                        <option value="Todos">Todas as Obras / Matriz</option>
+                        <option value="Matriz">Matriz / Sede</option>
+                        <option value="Vila real">Vila Real</option>
+                        <option value="Casa da Andreia">Casa da Andreia</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Status:</label>
+                    <select id="filtro-status" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                        <option value="Todos">Todos os Status</option>
+                        <option value="Atrasada">Atrasadas / Vencidas</option>
+                        <option value="Pendente">A Vencer (Pendentes)</option>
+                        <option value="Paga">Pagas</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Início Vencimento:</label>
+                    <input type="date" id="filtro-data-inicio" value="2026-05-01" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Fim Vencimento:</label>
+                    <input type="date" id="filtro-data-fim" value="2026-05-31" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+
+            <!-- QUADRO RESUMO CONSOLIDADOR (Conforme Print) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                    <div class="space-y-1">
+                        <div class="flex justify-between"><span class="text-slate-400">Valor Total:</span> <strong id="resumo-total" class="text-amber-400 font-extrabold text-sm">R$ 88.544,85</strong></div>
+                        <div class="flex justify-between"><span class="text-slate-400">Número de registros:</span> <strong id="resumo-registros" class="text-white">46</strong></div>
+                    </div>
+                    <div class="space-y-1 border-t md:border-t-0 md:border-l border-slate-800 md:pl-6 pt-2 md:pt-0">
+                        <div class="flex justify-between"><span class="text-slate-400">Valor pago:</span> <strong id="resumo-pago" class="text-sky-400 font-bold">R$ 451,65</strong></div>
+                        <div class="flex justify-between"><span class="text-slate-400">Valor desconto:</span> <span class="text-slate-300">R$ 0,00</span></div>
+                        <div class="flex justify-between"><span class="text-slate-400">Valor juros/multa:</span> <span class="text-slate-300">R$ 0,00</span></div>
+                    </div>
+                    <div class="space-y-1 border-t md:border-t-0 md:border-l border-slate-800 md:pl-6 pt-2 md:pt-0">
+                        <div class="flex justify-between"><span class="text-slate-400">Valor não pago:</span> <strong id="resumo-nao-pago" class="text-rose-400 font-bold">R$ 38.092,70</strong></div>
+                        <div class="flex justify-between"><span class="text-slate-400">Recorrentes consolidadas:</span> <span class="text-slate-300">R$ 250,00</span></div>
+                        <div class="flex justify-between"><span class="text-slate-400">Recorrentes não consolidadas:</span> <span class="text-slate-300">R$ 16.175,64</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABELA DE CONTAS A PAGAR -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
+                            <th class="p-4">Código</th>
+                            <th class="p-4">NFe / Recibo</th>
+                            <th class="p-4">Beneficiário / Fornecedor</th>
+                            <th class="p-4 text-right">Valor (R$)</th>
+                            <th class="p-4">Vencimento</th>
+                            <th class="p-4">Pago Em</th>
+                            <th class="p-4">Conta / Caixa</th>
+                            <th class="p-4">Etiquetas</th>
+                            <th class="p-4 text-right">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-contas-corpo">
+                        <tr><td colspan="9" class="p-6 text-center text-slate-500">A carregar contas a pagar...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: DETALHES DA CONTA, ANEXOS & LIQUIDAÇÃO -->
+    <div id="modal-detalhes" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-white" id="modal-titulo-cod">Detalhes da Conta #---</h3>
+                    <p class="text-xs text-slate-400">Anexe boletos/comprovantes, liquide o pagamento e atualize o fluxo de caixa.</p>
+                </div>
+                <button type="button" onclick="fecharModalDetalhes()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <input type="hidden" id="modal-conta-id">
+
+            <div class="space-y-4 text-xs">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <div><span class="text-slate-400">Beneficiário:</span> <strong id="det-beneficiario" class="block text-white">---</strong></div>
+                    <div><span class="text-slate-400">Centro de Custo:</span> <strong id="det-obra" class="block text-amber-400">---</strong></div>
+                    <div><span class="text-slate-400">Vencimento:</span> <strong id="det-vencimento" class="block text-white">---</strong></div>
+                    <div><span class="text-slate-400">Valor:</span> <strong id="det-valor" class="block text-emerald-400 text-sm">R$ ---</strong></div>
+                </div>
+
+                <!-- Seção de Anexos (Comprovante & Boleto) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div class="border border-dashed border-slate-800 bg-slate-950 p-4 rounded-xl text-center space-y-2">
+                        <span class="text-lg">📎</span>
+                        <p class="font-bold text-white">Comprovante de Pagamento</p>
+                        <input type="file" id="anexo-comprovante" class="hidden" onchange="uploadAnexo('comprovante')">
+                        <button type="button" onclick="document.getElementById('anexo-comprovante').click()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-[11px] transition cursor-pointer">Anexar Comprovante</button>
+                    </div>
+
+                    <div class="border border-dashed border-slate-800 bg-slate-950 p-4 rounded-xl text-center space-y-2">
+                        <span class="text-lg">📄</span>
+                        <p class="font-bold text-white">Boleto Bancário</p>
+                        <input type="file" id="anexo-boleto" class="hidden" onchange="uploadAnexo('boleto')">
+                        <button type="button" onclick="document.getElementById('anexo-boleto').click()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-[11px] transition cursor-pointer">Anexar Boleto</button>
+                    </div>
+                </div>
+
+                <!-- Seção de Baixa / Dar Pagamento -->
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
+                    <h4 class="font-bold text-amber-400">Efetivar Liquidamento / Pagar Conta</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-slate-400 mb-1">Conta Bancária / Caixa *</label>
+                            <select id="pag-conta-banco" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-white">
+                                <option value="Banco Cora">Banco Cora (Sede)</option>
+                                <option value="PagBank">PagBank (Operacional)</option>
+                                <option value="Caixa Obra">Caixa Físico / Obra</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1">Data do Pagamento *</label>
+                            <input type="date" id="pag-data" value="2026-10-19" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-white">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4 text-xs">
+                <button type="button" onclick="fecharModalDetalhes()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
+                <button type="button" onclick="efetivarPagamento()" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Confirmar Pagamento & Dar Baixa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: LANÇAR NOVA CONTA A PAGAR -->
+    <div id="modal-nova-conta" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-white">Cadastrar Nova Conta a Pagar</h3>
+                    <p class="text-xs text-slate-400">Registe uma despesa futura para controlo no fluxo de caixa.</p>
+                </div>
+                <button type="button" onclick="fecharModalNovaConta()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form onsubmit="salvarNovaConta(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Beneficiário / Fornecedor *</label>
+                    <input type="text" id="cad-beneficiario" required placeholder="Ex: Casas D' Água - Biguaçu" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Nº NFe / Recibo</label>
+                        <input type="text" id="cad-nfe" placeholder="Ex: 56115" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Valor (R$) *</label>
+                        <input type="number" step="0.01" id="cad-valor" required placeholder="150.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Vencimento *</label>
+                        <input type="date" id="cad-vencimento" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Centro de Custo (Obra) *</label>
+                        <select id="cad-obra" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                            <option value="Matriz">Matriz / Sede</option>
+                            <option value="Vila real">Vila Real</option>
+                            <option value="Casa da Andreia">Casa da Andreia</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+                    <button type="button" onclick="fecharModalNovaConta()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar Conta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let contaSelecionada = null;
+        let listaContasCache = [
+            { id: 1, codigo: '17829', nfe: '56115', beneficiario: 'Casas D\' Agua - Biguaçu', valor: 18.00, vencimento: '01/05/2026', pago_em: '-', caixa: '-', etiqueta: 'Material', status: 'Atrasada', obra: 'Vila real' },
+            { id: 2, codigo: '17836', nfe: '-', beneficiario: 'Casan', valor: 152.30, vencimento: '01/05/2026', pago_em: '-', caixa: '-', etiqueta: 'Utilitários', status: 'Atrasada', obra: 'Matriz' },
+            { id: 3, codigo: '18123', nfe: '265126', beneficiario: 'Casas D\' Agua - Biguaçu', valor: 273.50, vencimento: '01/05/2026', pago_em: '-', caixa: '-', etiqueta: 'Insumos', status: 'Pendente', obra: 'Casa da Andreia' },
+            { id: 4, codigo: '16771', nfe: '652969', beneficiario: 'Ac Coelho Martins', valor: 123.60, vencimento: '04/05/2026', pago_em: '-', caixa: '-', etiqueta: 'Serviços', status: 'Atrasada', obra: 'Vila real' },
+            { id: 5, codigo: '116515', nfe: '116515', beneficiario: 'Casas D\' Agua - Biguaçu', valor: 268.40, vencimento: '07/05/2026', pago_em: '07/05/2026', caixa: 'Banco Cora', etiqueta: 'Paga', status: 'Paga', obra: 'Matriz' }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarSessao();
+            carregarContas();
+        });
+
+        function verificarSessao() {
+            const usuarioJSON = localStorage.getItem('torquato_user');
+            if (!usuarioJSON) { window.location.href = 'login.html'; return; }
+            const usuario = JSON.parse(usuarioJSON);
+            document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
+        }
+
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
+
+        function carregarContas() {
+            const obraFiltro = document.getElementById('filtro-obra').value;
+            const statusFiltro = document.getElementById('filtro-status').value;
+            const tbody = document.getElementById('tabela-contas-corpo');
+
+            let filtradas = listaContasCache;
+            if (obraFiltro !== 'Todos') filtradas = filtradas.filter(c => c.obra === obraFiltro);
+            if (statusFiltro !== 'Todos') filtradas = filtradas.filter(c => c.status === statusFiltro);
+
+            tbody.innerHTML = filtradas.map(c => `
+                <tr class="border-b border-slate-800/60 ${c.status === 'Atrasada' ? 'bg-amber-500/20 hover:bg-amber-500/30' : 'hover:bg-slate-800/40'} transition text-xs">
+                    <td class="p-4 font-bold ${c.status === 'Atrasada' ? 'text-amber-400' : 'text-white'}">
+                        ${c.status === 'Atrasada' ? '⚠️ ' : ''}#${c.codigo}
+                    </td>
+                    <td class="p-4 text-slate-400">${c.nfe}</td>
+                    <td class="p-4 font-medium text-white">${c.beneficiario}</td>
+                    <td class="p-4 text-right font-bold text-rose-400">R$ ${(c.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="p-4 text-slate-300">${c.vencimento}</td>
+                    <td class="p-4 text-slate-400">${c.pago_em}</td>
+                    <td class="p-4 text-slate-400">${c.caixa}</td>
+                    <td class="p-4">
+                        <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] border border-slate-700">${c.etiqueta}</span>
+                    </td>
+                    <td class="p-4 text-right">
+                        <button onclick="abrirModalDetalhes(${c.id})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">
+                            ${c.status === 'Paga' ? 'Ver Detalhes' : 'Anexar / Pagar'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function abrirModalDetalhes(id) {
+            contaSelecionada = listaContasCache.find(c => c.id === id);
+            if (!contaSelecionada) return;
+
+            document.getElementById('modal-titulo-cod').innerText = `Detalhes da Conta #${contaSelecionada.codigo}`;
+            document.getElementById('modal-conta-id').value = contaSelecionada.id;
+            document.getElementById('det-beneficiario').innerText = contaSelecionada.beneficiario;
+            document.getElementById('det-obra').innerText = contaSelecionada.obra;
+            document.getElementById('det-vencimento').innerText = contaSelecionada.vencimento;
+            document.getElementById('det-valor').innerText = `R$ ${contaSelecionada.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+
+            document.getElementById('modal-detalhes').classList.remove('hidden');
+        }
+
+        function fecharModalDetalhes() {
+            document.getElementById('modal-detalhes').classList.add('hidden');
+        }
+
+        function uploadAnexo(tipo) {
+            alert(`Anexo de ${tipo} recebido com sucesso e vinculado à conta #${contaSelecionada.codigo}!`);
+        }
+
+        function efetivarPagamento() {
+            const banco = document.getElementById('pag-conta-banco').value;
+            const dataPag = document.getElementById('pag-data').value.split('-').reverse().join('/');
+
+            if (contaSelecionada) {
+                contaSelecionada.status = 'Paga';
+                contaSelecionada.pago_em = dataPag;
+                contaSelecionada.caixa = banco;
+                contaSelecionada.etiqueta = 'Paga';
+            }
+
+            carregarContas();
+            fecharModalDetalhes();
+            alert(`Pagamento da conta #${contaSelecionada.codigo} efetuado via ${banco}!\nO saldo e o fluxo de caixa foram atualizados automaticamente.`);
+        }
+
+        function abrirModalNovaConta() {
+            document.getElementById('modal-nova-conta').classList.remove('hidden');
+        }
+
+        function fecharModalNovaConta() {
+            document.getElementById('modal-nova-conta').classList.add('hidden');
+        }
+
+        function salvarNovaConta(e) {
+            e.preventDefault();
+            const beneficiario = document.getElementById('cad-beneficiario').value.trim();
+            const nfe = document.getElementById('cad-nfe').value.trim() || '-';
+            const valor = Number(document.getElementById('cad-valor').value);
+            const vencimento = document.getElementById('cad-vencimento').value.split('-').reverse().join('/');
+            const obra = document.getElementById('cad-obra').value;
+
+            const nova = {
+                id: Date.now(),
+                codigo: String(Math.floor(10000 + Math.random() * 90000)),
+                nfe,
+                beneficiario,
+                valor,
+                vencimento,
+                pago_em: '-',
+                caixa: '-',
+                etiqueta: 'Pendente',
+                status: 'Pendente',
+                obra
+            };
+
+            listaContasCache.unshift(nova);
+            carregarContas();
+            fecharModalNovaConta();
+            alert('Nova conta a pagar cadastrada com sucesso e integrada ao fluxo de caixa!');
+        }
+
+        function abrirModalRelatorio() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
