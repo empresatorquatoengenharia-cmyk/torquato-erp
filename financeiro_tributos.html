@@ -42,11 +42,23 @@
                 </div>
 
                 <div>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Comercial</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <a href="vendas_empreendimentos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
                             <span>🏢</span>
-                            <span>Matriz & Utilizadores</span>
+                            <span>Empreendimentos & Obras</span>
+                        </a>
+                        <a href="vendas_clientes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>👥</span>
+                            <span>Clientes & Compradores</span>
+                        </a>
+                        <a href="vendas_propostas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📄</span>
+                            <span>Propostas Comerciais</span>
+                        </a>
+                        <a href="vendas_imoveis.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏡</span>
+                            <span>Vendas & Contratos</span>
                         </a>
                     </nav>
                 </div>
@@ -95,6 +107,24 @@
                         <a href="financeiro_tributos.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
                             <span>🏷️</span>
                             <span>Tributos & Impostos</span>
+                        </a>
+                        <a href="financeiro_contas_bancarias.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏦</span>
+                            <span>Contas Bancárias</span>
+                        </a>
+                        <a href="financeiro_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Indexadores & Regras</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛡️</span>
+                            <span>Matriz & Utilizadores</span>
                         </a>
                     </nav>
                 </div>
@@ -160,7 +190,7 @@
         </main>
     </div>
 
-    <!-- MODAL: ADICIONAR TRIBUTO (Inspirado no Koper) -->
+    <!-- MODAL: ADICIONAR TRIBUTO -->
     <div id="modal-tributo" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -358,14 +388,12 @@
                 observacoes: obs
             };
 
-            // 1. Grava na tabela de tributos
             const { error: errTributo } = await supabaseClient.from('financeiro_tributos').insert([novoTributo]);
             if (errTributo) {
                 alert('Erro ao guardar tributo: ' + errTributo.message);
                 return;
             }
 
-            // 2. Sincroniza automaticamente criando o registo correspondente no Contas a Pagar
             const novaContaPagar = {
                 codigo: novoTributo.codigo,
                 nfe: apuracao,
