@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Cadastros & Configurações Financeiras</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
+
+    <!-- Header Principal -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
+                <p class="text-[10px] text-slate-400">Cadastros • Indexadores, Tributos & Regras de Governança</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nome-usuario" class="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">A carregar...</span>
+            <button onclick="sair()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">Sair</button>
+        </div>
+    </header>
+
+    <!-- Layout Principal -->
+    <div class="flex flex-1">
+        <!-- Sidebar de Navegação Unificada -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança & Cadastros</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="financeiro_cadastros.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>⚙️</span>
+                            <span>Indexadores & Regras</span>
+                        </a>
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏢</span>
+                            <span>Matriz & Utilizadores</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>💰</span>
+                            <span>Fluxo de Caixa</span>
+                        </a>
+                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📉</span>
+                            <span>Contas a Pagar</span>
+                        </a>
+                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📈</span>
+                            <span>Contas a Receber</span>
+                        </a>
+                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Tributos & Impostos</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
+            </div>
+        </aside>
+
+        <!-- Conteúdo Central -->
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
+            
+            <!-- Barra de Abas Superiores -->
+            <div class="flex space-x-2 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <button id="btn-tab-indexadores" onclick="mudarTab('indexadores')" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Indexadores (INCC/IPCA)</button>
+                <button id="btn-tab-tributos" onclick="mudarTab('tributos')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Pré-cadastro de Tributos</button>
+                <button id="btn-tab-regras" onclick="mudarTab('regras')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Políticas & Bloqueio de Pagamento</button>
+            </div>
+
+            <!-- TAB 1: INDEXADORES -->
+            <div id="tab-indexadores" class="space-y-4">
+                <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                    <h3 class="font-bold text-white text-sm">Indexadores para Correção de Parcelas</h3>
+                    <button onclick="carregarIndexadores()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition cursor-pointer">Atualizar Lista</button>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
+                                <th class="p-4">Sigla</th>
+                                <th class="p-4">Nome do Indexador</th>
+                                <th class="p-4 text-right">Valor Atual</th>
+                                <th class="p-4 text-center">Última Atualização</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-indexadores-corpo">
+                            <tr><td colspan="4" class="p-6 text-center text-slate-500">A carregar indexadores...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 2: PRÉ-CADASTRO DE TRIBUTOS -->
+            <div id="tab-tributos" class="hidden space-y-4">
+                <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                    <h3 class="font-bold text-white text-sm">Pré-cadastro de Tipos de Tributos</h3>
+                    <button onclick="carregarTributosPre()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs transition cursor-pointer">Atualizar Lista</button>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
+                                <th class="p-4">Código</th>
+                                <th class="p-4">Nome do Tributo</th>
+                                <th class="p-4">Sigla</th>
+                                <th class="p-4">Código da Receita</th>
+                                <th class="p-4">Competência</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-tributos-pre-corpo">
+                            <tr><td colspan="5" class="p-6 text-center text-slate-500">A carregar pré-cadastro de tributos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: REGRAS DE GOVERNANÇA E BLOQUEIO -->
+            <div id="tab-regras" class="hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+                    <h3 class="font-bold text-white text-base">Políticas de Operação & Liberação de Pagamentos</h3>
+                    <p class="text-xs text-slate-400">Garanta o rigor técnico e financeiro impedindo saídas financeiras sem a devida comprovação logística e de suprimentos.</p>
+                    
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-amber-400 text-xs">Bloqueio de Pagamento sem Entrega de Material</h4>
+                            <p class="text-[11px] text-slate-400">Impede a baixa no Contas a Pagar caso o insumo associado não tenha registro de entrada no estoque (Módulo de Suprimentos).</p>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="check-bloqueio" checked onchange="atualizarRegraBloqueio(this.checked)" class="w-5 h-5 rounded bg-slate-900 border-slate-800 text-amber-500 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarSessao();
+            carregarIndexadores();
+            carregarTributosPre();
+        });
+
+        function verificarSessao() {
+            const usuarioJSON = localStorage.getItem('torquato_user');
+            if (!usuarioJSON) { window.location.href = 'login.html'; return; }
+            const usuario = JSON.parse(usuarioJSON);
+            document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
+        }
+
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
+
+        function mudarTab(tab) {
+            document.getElementById('tab-indexadores').classList.add('hidden');
+            document.getElementById('tab-tributos').classList.add('hidden');
+            document.getElementById('tab-regras').classList.add('hidden');
+
+            document.getElementById('btn-tab-indexadores').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+            document.getElementById('btn-tab-tributos').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+            document.getElementById('btn-tab-regras').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.getElementById(`btn-tab-${tab}`).className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+        }
+
+        async function carregarIndexadores() {
+            const tbody = document.getElementById('tabela-indexadores-corpo');
+            const { data, error } = await supabaseClient.from('cadastros_indexadores').select('*');
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-red-400">Erro ao carregar indexadores: ${error.message}</td></tr>`;
+                return;
+            }
+
+            const lista = data || [];
+            tbody.innerHTML = lista.map(i => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition text-xs">
+                    <td class="p-4 font-bold text-amber-400">${i.sigla}</td>
+                    <td class="p-4 text-white">${i.nome}</td>
+                    <td class="p-4 text-right font-bold text-emerald-400">${i.valor_atual}</td>
+                    <td class="p-4 text-center text-slate-400">${i.atualizado_em}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function carregarTributosPre() {
+            const tbody = document.getElementById('tabela-tributos-pre-corpo');
+            const { data, error } = await supabaseClient.from('cadastros_tipos_tributos').select('*');
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-400">Erro ao carregar tributos: ${error.message}</td></tr>`;
+                return;
+            }
+
+            const lista = data || [];
+            tbody.innerHTML = lista.map(t => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition text-xs">
+                    <td class="p-4 font-bold text-white">#${t.codigo}</td>
+                    <td class="p-4 text-white">${t.nome_tributo}</td>
+                    <td class="p-4 font-bold text-amber-400">${t.sigla}</td>
+                    <td class="p-4 text-slate-300">${t.codigo_receita || '-'}</td>
+                    <td class="p-4 text-slate-300">${t.competencia}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function atualizarRegraBloqueio(ativo) {
+            await supabaseClient.from('cadastros_configuracoes').update({ valor: String(ativo) }).eq('chave', 'bloquear_pagamento_sem_entrega');
+            alert(`Política de segurança atualizada: Bloqueio de pagamento sem entrega está ${ativo ? 'ATIVO' : 'DESATIVADO'}.`);
+        }
+    </script>
+</body>
+</html>
