@@ -64,6 +64,36 @@
                 </div>
 
                 <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Produtos & Insumos</span>
+                        </a>
+                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📍</span>
+                            <span>Locais de Estoque</span>
+                        </a>
+                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🚚</span>
+                            <span>Entradas & Transferências</span>
+                        </a>
+                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛒</span>
+                            <span>Solicitações & Compras</span>
+                        </a>
+                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📦</span>
+                            <span>Balanços de Estoque</span>
+                        </a>
+                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Cadastros Gerais</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
                     <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
                     <nav class="space-y-1 text-xs">
                         <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
@@ -179,7 +209,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h2 class="text-xl font-bold text-white">Gestão de Utilizadores e Controlo de Acessos</h2>
-                        <p class="text-xs text-slate-400">Configure permissões granulares por página para Leitura e Edição.</p>
+                        <p class="text-xs text-slate-400">Configure permissões por página para Leitura e Edição de forma segura.</p>
                     </div>
                     <button onclick="abrirModalUtilizador()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5">
                         <span>➕</span>
@@ -196,13 +226,12 @@
                                     <th class="p-4">Nome</th>
                                     <th class="p-4">E-mail</th>
                                     <th class="p-4">Perfil</th>
-                                    <th class="p-4">Permissões de Leitura</th>
-                                    <th class="p-4">Permissões de Edição</th>
+                                    <th class="p-4">Páginas Autorizadas</th>
                                     <th class="p-4 text-right">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tabela-utilizadores-corpo">
-                                <tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar utilizadores...</td></tr>
+                                <tr><td colspan="5" class="p-6 text-center text-slate-500">A carregar utilizadores...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -218,7 +247,7 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 id="modal-utilizador-titulo" class="text-base font-bold text-white">Adicionar Novo Utilizador</h3>
-                    <p class="text-xs text-slate-400">Defina os dados de acesso e selecione as permissões granulares por página.</p>
+                    <p class="text-xs text-slate-400">Defina os dados de acesso e selecione as permissões por página.</p>
                 </div>
                 <button type="button" onclick="fecharModalUtilizador()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -237,7 +266,7 @@
                     </div>
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Palavra-passe *</label>
-                        <input type="password" id="novo-senha" required placeholder="••••••" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <input type="password" id="novo-senha" placeholder="••••••" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                 </div>
 
@@ -394,20 +423,19 @@
             alert('Dados da Matriz salvos com sucesso!');
         }
 
-        function montarMatrizPermissoesModal(leituraArr = [], edicaoArr = []) {
+        function montarMatrizPermissoesModal(paginasArr = []) {
             const tbody = document.getElementById('matriz-permissoes-corpo');
             tbody.innerHTML = paginasSistema.map(p => {
-                const temLeitura = leituraArr.includes(p.id) || leituraArr.length === 0;
-                const temEdicao = edicaoArr.includes(p.id) || edicaoArr.length === 0;
+                const temAcesso = paginasArr.includes(p.id) || paginasArr.length === 0;
 
                 return `
                     <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
                         <td class="p-3 font-medium text-white">${p.nome}</td>
                         <td class="p-3 text-center">
-                            <input type="checkbox" value="${p.id}" class="chk-leitura rounded bg-slate-950 border-slate-800 text-amber-500 w-4 h-4 cursor-pointer" ${temLeitura ? 'checked' : ''}>
+                            <input type="checkbox" value="${p.id}" class="chk-leitura rounded bg-slate-950 border-slate-800 text-amber-500 w-4 h-4 cursor-pointer" ${temAcesso ? 'checked' : ''}>
                         </td>
                         <td class="p-3 text-center">
-                            <input type="checkbox" value="${p.id}" class="chk-edicao rounded bg-slate-950 border-slate-800 text-amber-500 w-4 h-4 cursor-pointer" ${temEdicao ? 'checked' : ''}>
+                            <input type="checkbox" value="${p.id}" class="chk-edicao rounded bg-slate-950 border-slate-800 text-amber-500 w-4 h-4 cursor-pointer" ${temAcesso ? 'checked' : ''}>
                         </td>
                     </tr>
                 `;
@@ -418,11 +446,11 @@
             const corpoTabela = document.getElementById('tabela-utilizadores-corpo');
             const { data, error } = await supabaseClient.from('usuarios_erp').select('*');
 
-            if (error) { corpoTabela.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-400">Erro: ${error.message}</td></tr>`; return; }
+            if (error) { corpoTabela.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-400">Erro: ${error.message}</td></tr>`; return; }
 
             listaUtilizadoresCache = data || [];
             if (listaUtilizadoresCache.length === 0) {
-                corpoTabela.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhum utilizador encontrado.</td></tr>`;
+                corpoTabela.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Nenhum utilizador encontrado.</td></tr>`;
                 return;
             }
 
@@ -431,8 +459,7 @@
                     <td class="p-4 font-bold text-white">${u.nome}</td>
                     <td class="p-4 text-slate-300">${u.email}</td>
                     <td class="p-4"><span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded uppercase text-[10px] font-bold">${u.perfil || 'operacional'}</span></td>
-                    <td class="p-4 text-slate-300">${(u.paginas_leitura || paginasSistema.map(p => p.id)).length} página(s)</td>
-                    <td class="p-4 text-slate-300">${(u.paginas_permitidas || u.paginas_edicao || paginasSistema.map(p => p.id)).length} página(s)</td>
+                    <td class="p-4 text-slate-300">${(u.paginas_permitidas || paginasSistema.map(p => p.id)).length} página(s) autorizada(s)</td>
                     <td class="p-4 text-right space-x-2">
                         <button type="button" onclick="abrirEditarUtilizador('${u.id}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✏️ Editar</button>
                         <button type="button" onclick="excluirUtilizador('${u.id}')" class="text-rose-400 hover:text-rose-300 bg-rose-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
@@ -461,9 +488,9 @@
             document.getElementById('novo-nome').value = u.nome;
             document.getElementById('novo-email').value = u.email;
             document.getElementById('novo-senha').value = "";
-            document.getElementById('novo-senha').required = false; // Opcional ao editar
+            document.getElementById('novo-senha').required = false;
 
-            montarMatrizPermissoesModal(u.paginas_leitura || [], u.paginas_permitidas || u.paginas_edicao || []);
+            montarMatrizPermissoesModal(u.paginas_permitidas || []);
             document.getElementById('modal-utilizador').classList.remove('hidden');
         }
 
@@ -478,16 +505,16 @@
             const email = document.getElementById('novo-email').value.trim().toLowerCase();
             const senha = document.getElementById('novo-senha').value.trim();
 
-            const paginasLeitura = Array.from(document.querySelectorAll('.chk-leitura:checked')).map(c => c.value);
-            const paginasEdicao = Array.from(document.querySelectorAll('.chk-edicao:checked')).map(c => c.value);
+            // Pega as marcas selecionadas
+            const paginasPermitidas = Array.from(document.querySelectorAll('.chk-leitura:checked, .chk-edicao:checked')).map(c => c.value);
+            // Remove duplicados
+            const paginasUnicas = [...new Set(paginasPermitidas)];
 
             let payload = {
                 nome,
                 email,
                 perfil: 'operacional',
-                paginas_leitura: paginasLeitura,
-                paginas_permitidas: paginasEdicao, // Mantendo retrocompatibilidade com a chave existente
-                paginas_edicao: paginasEdicao
+                paginas_permitidas: paginasUnicas
             };
 
             if (senha) {
