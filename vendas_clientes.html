@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torquato ERP - Solicitações & Compras</title>
+    <title>Torquato ERP - Gestão de Clientes & Compradores</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client -->
@@ -17,7 +17,7 @@
             <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
-                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Solicitações & Compras</p>
+                <p class="text-[10px] text-slate-400">Módulo Comercial • Cadastro de Clientes & Compradores</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -28,7 +28,7 @@
 
     <!-- Layout Principal -->
     <div class="flex flex-1">
-        <!-- Sidebar de Navegação Unificada e Definitiva -->
+        <!-- Sidebar de Navegação Unificada -->
         <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
             <div class="space-y-6">
                 <div>
@@ -48,7 +48,7 @@
                             <span>🏢</span>
                             <span>Empreendimentos & Obras</span>
                         </a>
-                        <a href="vendas_clientes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <a href="vendas_clientes.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
                             <span>👥</span>
                             <span>Clientes & Compradores</span>
                         </a>
@@ -78,7 +78,7 @@
                             <span>🚚</span>
                             <span>Entradas & Transferências</span>
                         </a>
-                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
                             <span>🛒</span>
                             <span>Solicitações & Compras</span>
                         </a>
@@ -145,118 +145,66 @@
 
         <!-- Conteúdo Central -->
         <main class="flex-1 p-8 max-w-7xl space-y-6">
-            
-            <!-- Barra Superior com Abas e Ações -->
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-                <div class="flex space-x-2">
-                    <button onclick="mudarAba('solicitacoes')" id="btn-aba-solicitacoes" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Solicitações de Compra</button>
-                    <button onclick="mudarAba('aprovacao')" id="btn-aba-aprovacao" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Aprovação & Integração Financeira</button>
+                <div>
+                    <h2 class="text-xl font-bold text-white">Clientes & Compradores</h2>
+                    <p class="text-xs text-slate-400">Cadastro centralizado de pessoas físicas e jurídicas vinculadas às negociações e vendas.</p>
                 </div>
-                <button onclick="abrirModalNovaSolicitacao()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-2">
-                    <span>➕</span>
-                    <span>+ Solicitação</span>
-                </button>
+                <div class="flex items-center space-x-3 w-full md:w-auto">
+                    <button onclick="abrirModalCliente()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5 whitespace-nowrap">
+                        <span>➕</span>
+                        <span>Novo Cliente</span>
+                    </button>
+                </div>
             </div>
 
-            <!-- SEÇÃO 1: SOLICITAÇÕES -->
-            <section id="secao-solicitacoes" class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold text-white">Minhas Solicitações e Pedidos</h2>
-                        <p class="text-xs text-slate-400">Acompanhe o status de aprovação em tempo real e prazos de entrega vinculados às obras.</p>
-                    </div>
-                </div>
-
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead>
-                            <tr class="border-b border-slate-800 text-slate-400">
-                                <th class="p-4">Solicitação</th>
-                                <th class="p-4">Local de Consumo (Obra)</th>
-                                <th class="p-4">Produto</th>
-                                <th class="p-4">Quantidade</th>
-                                <th class="p-4">Prazo de Entrega</th>
-                                <th class="p-4">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-solicitacoes-corpo">
-                            <tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar solicitações...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- SEÇÃO 2: APROVAÇÃO E INTEGRAÇÃO COM CONTAS A PAGAR -->
-            <section id="secao-aprovacao" class="hidden space-y-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold text-white">Aprovação de Solicitações & Envio ao Contas a Pagar</h2>
-                        <p class="text-xs text-slate-400">Ao aprovar o pedido, o sistema gera o compromisso financeiro correspondente automaticamente.</p>
-                    </div>
-                    <button onclick="carregarDadosSupabase()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">Atualizar Lista</button>
-                </div>
-
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead>
-                            <tr class="border-b border-slate-800 text-slate-400">
-                                <th class="p-4">Solicitação</th>
-                                <th class="p-4">Local</th>
-                                <th class="p-4">Produto</th>
-                                <th class="p-4">Qtd.</th>
-                                <th class="p-4">Prazo</th>
-                                <th class="p-4">Status</th>
-                                <th class="p-4 text-right">Ações (Aprovar / Enviar ao Financeiro)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-aprovacao-corpo">
-                            <tr><td colspan="7" class="p-6 text-center text-slate-500">A carregar painel...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
+                            <th class="p-4">Razão Social / Nome</th>
+                            <th class="p-4">Tipo</th>
+                            <th class="p-4">CPF / CNPJ</th>
+                            <th class="p-4">E-mail</th>
+                            <th class="p-4">Telefone</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-clientes-corpo">
+                        <tr><td colspan="5" class="p-6 text-center text-slate-500">A carregar clientes...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </main>
     </div>
 
-    <!-- MODAL: NOVA SOLICITAÇÃO -->
-    <div id="modal-solicitacao" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <!-- MODAL: NOVO CLIENTE -->
+    <div id="modal-cliente" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <div>
-                    <h3 class="text-base font-bold text-white">Nova Solicitação de Compra</h3>
-                    <p class="text-xs text-slate-400">Insira o produto, quantidade e obra de destino.</p>
-                </div>
-                <button type="button" onclick="fecharModalNovaSolicitacao()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+                <h3 class="text-base font-bold text-white">Registar Novo Cliente</h3>
+                <button type="button" onclick="fecharModalCliente()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
             </div>
-
-            <form onsubmit="salvarSolicitacaoSupabase(event)" class="space-y-4 text-xs">
+            <form onsubmit="salvarClienteSupabase(event)" class="space-y-4 text-xs">
                 <div>
-                    <label class="block text-slate-400 font-bold mb-1">Produto / Insumo *</label>
-                    <input type="text" id="sol-produto" required placeholder="Ex: Cimento CP-1 50kg" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    <label class="block text-slate-400 font-bold mb-1">Nome / Razão Social *</label>
+                    <input type="text" id="cad-nome" required placeholder="Ex: Torquato Engenharia" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-slate-400 font-bold mb-1">Quantidade *</label>
-                        <input type="number" step="0.01" id="sol-qtd" required placeholder="50" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <label class="block text-slate-400 font-bold mb-1">Tipo *</label>
+                        <select id="cad-tipo" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                            <option value="Jurídica">Pessoa Jurídica</option>
+                            <option value="Física">Pessoa Física</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-slate-400 font-bold mb-1">Prazo de Entrega *</label>
-                        <input type="date" id="sol-prazo" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <label class="block text-slate-400 font-bold mb-1">CPF / CNPJ *</label>
+                        <input type="text" id="cad-cpf" required placeholder="00.000.000/0001-00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-slate-400 font-bold mb-1">Local de Consumo (Obra) *</label>
-                    <select id="sol-local" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
-                        <option value="Vila Real">Vila Real</option>
-                        <option value="Casa da Andreia">Casa da Andreia</option>
-                        <option value="Loteamento Tamandaré">Loteamento Tamandaré</option>
-                    </select>
-                </div>
-
                 <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
-                    <button type="button" onclick="fecharModalNovaSolicitacao()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Enviar para Análise</button>
+                    <button type="button" onclick="fecharModalCliente()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Salvar Cliente</button>
                 </div>
             </form>
         </div>
@@ -267,10 +215,7 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        window.addEventListener('DOMContentLoaded', () => {
-            verificarSessao();
-            carregarDadosSupabase();
-        });
+        window.addEventListener('DOMContentLoaded', () => { verificarSessao(); carregarClientes(); });
 
         function verificarSessao() {
             const usuarioJSON = localStorage.getItem('torquato_user');
@@ -279,123 +224,43 @@
             document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
         }
 
-        function sair() {
-            localStorage.removeItem('torquato_user');
-            window.location.href = 'login.html';
-        }
+        function sair() { localStorage.removeItem('torquato_user'); window.location.href = 'login.html'; }
 
-        function mudarAba(aba) {
-            document.getElementById('secao-solicitacoes').classList.add('hidden');
-            document.getElementById('secao-aprovacao').classList.add('hidden');
-            document.getElementById('btn-aba-solicitacoes').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
-            document.getElementById('btn-aba-aprovacao').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
-
-            if (aba === 'solicitacoes') {
-                document.getElementById('secao-solicitacoes').classList.remove('hidden');
-                document.getElementById('btn-aba-solicitacoes').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
-            } else {
-                document.getElementById('secao-aprovacao').classList.remove('hidden');
-                document.getElementById('btn-aba-aprovacao').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
-            }
-        }
-
-        async function carregarDadosSupabase() {
-            const { data, error } = await supabaseClient.from('suprimentos_solicitacoes').select('*');
-            const tbodySol = document.getElementById('tabela-solicitacoes-corpo');
-            const tbodyApr = document.getElementById('tabela-aprovacao-corpo');
-
+        async function carregarClientes() {
+            const tbody = document.getElementById('tabela-clientes-corpo');
+            const { data, error } = await supabaseClient.from('vendas_clientes').select('*');
             if (error || !data || data.length === 0) {
-                tbodySol.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhuma solicitação encontrada na nuvem.</td></tr>`;
-                tbodyApr.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma solicitação para aprovação.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Nenhum cliente registado.</td></tr>`;
                 return;
             }
-
-            tbodySol.innerHTML = data.map(s => `
+            tbody.innerHTML = data.map(c => `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                    <td class="p-4 font-bold text-amber-400">#${s.codigo}</td>
-                    <td class="p-4 text-white">${s.obra}</td>
-                    <td class="p-4 text-slate-300">${s.produto}</td>
-                    <td class="p-4 text-slate-300">${s.qtd} un</td>
-                    <td class="p-4 text-amber-300">${s.prazo}</td>
-                    <td class="p-4"><span class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-bold">${s.status}</span></td>
-                </tr>
-            `).join('');
-
-            tbodyApr.innerHTML = data.map(s => `
-                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                    <td class="p-4 font-bold text-amber-400">#${s.codigo}</td>
-                    <td class="p-4 text-white">${s.obra}</td>
-                    <td class="p-4 text-slate-300">${s.produto}</td>
-                    <td class="p-4 text-slate-300">${s.qtd} un</td>
-                    <td class="p-4 text-slate-300">${s.prazo}</td>
-                    <td class="p-4"><span class="bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded text-[10px] font-bold">${s.status}</span></td>
-                    <td class="p-4 text-right">
-                        ${s.status !== 'Aprovado / Comprar' ? `<button onclick="aprovarEIntegrarCompra(${s.id}, '${s.codigo}', '${s.produto}',${s.qtd}, '${s.obra}', '${s.prazo}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✅ Aprovar & Gerar Contas a Pagar</button>` : `<span class="text-emerald-400 font-bold text-[11px]">Integrado ao Financeiro ✓</span>`}
-                    </td>
+                    <td class="p-4 font-bold text-white">${c.nome}</td>
+                    <td class="p-4 text-slate-300">${c.tipo_pessoa}</td>
+                    <td class="p-4 text-amber-400 font-mono">${c.cpf_cnpj}</td>
+                    <td class="p-4 text-slate-300">${c.email || '-'}</td>
+                    <td class="p-4 text-slate-300">${c.telefone || '-'}</td>
                 </tr>
             `).join('');
         }
 
-        async function aprovarEIntegrarCompra(id, codigo, produto, qtd, obra, prazo) {
-            const valorEstimado = qtd * 50.00;
+        function abrirModalCliente() { document.getElementById('modal-cliente').classList.remove('hidden'); }
+        function fecharModalCliente() { document.getElementById('modal-cliente').classList.add('hidden'); }
 
-            if (!confirm(`Deseja aprovar a compra de ${qtd} un de "${produto}" para a obra "${obra}"?\n\nIsso irá:\n1. Atualizar o status da solicitação para Aprovado\n2. Inserir o compromisso no Contas a Pagar automaticamente.`)) return;
-
-            await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Aprovado / Comprar' }).eq('id', id);
-
-            const novaContaPagar = {
-                codigo,
-                nfe: 'Pedido #' + codigo,
-                beneficiario: 'Fornecedor de Materiais (' + produto + ')',
-                valor: valorEstimado,
-                vencimento: prazo,
-                status: 'Pendente',
-                obra,
-                etiqueta: 'Compra de Insumos - Obra'
-            };
-
-            await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
-
-            alert('Solicitação aprovada e Contas a Pagar gerado com sucesso na nuvem!');
-            carregarDadosSupabase();
-        }
-
-        function abrirModalNovaSolicitacao() {
-            document.getElementById('modal-solicitacao').classList.remove('hidden');
-        }
-
-        function fecharModalNovaSolicitacao() {
-            document.getElementById('modal-solicitacao').classList.add('hidden');
-        }
-
-        async function salvarSolicitacaoSupabase(e) {
+        async function salvarClienteSupabase(e) {
             e.preventDefault();
-            const produto = document.getElementById('sol-produto').value;
-            const qtd = Number(document.getElementById('sol-qtd').value);
-            const prazoIso = document.getElementById('sol-prazo').value;
-            const prazo = prazoIso.split('-').reverse().join('/');
-            const obra = document.getElementById('sol-local').value;
-
-            const novaSolicitacao = {
-                codigo: String(Math.floor(1000 + Math.random() * 9000)),
-                solicitante: 'Engenharia Torquato',
-                obra,
-                produto,
-                qtd,
-                data: new Date().toLocaleDateString('pt-BR'),
-                prazo,
-                status: 'Em análise'
+            const novoCliente = {
+                codigo: String(Math.floor(100 + Math.random() * 900)),
+                nome: document.getElementById('cad-nome').value,
+                tipo_pessoa: document.getElementById('cad-tipo').value,
+                cpf_cnpj: document.getElementById('cad-cpf').value,
+                email: 'contato@torquato.com',
+                telefone: '(38) 99999-9999',
+                cidade: 'Brasília de Minas - MG'
             };
-
-            const { error } = await supabaseClient.from('suprimentos_solicitacoes').insert([novaSolicitacao]);
-
-            if (error) {
-                alert('Erro ao guardar: ' + error.message);
-            } else {
-                alert('Solicitação criada com sucesso!');
-                fecharModalNovaSolicitacao();
-                carregarDadosSupabase();
-            }
+            const { error } = await supabaseClient.from('vendas_clientes').insert([novoCliente]);
+            if (error) alert('Erro: ' + error.message);
+            else { alert('Cliente registado com sucesso!'); fecharModalCliente(); carregarClientes(); }
         }
     </script>
 </body>
