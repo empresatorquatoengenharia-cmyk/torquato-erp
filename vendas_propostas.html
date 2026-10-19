@@ -28,7 +28,7 @@
 
     <!-- Layout Principal -->
     <div class="flex flex-1">
-        <!-- Sidebar de Navegação Unificada e Definitiva -->
+        <!-- Sidebar de Navegação Unificada -->
         <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
             <div class="space-y-6">
                 <div>
@@ -145,121 +145,78 @@
 
         <!-- Conteúdo Central -->
         <main class="flex-1 p-8 max-w-7xl space-y-6">
-            
-            <!-- Barra de Ações & Filtros -->
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
                 <div>
                     <h2 class="text-xl font-bold text-white">Propostas Comerciais & Integração Automática</h2>
-                    <p class="text-xs text-slate-400">Ao aprovar uma proposta, o sistema gera o Contas a Receber e atualiza as unidades da obra automaticamente.</p>
+                    <p class="text-xs text-slate-400">Ao aprovar uma proposta, o sistema gera o Contas a Receber e atualiza as unidades da obra.</p>
                 </div>
-                <div class="flex space-x-2">
-                    <button onclick="abrirModalProposta()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5">
-                        <span>➕</span>
-                        <span>Nova Proposta</span>
-                    </button>
-                </div>
+                <button onclick="abrirModalProposta()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5">
+                    <span>➕</span>
+                    <span>Nova Proposta</span>
+                </button>
             </div>
 
-            <!-- Filtros Combinados -->
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                <div>
-                    <label class="block text-slate-400 font-bold mb-1">Obra / Empreendimento:</label>
-                    <select id="filtro-obra" onchange="carregarPropostas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                        <option value="Todos">Todas as Obras</option>
-                        <option value="Vila real">Vila Real</option>
-                        <option value="Casa da Andreia">Casa da Andreia</option>
-                        <option value="Empreendimento X">Empreendimento X</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-slate-400 font-bold mb-1">Imobiliária Parceira:</label>
-                    <select id="filtro-imobiliaria" onchange="carregarPropostas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                        <option value="Todos">Todas as Imobiliárias</option>
-                        <option value="Imobiliária Alpha">Imobiliária Alpha</option>
-                        <option value="Parceira Imóveis">Parceira Imóveis</option>
-                        <option value="Nenhuma">Direto (Sem Imobiliária)</option>
-                    </select>
-                </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center gap-3 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Pesquisar Cliente / Código:</label>
-                    <input type="text" id="filtro-busca" placeholder="Ex: Bianca Oi..." onkeyup="carregarPropostas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                    <input type="text" id="filtro-busca" placeholder="Pesquisar..." onkeyup="carregarPropostas()" class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white w-64 focus:outline-none focus:border-amber-500">
                 </div>
             </div>
 
-            <!-- TABELA DE PROPOSTAS -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
                 <table class="w-full text-left text-xs border-collapse">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
                             <th class="p-4">Código</th>
                             <th class="p-4">Cliente</th>
-                            <th class="p-4">Origem / Imobiliária</th>
+                            <th class="p-4">Obra / Serviço</th>
                             <th class="p-4">Item / Unidade</th>
-                            <th class="p-4">Data Proposta</th>
                             <th class="p-4 text-right">Valor (R$)</th>
                             <th class="p-4 text-center">Status</th>
-                            <th class="p-4 text-center">Ações & Integração</th>
+                            <th class="p-4 text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tabela-propostas-corpo">
-                        <tr><td colspan="8" class="p-6 text-center text-slate-500">A carregar propostas...</td></tr>
+                        <tr><td colspan="7" class="p-6 text-center text-slate-500">A carregar propostas...</td></tr>
                     </tbody>
                 </table>
             </div>
-
         </main>
     </div>
 
-    <!-- MODAL: NOVA / EDITAR PROPOSTA -->
+    <!-- MODAL: NOVA PROPOSTA -->
     <div id="modal-proposta" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <div>
-                    <h3 id="modal-titulo" class="text-base font-bold text-white">Registar Nova Proposta Comercial</h3>
-                    <p class="text-xs text-slate-400">Configure os dados para sincronização com o financeiro e obras.</p>
-                </div>
-                <button type="button" onclick="fecharModalProposta()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+                <h3 id="modal-titulo" class="text-base font-bold text-white">Registar Nova Proposta Comercial</h3>
+                <button type="button" onclick="fecharModalProposta()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
             </div>
-
-            <input type="hidden" id="edit-id">
-
             <form onsubmit="salvarPropostaSupabase(event)" class="space-y-4 text-xs">
                 <div>
-                    <label class="block text-slate-400 font-bold mb-1">Nome do Cliente *</label>
-                    <input type="text" id="cad-cliente" required placeholder="Ex: Bianca Oi" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    <label class="block text-slate-400 font-bold mb-1">Cliente *</label>
+                    <select id="cad-cliente" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <option value="">A carregar clientes...</option>
+                    </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Obra / Empreendimento *</label>
                         <select id="cad-obra" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
-                            <option value="Vila real">Vila Real</option>
-                            <option value="Casa da Andreia">Casa da Andreia</option>
-                            <option value="Empreendimento X">Empreendimento X</option>
+                            <option value="">A carregar obras...</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Item / Unidade *</label>
-                        <input type="text" id="cad-item" required placeholder="Ex: Apto 405 - Bloco C" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <input type="text" id="cad-item" required placeholder="Ex: Lote 14 ou Fundação" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">Imobiliária Parceira</label>
-                        <select id="cad-imobiliaria" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
-                            <option value="Nenhuma">Nenhuma (Direto)</option>
-                            <option value="Imobiliária Alpha">Imobiliária Alpha</option>
-                            <option value="Parceira Imóveis">Parceira Imóveis</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">Valor Proposto (R$) *</label>
-                        <input type="number" step="0.01" id="cad-valor" required placeholder="216500.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
-                    </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Valor Proposto (R$) *</label>
+                    <input type="number" step="0.01" id="cad-valor" required placeholder="150000.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                 </div>
-
                 <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
-                    <button type="button" onclick="fecharModalProposta()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar Proposta na Nuvem</button>
+                    <button type="button" onclick="fecharModalProposta()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Salvar Proposta</button>
                 </div>
             </form>
         </div>
@@ -272,6 +229,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
+            carregarSelectsDinamicos();
             carregarPropostas();
         });
 
@@ -282,159 +240,77 @@
             document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
         }
 
-        function sair() {
-            localStorage.removeItem('torquato_user');
-            window.location.href = 'login.html';
+        function sair() { localStorage.removeItem('torquato_user'); window.location.href = 'login.html'; }
+
+        async function carregarSelectsDinamicos() {
+            const { data: clientes } = await supabaseClient.from('vendas_clientes').select('nome');
+            const selectCliente = document.getElementById('cad-cliente');
+            if (clientes) {
+                selectCliente.innerHTML = `<option value="">Selecione o cliente...</option>` + clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+            }
+
+            const { data: obras } = await supabaseClient.from('vendas_empreendimentos_obras').select('nome_obra');
+            const selectObra = document.getElementById('cad-obra');
+            if (obras) {
+                selectObra.innerHTML = `<option value="">Selecione a obra...</option>` + obras.map(o => `<option value="${o.nome_obra}">${o.nome_obra}</option>`).join('');
+            }
         }
 
         async function carregarPropostas() {
-            const obraFiltro = document.getElementById('filtro-obra').value;
-            const imobFiltro = document.getElementById('filtro-imobiliaria').value;
-            const busca = document.getElementById('filtro-busca').value.toLowerCase();
             const tbody = document.getElementById('tabela-propostas-corpo');
+            const { data, error } = await supabaseClient.from('vendas_propostas').select('*');
 
-            let query = supabaseClient.from('vendas_propostas').select('*');
-
-            if (obraFiltro !== 'Todos') query = query.eq('obra', obraFiltro);
-            if (imobFiltro !== 'Todos') query = query.eq('imobiliaria', imobFiltro);
-
-            const { data, error } = await query;
-
-            if (error) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erro ao carregar propostas: ${error.message}</td></tr>`;
+            if (error || !data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma proposta registada.</td></tr>`;
                 return;
             }
 
-            let lista = data || [];
-            if (busca) {
-                lista = lista.filter(p => p.cliente.toLowerCase().includes(busca) || p.codigo.includes(busca));
-            }
-
-            if (lista.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500">Nenhuma proposta encontrada.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = lista.map(p => {
-                let badgeClass = "bg-amber-500/20 text-amber-400 border border-amber-500/30";
-                if (p.status === 'Aprovada') badgeClass = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
-                if (p.status === 'Em análise') badgeClass = "bg-sky-500/20 text-sky-400 border border-sky-500/30";
-
-                return `
-                    <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition text-xs">
-                        <td class="p-4 font-bold text-white">#${p.codigo}</td>
-                        <td class="p-4 font-medium text-white">${p.cliente}</td>
-                        <td class="p-4 text-slate-300">${p.imobiliaria}</td>
-                        <td class="p-4 text-slate-300">${p.item_unidade} (${p.obra})</td>
-                        <td class="p-4 text-slate-400">${p.data_proposta}</td>
-                        <td class="p-4 text-right font-bold text-amber-400">R$ ${(p.valor_proposta || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                        <td class="p-4 text-center"><span class="${badgeClass} px-2.5 py-1 rounded-lg text-[10px] font-semibold">${p.status}</span></td>
-                        <td class="p-4 text-center space-x-1 whitespace-nowrap">
-                            ${p.status !== 'Aprovada' ? `<button onclick="aprovarEConverterProposta('${p.id}', '${p.cliente}', '${p.obra}',${p.valor_proposta})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg font-bold text-[10px] transition cursor-pointer">✅ Aprovar & Integrar</button>` : `<span class="text-emerald-400 font-bold text-[10px]">Integrado ✓</span>`}
-                            <button onclick="abrirEditarProposta('${p.id}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-2.5 py-1.5 rounded-lg font-bold text-[10px] transition cursor-pointer">✏️</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+            tbody.innerHTML = data.map(p => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                    <td class="p-4 font-bold text-white">#${p.codigo}</td>
+                    <td class="p-4 font-medium text-white">${p.cliente}</td>
+                    <td class="p-4 text-slate-300">${p.obra}</td>
+                    <td class="p-4 text-slate-300">${p.item_unidade}</td>
+                    <td class="p-4 text-right font-bold text-amber-400">R$ ${(p.valor_proposta || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="p-4 text-center"><span class="bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-lg text-[10px] font-bold">${p.status}</span></td>
+                    <td class="p-4 text-center space-x-1">
+                        ${p.status !== 'Aprovada' ? `<button onclick="aprovarProposta('${p.id}', '${p.cliente}', '${p.obra}',${p.valor_proposta})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded font-bold text-[10px] cursor-pointer">✅ Aprovar</button>` : `<span class="text-emerald-400 text-[10px] font-bold">Aprovada ✓</span>`}
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        async function aprovarEConverterProposta(idProposta, cliente, obraNome, valor) {
-            if (!confirm(`Deseja aprovar a proposta de ${cliente} para a obra "${obraNome}" no valor de R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}?\n\nIsso irá:\n1. Atualizar a proposta para Aprovada\n2. Gerar o registo no Contas a Receber\n3. Atualizar as unidades da obra no módulo de empreendimentos.`)) return;
-
-            await supabaseClient.from('vendas_propostas').update({ status: 'Aprovada' }).eq('id', idProposta);
-
-            const vencimentoPadrao = new Date();
-            vencimentoPadrao.setDate(vencimentoPadrao.getDate() + 30);
-            const dataVencimentoFormatada = vencimentoPadrao.toLocaleDateString('pt-BR');
-
-            const novoContasReceber = {
-                codigo: String(Math.floor(1000 + Math.random() * 9000)),
-                cliente,
-                valor,
-                vencimento: dataVencimentoFormatada,
-                status: 'Pendente',
-                obra: obraNome,
-                etiqueta: 'Venda de Imóvel / Proposta Aprovada'
-            };
-            await supabaseClient.from('financeiro_contas_receber').insert([novoContasReceber]);
-
-            const { data: obraReg } = await supabaseClient.from('vendas_empreendimentos_obras').select('*').eq('nome_obra', obraNome).single();
-            if (obraReg) {
-                const novasDisponiveis = Math.max(0, (obraReg.unidades_disponiveis || 1) - 1);
-                const novasVendidas = (obraReg.unidades_vendidas || 0) + 1;
-                const novoTotalVendas = (obraReg.valor_total_vendas || 0) + valor;
-
-                await supabaseClient.from('vendas_empreendimentos_obras').update({
-                    unidades_disponiveis: novasDisponiveis,
-                    unidades_vendidas: novasVendidas,
-                    valor_total_vendas: novoTotalVendas
-                }).eq('id', obraReg.id);
-            }
-
-            alert('Proposta aprovada e integrada com sucesso nos módulos de Contas a Receber e Obras!');
-            carregarPropostas();
-        }
-
-        function abrirModalProposta() {
-            document.getElementById('modal-titulo').innerText = "Registar Nova Proposta Comercial";
-            document.getElementById('edit-id').value = "";
-            document.getElementById('cad-cliente').value = "";
-            document.getElementById('cad-item').value = "";
-            document.getElementById('cad-valor').value = "";
-            document.getElementById('modal-proposta').classList.remove('hidden');
-        }
-
-        async function abrirEditarProposta(id) {
-            const { data, error } = await supabaseClient.from('vendas_propostas').select('*').eq('id', id).single();
-            if (error || !data) { alert('Erro ao carregar dados da proposta.'); return; }
-
-            document.getElementById('modal-titulo').innerText = `Editar Proposta #${data.codigo}`;
-            document.getElementById('edit-id').value = data.id;
-            document.getElementById('cad-cliente').value = data.cliente;
-            document.getElementById('cad-obra').value = data.obra;
-            document.getElementById('cad-item').value = data.item_unidade;
-            document.getElementById('cad-imobiliaria').value = data.imobiliaria;
-            document.getElementById('cad-valor').value = data.valor_proposta;
-
-            document.getElementById('modal-proposta').classList.remove('hidden');
-        }
-
-        function fecharModalProposta() {
-            document.getElementById('modal-proposta').classList.add('hidden');
-        }
+        function abrirModalProposta() { document.getElementById('modal-proposta').classList.remove('hidden'); }
+        function fecharModalProposta() { document.getElementById('modal-proposta').classList.add('hidden'); }
 
         async function salvarPropostaSupabase(e) {
             e.preventDefault();
-            const editId = document.getElementById('edit-id').value;
-            const cliente = document.getElementById('cad-cliente').value;
-            const obra = document.getElementById('cad-obra').value;
-            const item = document.getElementById('cad-item').value;
-            const imobiliaria = document.getElementById('cad-imobiliaria').value;
-            const valor = Number(document.getElementById('cad-valor').value);
+            const novaProposta = {
+                codigo: String(Math.floor(1000 + Math.random() * 9000)),
+                cliente: document.getElementById('cad-cliente').value,
+                obra: document.getElementById('cad-obra').value,
+                item_unidade: document.getElementById('cad-item').value,
+                imobiliaria: 'Direto',
+                data_proposta: new Date().toLocaleDateString('pt-BR'),
+                status: 'Em análise',
+                valor_proposta: Number(document.getElementById('cad-valor').value)
+            };
+            const { error } = await supabaseClient.from('vendas_propostas').insert([novaProposta]);
+            if (error) alert('Erro: ' + error.message);
+            else { alert('Proposta registada com sucesso!'); fecharModalProposta(); carregarPropostas(); }
+        }
 
-            if (editId) {
-                const { error } = await supabaseClient.from('vendas_propostas').update({ cliente, obra, item_unidade: item, imobiliaria, valor_proposta: valor }).eq('id', editId);
-                if (error) { alert('Erro ao atualizar: ' + error.message); return; }
-                alert('Proposta atualizada com sucesso!');
-            } else {
-                const novaProposta = {
-                    codigo: String(Math.floor(1000 + Math.random() * 9000)),
-                    cliente,
-                    obra,
-                    item_unidade: item,
-                    origem: imobiliaria === 'Nenhuma' ? 'Direto' : 'Imobiliária',
-                    imobiliaria,
-                    data_proposta: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-                    status: 'Em análise',
-                    valor_proposta: valor
-                };
+        async function aprovarProposta(id, cliente, obra, valor) {
+            if (!confirm(`Aprovar proposta de ${cliente} para a obra ${obra}?`)) return;
+            await supabaseClient.from('vendas_propostas').update({ status: 'Aprovada' }).eq('id', id);
+            
+            // Gerar Contas a Receber
+            await supabaseClient.from('financeiro_contas_receber').insert([{
+                codigo: String(Math.floor(1000 + Math.random() * 9000)),
+                cliente, obra, valor, status: 'Pendente', vencimento: new Date().toLocaleDateString('pt-BR'), etiqueta: 'Venda de Imóvel'
+            }]);
 
-                const { error } = await supabaseClient.from('vendas_propostas').insert([novaProposta]);
-                if (error) { alert('Erro ao guardar: ' + error.message); return; }
-                alert('Proposta registada com sucesso!');
-            }
-
-            fecharModalProposta();
+            alert('Proposta aprovada e integrada ao Contas a Receber!');
             carregarPropostas();
         }
     </script>
