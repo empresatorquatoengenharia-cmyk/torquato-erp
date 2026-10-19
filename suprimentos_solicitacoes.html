@@ -17,7 +17,7 @@
             <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
-                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Solicitações & Compras</p>
+                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Solicitações, Produtos & Obras Reais</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -28,7 +28,7 @@
 
     <!-- Layout Principal -->
     <div class="flex flex-1">
-        <!-- Sidebar de Navegação Unificada e Definitiva -->
+        <!-- Sidebar de Navegação Unificada -->
         <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
             <div class="space-y-6">
                 <div>
@@ -172,7 +172,7 @@
                         <thead>
                             <tr class="border-b border-slate-800 text-slate-400">
                                 <th class="p-4">Solicitação</th>
-                                <th class="p-4">Local de Consumo (Obra)</th>
+                                <th class="p-4">Local de Consumo (Obra / Matriz)</th>
                                 <th class="p-4">Produto</th>
                                 <th class="p-4">Quantidade</th>
                                 <th class="p-4">Prazo de Entrega</th>
@@ -225,7 +225,7 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-white">Nova Solicitação de Compra</h3>
-                    <p class="text-xs text-slate-400">Insira o produto, quantidade e obra de destino.</p>
+                    <p class="text-xs text-slate-400">Selecione o produto cadastrado e o local de consumo (Obra ou Matriz).</p>
                 </div>
                 <button type="button" onclick="fecharModalNovaSolicitacao()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -233,7 +233,9 @@
             <form onsubmit="salvarSolicitacaoSupabase(event)" class="space-y-4 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Produto / Insumo *</label>
-                    <input type="text" id="sol-produto" required placeholder="Ex: Cimento CP-1 50kg" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    <select id="sol-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                        <option value="">A carregar produtos...</option>
+                    </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -246,11 +248,9 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-slate-400 font-bold mb-1">Local de Consumo (Obra) *</label>
-                    <select id="sol-local" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
-                        <option value="Vila Real">Vila Real</option>
-                        <option value="Casa da Andreia">Casa da Andreia</option>
-                        <option value="Loteamento Tamandaré">Loteamento Tamandaré</option>
+                    <label class="block text-slate-400 font-bold mb-1">Local de Consumo (Obra / Matriz) *</label>
+                    <select id="sol-local" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                        <option value="">A carregar locais de consumo...</option>
                     </select>
                 </div>
 
@@ -269,6 +269,8 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
+            carregarProdutosSelect();
+            carregarLocaisSelect();
             carregarDadosSupabase();
         });
 
@@ -297,6 +299,27 @@
                 document.getElementById('secao-aprovacao').classList.remove('hidden');
                 document.getElementById('btn-aba-aprovacao').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
             }
+        }
+
+        async function carregarProdutosSelect() {
+            const { data, error } = await supabaseClient.from('suprimentos_produtos').select('*');
+            const selectProd = document.getElementById('sol-produto');
+            if (data && data.length > 0) {
+                selectProd.innerHTML = '<option value="">Selecione um produto cadastrado...</option>' + data.map(p => `<option value="${p.nome}">${p.nome} (${p.unidade || 'un'})</option>`).join('');
+            } else {
+                selectProd.innerHTML = '<option value="">Nenhum produto cadastrado no ERP</option>';
+            }
+        }
+
+        async function carregarLocaisSelect() {
+            let locais = [{ id: 'matriz', nome: 'Torquato Engenharia - Matriz' }];
+            const { data } = await supabaseClient.from('vendas_empreendimentos_obras').select('*');
+            if (data && data.length > 0) {
+                data.forEach(o => locais.push({ id: o.id, nome: o.nome_obra }));
+            }
+
+            const selectLocal = document.getElementById('sol-local');
+            selectLocal.innerHTML = '<option value="">Selecione o local de consumo...</option>' + locais.map(l => `<option value="${l.nome}">${l.nome}</option>`).join('');
         }
 
         async function carregarDadosSupabase() {
@@ -361,6 +384,8 @@
         }
 
         function abrirModalNovaSolicitacao() {
+            carregarProdutosSelect();
+            carregarLocaisSelect();
             document.getElementById('modal-solicitacao').classList.remove('hidden');
         }
 
