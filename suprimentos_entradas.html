@@ -28,7 +28,7 @@
 
     <!-- Layout Principal -->
     <div class="flex flex-1">
-        <!-- Sidebar de Navegação Unificada -->
+        <!-- Sidebar de Navegação Unificada e Definitiva -->
         <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
             <div class="space-y-6">
                 <div>
@@ -42,11 +42,23 @@
                 </div>
 
                 <div>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Comercial</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <a href="vendas_empreendimentos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
                             <span>🏢</span>
-                            <span>Matriz & Utilizadores</span>
+                            <span>Empreendimentos & Obras</span>
+                        </a>
+                        <a href="vendas_clientes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>👥</span>
+                            <span>Clientes & Compradores</span>
+                        </a>
+                        <a href="vendas_propostas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📄</span>
+                            <span>Propostas Comerciais</span>
+                        </a>
+                        <a href="vendas_imoveis.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏡</span>
+                            <span>Vendas & Contratos</span>
                         </a>
                     </nav>
                 </div>
@@ -66,6 +78,10 @@
                             <span>🚚</span>
                             <span>Entradas & Transferências</span>
                         </a>
+                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛒</span>
+                            <span>Solicitações & Compras</span>
+                        </a>
                         <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
                             <span>📦</span>
                             <span>Balanços de Estoque</span>
@@ -73,6 +89,50 @@
                         <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
                             <span>⚙️</span>
                             <span>Cadastros Gerais</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>💰</span>
+                            <span>Fluxo de Caixa</span>
+                        </a>
+                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📉</span>
+                            <span>Contas a Pagar</span>
+                        </a>
+                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📈</span>
+                            <span>Contas a Receber</span>
+                        </a>
+                        <a href="financeiro_notas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📄</span>
+                            <span>Notas Fiscais</span>
+                        </a>
+                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Tributos & Impostos</span>
+                        </a>
+                        <a href="financeiro_contas_bancarias.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏦</span>
+                            <span>Contas Bancárias</span>
+                        </a>
+                        <a href="financeiro_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Indexadores & Regras</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛡️</span>
+                            <span>Matriz & Utilizadores</span>
                         </a>
                     </nav>
                 </div>
