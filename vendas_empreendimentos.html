@@ -273,7 +273,7 @@
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                     <div class="flex justify-between items-start border-b border-slate-800 pb-3">
                         <div>
-                            <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 uppercase">${e.tipo_obra}</span>
+                            <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 uppercase">${e.tipo_obra || 'Obra'}</span>
                             <h3 class="text-base font-bold text-white mt-1">${e.nome_obra}</h3>
                             <p class="text-xs text-slate-400">📍 ${e.localizacao} | 👤 Cliente: <strong class="text-amber-300">${e.cliente_vinculado || 'Não vinculado'}</strong></p>
                         </div>
@@ -309,10 +309,10 @@
             document.getElementById('modal-titulo').innerText = `Editar Obra: ${data.nome_obra}`;
             document.getElementById('edit-id').value = data.id;
             document.getElementById('cad-nome').value = data.nome_obra;
-            document.getElementById('cad-tipo').value = data.tipo_obra;
-            document.getElementById('cad-local').value = data.localizacao;
+            document.getElementById('cad-tipo').value = data.tipo_obra || 'Obra Própria';
+            document.getElementById('cad-local').value = data.localizacao || '';
             document.getElementById('cad-cliente').value = data.cliente_vinculado || '';
-            document.getElementById('cad-unidades').value = data.unidades_disponiveis;
+            document.getElementById('cad-unidades').value = data.unidades_disponiveis || 1;
             document.getElementById('modal-obra').classList.remove('hidden');
         }
 
@@ -329,7 +329,7 @@
 
             if (editId) {
                 const { error } = await supabaseClient.from('vendas_empreendimentos_obras').update({
-                    nome_obra: nome, type_obra: tipo, localizacao: local, cliente_vinculado: cliente, unidades_disponiveis: unidades
+                    nome_obra: nome, tipo_obra: tipo, localizacao: local, cliente_vinculado: cliente, unidades_disponiveis: unidades
                 }).eq('id', editId);
                 if (error) alert('Erro: ' + error.message);
                 else alert('Obra atualizada com sucesso!');
