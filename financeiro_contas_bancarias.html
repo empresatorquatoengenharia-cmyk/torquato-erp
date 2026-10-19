@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Contas Bancárias & Conciliação</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
+
+    <!-- Header Principal -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
+                <p class="text-[10px] text-slate-400">Módulo Financeiro • Contas Bancárias, Extratos & Conciliação</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nome-usuario" class="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">A carregar...</span>
+            <button onclick="sair()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">Sair</button>
+        </div>
+    </header>
+
+    <!-- Layout Principal -->
+    <div class="flex flex-1">
+        <!-- Sidebar de Navegação Unificada -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏢</span>
+                            <span>Matriz & Utilizadores</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Produtos & Insumos</span>
+                        </a>
+                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📍</span>
+                            <span>Locais de Estoque</span>
+                        </a>
+                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🚚</span>
+                            <span>Entradas & Transferências</span>
+                        </a>
+                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛒</span>
+                            <span>Solicitações & Compras</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>💰</span>
+                            <span>Fluxo de Caixa</span>
+                        </a>
+                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📉</span>
+                            <span>Contas a Pagar</span>
+                        </a>
+                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📈</span>
+                            <span>Contas a Receber</span>
+                        </a>
+                        <a href="financeiro_notas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📄</span>
+                            <span>Notas Fiscais</span>
+                        </a>
+                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Tributos & Impostos</span>
+                        </a>
+                        <a href="financeiro_contas_bancarias.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>🏦</span>
+                            <span>Contas Bancárias</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
+            </div>
+        </aside>
+
+        <!-- Conteúdo Central -->
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
+            
+            <!-- Barra de Ações & Abas Superiores -->
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <div class="flex space-x-2">
+                    <button id="btn-aba-contas" onclick="mudarAba('contas')" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Contas Cadastradas</button>
+                    <button id="btn-aba-extrato" onclick="mudarAba('extrato')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Extrato & Conciliação Bancária</button>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="abrirModalConta()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5">
+                        <span>➕</span>
+                        <span>Adicionar Conta Bancária</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SEÇÃO 1: CONTAS BANCÁRIAS -->
+            <div id="secao-contas" class="space-y-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
+                                <th class="p-4">Código</th>
+                                <th class="p-4">Nome da Conta</th>
+                                <th class="p-4">Tipo</th>
+                                <th class="p-4">Titular</th>
+                                <th class="p-4">Banco / Agência / Conta</th>
+                                <th class="p-4 text-right">Saldo Atual (R$)</th>
+                                <th class="p-4 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-contas-corpo">
+                            <tr><td colspan="7" class="p-6 text-center text-slate-500">A carregar contas bancárias...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SEÇÃO 2: EXTRATO & CONCILIAÇÃO BANCÁRIA -->
+            <div id="secao-extrato" class="hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between text-xs">
+                    <div>
+                        <h3 class="font-bold text-white text-sm">Conciliação Bancária & Extrato</h3>
+                        <p class="text-slate-400">Vincule os lançamentos pendentes do extrato bancário com as contas a pagar/receber.</p>
+                    </div>
+                    <div>
+                        <select id="filtro-conta-extrato" onchange="carregarExtrato()" class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                            <option value="todos">Todas as Contas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
+                                <th class="p-4">Código</th>
+                                <th class="p-4">Data</th>
+                                <th class="p-4">Tipo</th>
+                                <th class="p-4">Descrição do Extrato</th>
+                                <th class="p-4">Classificação</th>
+                                <th class="p-4 text-right">Valor (R$)</th>
+                                <th class="p-4 text-center">Status / Conciliação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-extrato-corpo">
+                            <tr><td colspan="7" class="p-6 text-center text-slate-500">A carregar extrato...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: ADICIONAR CONTA BANCÁRIA -->
+    <div id="modal-conta" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-white">Adicionar Conta Bancária / Caixa</h3>
+                    <p class="text-xs text-slate-400">Preencha os dados bancários e saldo inicial para o fluxo de caixa.</p>
+                </div>
+                <button type="button" onclick="fecharModalConta()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form onsubmit="salvarContaSupabase(event)" class="space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Tipo de Conta *</label>
+                        <select id="cad-tipo-conta" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                            <option value="Conta Corrente">Conta Corrente</option>
+                            <option value="Caixa Físico">Caixa Físico</option>
+                            <option value="Aplicação">Aplicação Financeira</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Nome da Conta *</label>
+                        <input type="text" id="cad-nome" required placeholder="Ex: Banco Cora Sede" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Banco *</label>
+                        <input type="text" id="cad-banco" required placeholder="Ex: Banco Cora / Caixa" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Nome do Titular *</label>
+                        <input type="text" id="cad-titular" required placeholder="Torquato Engenharia" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Agência</label>
+                        <input type="text" id="cad-agencia" placeholder="0001" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Conta & Dígito</label>
+                        <input type="text" id="cad-conta" placeholder="12345-6" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Saldo Inicial (R$) *</label>
+                        <input type="number" step="0.01" id="cad-saldo" required value="0" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Chave Pix</label>
+                        <input type="text" id="cad-pix" placeholder="CNPJ ou E-mail" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div class="flex items-center space-x-2 pt-6">
+                        <input type="checkbox" id="cad-cheques" class="rounded bg-slate-950 border-slate-800 text-amber-500">
+                        <label for="cad-cheques" class="text-slate-300 font-bold">Esta conta emite cheques</label>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+                    <button type="button" onclick="fecharModalConta()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar Conta na Nuvem</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarSessao();
+            carregarContasBancarias();
+            carregarExtrato();
+        });
+
+        function verificarSessao() {
+            const usuarioJSON = localStorage.getItem('torquato_user');
+            if (!usuarioJSON) { window.location.href = 'login.html'; return; }
+            const usuario = JSON.parse(usuarioJSON);
+            document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
+        }
+
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
+
+        function mudarAba(aba) {
+            if (aba === 'contas') {
+                document.getElementById('secao-contas').classList.remove('hidden');
+                document.getElementById('secao-extrato').classList.add('hidden');
+                document.getElementById('btn-aba-contas').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+                document.getElementById('btn-aba-extrato').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+            } else {
+                document.getElementById('secao-contas').classList.add('hidden');
+                document.getElementById('secao-extrato').classList.remove('hidden');
+                document.getElementById('btn-aba-extrato').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+                document.getElementById('btn-aba-contas').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+            }
+        }
+
+        async function carregarContasBancarias() {
+            const tbody = document.getElementById('tabela-contas-corpo');
+            const selectFiltro = document.getElementById('filtro-conta-extrato');
+
+            const { data, error } = await supabaseClient.from('financeiro_contas_bancarias').select('*');
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-red-400">Erro ao carregar contas: ${error.message}</td></tr>`;
+                return;
+            }
+
+            const lista = data || [];
+            if (lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma conta bancária registada.</td></tr>`;
+                return;
+            }
+
+            selectFiltro.innerHTML = `<option value="todos">Todas as Contas</option>` + lista.map(c => `<option value="${c.id}">${c.nome} (${c.banco})</option>`).join('');
+
+            tbody.innerHTML = lista.map(c => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition text-xs">
+                    <td class="p-4 font-bold text-white">#${c.codigo}</td>
+                    <td class="p-4 font-medium text-white">${c.nome}</td>
+                    <td class="p-4 text-slate-300">${c.tipo_conta}</td>
+                    <td class="p-4 text-slate-400">${c.titular}</td>
+                    <td class="p-4 text-slate-300">${c.banco} • Ag: ${c.agencia || '-'} • CC: ${c.conta || '-'}</td>
+                    <td class="p-4 text-right font-bold text-emerald-400">R$ ${(c.saldo_atual || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="mudarAba('extrato')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">Extrato</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function carregarExtrato() {
+            const tbody = document.getElementById('tabela-extrato-corpo');
+            const { data, error } = await supabaseClient.from('financeiro_extrato').select('*');
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-red-400">Erro ao carregar extrato: ${error.message}</td></tr>`;
+                return;
+            }
+
+            const lista = data || [];
+            if (lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhum movimento no extrato.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = lista.map(e => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition text-xs">
+                    <td class="p-4 font-bold text-white">#${e.codigo}</td>
+                    <td class="p-4 text-slate-300">${e.data}</td>
+                    <td class="p-4 font-bold ${e.tipo === 'Entrada' ? 'text-sky-400' : 'text-rose-400'}">${e.tipo}</td>
+                    <td class="p-4 text-white">${e.descricao}</td>
+                    <td class="p-4 text-slate-300">${e.classificacao}</td>
+                    <td class="p-4 text-right font-bold ${e.tipo === 'Entrada' ? 'text-sky-400' : 'text-rose-400'}">R$ ${(e.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="p-4 text-center">
+                        ${e.conciliado ? '<span class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg text-[10px] font-semibold">Conciliado ✓</span>' : '<button onclick="confirmarConciliacao(\''+e.id+'\')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1 rounded text-[10px] transition cursor-pointer">Confirmar Conciliação</button>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function confirmarConciliacao(id) {
+            const { error } = await supabaseClient.from('financeiro_extrato').update({ conciliado: true }).eq('id', id);
+            if (!error) {
+                alert('Movimentação conciliada com sucesso no sistema!');
+                carregarExtrato();
+            }
+        }
+
+        function abrirModalConta() {
+            document.getElementById('modal-conta').classList.remove('hidden');
+        }
+
+        function fecharModalConta() {
+            document.getElementById('modal-conta').classList.add('hidden');
+        }
+
+        async function salvarContaSupabase(e) {
+            e.preventDefault();
+            const tipoConta = document.getElementById('cad-tipo-conta').value;
+            const nome = document.getElementById('cad-nome').value;
+            const banco = document.getElementById('cad-banco').value;
+            const titular = document.getElementById('cad-titular').value;
+            const agencia = document.getElementById('cad-agencia').value;
+            const conta = document.getElementById('cad-conta').value;
+            const saldo = Number(document.getElementById('cad-saldo').value);
+            const pix = document.getElementById('cad-pix').value;
+            const cheques = document.getElementById('cad-cheques').checked;
+
+            const novaConta = {
+                codigo: String(Math.floor(100 + Math.random() * 900)),
+                nome,
+                tipo_conta: tipoConta,
+                titular,
+                banco,
+                agencia,
+                conta,
+                saldo_inicial: saldo,
+                saldo_atual: saldo,
+                chave_pix: pix,
+                emite_cheques: cheques
+            };
+
+            const { error } = await supabaseClient.from('financeiro_contas_bancarias').insert([novaConta]);
+
+            if (error) {
+                alert('Erro ao guardar conta: ' + error.message);
+            } else {
+                alert('Conta bancária registada com sucesso na nuvem!');
+                fecharModalConta();
+                carregarContasBancarias();
+            }
+        }
+    </script>
+</body>
+</html>
