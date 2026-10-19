@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Gestão de Tributos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
+
+    <!-- Header Principal -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
+                <p class="text-[10px] text-slate-400">Módulo Financeiro • Gestão de Tributos & Obrigações Fiscais</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nome-usuario" class="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">A carregar...</span>
+            <button onclick="sair()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">Sair</button>
+        </div>
+    </header>
+
+    <!-- Layout Principal -->
+    <div class="flex flex-1">
+        <!-- Sidebar de Navegação Unificada -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏢</span>
+                            <span>Matriz & Utilizadores</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Produtos & Insumos</span>
+                        </a>
+                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📍</span>
+                            <span>Locais de Estoque</span>
+                        </a>
+                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🚚</span>
+                            <span>Entradas & Transferências</span>
+                        </a>
+                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛒</span>
+                            <span>Solicitações & Compras</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>💰</span>
+                            <span>Fluxo de Caixa</span>
+                        </a>
+                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📉</span>
+                            <span>Contas a Pagar</span>
+                        </a>
+                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📈</span>
+                            <span>Contas a Receber</span>
+                        </a>
+                        <a href="financeiro_notas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📄</span>
+                            <span>Notas Fiscais</span>
+                        </a>
+                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>🏷️</span>
+                            <span>Tributos & Impostos</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
+            </div>
+        </aside>
+
+        <!-- Conteúdo Central -->
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
+            
+            <!-- Barra de Ações & Filtros Superiores -->
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Gestão de Tributos</h2>
+                    <p class="text-xs text-slate-400">Organize impostos recorrentes, competências e sincronize automaticamente com o Contas a Pagar.</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer">
+                        <span>📄</span>
+                        <span>Exportar Relatório</span>
+                    </button>
+                    <button onclick="abrirModalTributo()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5">
+                        <span>➕</span>
+                        <span>Adicionar Tributo</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros Superiores -->
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex items-center space-x-3">
+                    <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-xl font-bold">Vencimento: No mês 05/2026 ✕</span>
+                </div>
+                <div>
+                    <input type="text" id="filtro-busca" placeholder="Buscar por tributo ou obra..." onkeyup="carregarTributos()" class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white w-64 focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+
+            <!-- TABELA DE TRIBUTOS -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
+                            <th class="p-4">Tipo de Tributo (Sigla)</th>
+                            <th class="p-4">Centro de Custo</th>
+                            <th class="p-4">Número do Documento</th>
+                            <th class="p-4">Emissão</th>
+                            <th class="p-4">Vencimento</th>
+                            <th class="p-4 text-right">Valor (R$)</th>
+                            <th class="p-4 text-center">Status</th>
+                            <th class="p-4 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-tributos-corpo">
+                        <tr><td colspan="8" class="p-6 text-center text-slate-500">A carregar tributos do Supabase...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: ADICIONAR TRIBUTO (Inspirado no Koper) -->
+    <div id="modal-tributo" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-white">Adicionar Tributo / Imposto</h3>
+                    <p class="text-xs text-slate-400">Ao salvar, o imposto será inserido nos Tributos e sincronizado automaticamente no Contas a Pagar.</p>
+                </div>
+                <button type="button" onclick="fecharModalTributo()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form onsubmit="salvarTributoSupabase(event)" class="space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Tipo de Tributo *</label>
+                        <select id="cad-tipo" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                            <option value="INSS">INSS</option>
+                            <option value="FGTS">FGTS</option>
+                            <option value="PIS">PIS</option>
+                            <option value="COFINS">COFINS</option>
+                            <option value="DARF">DARF (IRPJ/CSLL)</option>
+                            <option value="ISS">ISS (Municipal)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Centro de Custo (Obra) *</label>
+                        <select id="cad-centro" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                            <option value="Matriz">Matriz / Sede</option>
+                            <option value="Residencial Palácio dos Andes">Residencial Palácio dos Andes</option>
+                            <option value="Casas Flores da Praia">Casas Flores da Praia</option>
+                            <option value="Casa da Andreia">Casa da Andreia</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Vencimento *</label>
+                        <input type="date" id="cad-vencimento" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white" onchange="calcularValorTotal()">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Período de Apuração</label>
+                        <input type="text" id="cad-apuracao" placeholder="Ex: 04/2026" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Valor Principal (R$) *</label>
+                        <input type="number" step="0.01" id="cad-valor" required placeholder="500.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white" oninput="calcularValorTotal()">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-3 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <div>
+                        <label class="block text-slate-500 mb-1">Desconto (R$)</label>
+                        <input type="number" step="0.01" value="0" id="cad-desconto" oninput="calcularValorTotal()" class="w-full bg-slate-900 border border-slate-800 p-2 rounded-lg text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-500 mb-1">Juros (R$)</label>
+                        <input type="number" step="0.01" value="0" id="cad-juros" oninput="calcularValorTotal()" class="w-full bg-slate-900 border border-slate-800 p-2 rounded-lg text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-500 mb-1">Multa (R$)</label>
+                        <input type="number" step="0.01" value="0" id="cad-multa" oninput="calcularValorTotal()" class="w-full bg-slate-900 border border-slate-800 p-2 rounded-lg text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-500 mb-1">Outros Acréscimos</label>
+                        <input type="number" step="0.01" value="0" id="cad-acrescimos" oninput="calcularValorTotal()" class="w-full bg-slate-900 border border-slate-800 p-2 rounded-lg text-white">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <span class="text-sm font-bold text-slate-300">Valor Total Consolidado:</span>
+                    <strong id="label-valor-total" class="text-amber-400 text-lg">R$ 0,00</strong>
+                </div>
+
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Observações</label>
+                    <textarea id="cad-obs" rows="2" placeholder="Observações do imposto..." class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+                    <button type="button" onclick="fecharModalTributo()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar & Sincronizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarSessao();
+            carregarTributos();
+        });
+
+        function verificarSessao() {
+            const usuarioJSON = localStorage.getItem('torquato_user');
+            if (!usuarioJSON) { window.location.href = 'login.html'; return; }
+            const usuario = JSON.parse(usuarioJSON);
+            document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
+        }
+
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
+
+        async function carregarTributos() {
+            const busca = document.getElementById('filtro-busca').value.toLowerCase();
+            const tbody = document.getElementById('tabela-tributos-corpo');
+
+            const { data, error } = await supabaseClient.from('financeiro_tributos').select('*');
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erro ao carregar do Supabase: ${error.message}</td></tr>`;
+                return;
+            }
+
+            let lista = data || [];
+            if (busca) {
+                lista = lista.filter(t => t.tipo_tributo.toLowerCase().includes(busca) || t.centro_custo.toLowerCase().includes(busca));
+            }
+
+            if (lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500">Nenhum tributo cadastrado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = lista.map(t => {
+                let badgeClass = "bg-slate-800 text-slate-300";
+                if (t.status === 'Atrasado') badgeClass = "bg-rose-500/20 text-rose-400 border border-rose-500/30";
+                if (t.status === 'Pago') badgeClass = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                if (t.status === 'Não consolidado') badgeClass = "bg-amber-500/20 text-amber-400 border border-amber-500/30";
+
+                return `
+                    <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition text-xs">
+                        <td class="p-4 font-bold text-white">${t.tipo_tributo}</td>
+                        <td class="p-4 text-slate-300">${t.centro_custo}</td>
+                        <td class="p-4 text-slate-400">${t.numero_documento || '-'}</td>
+                        <td class="p-4 text-slate-400">${t.emissao}</td>
+                        <td class="p-4 text-slate-300">${t.vencimento}</td>
+                        <td class="p-4 text-right font-bold text-amber-400">R$ ${(t.valor_total || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                        <td class="p-4 text-center"><span class="${badgeClass} px-2.5 py-1 rounded-lg text-[10px] font-semibold">${t.status}</span></td>
+                        <td class="p-4 text-center">
+                            <span class="text-slate-400 hover:text-amber-400 cursor-pointer text-sm" title="Anexo disponível">📎</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function abrirModalTributo() {
+            document.getElementById('modal-tributo').classList.remove('hidden');
+        }
+
+        function fecharModalTributo() {
+            document.getElementById('modal-tributo').classList.add('hidden');
+        }
+
+        function calcularValorTotal() {
+            const val = Number(document.getElementById('cad-valor').value || 0);
+            const desc = Number(document.getElementById('cad-desconto').value || 0);
+            const jur = Number(document.getElementById('cad-juros').value || 0);
+            const mul = Number(document.getElementById('cad-multa').value || 0);
+            const othr = Number(document.getElementById('cad-acrescimos').value || 0);
+
+            const total = (val - desc) + jur + mul + othr;
+            document.getElementById('label-valor-total').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            return total;
+        }
+
+        async function salvarTributoSupabase(e) {
+            e.preventDefault();
+            const tipo = document.getElementById('cad-tipo').value;
+            const centro = document.getElementById('cad-centro').value;
+            const vencimentoIso = document.getElementById('cad-vencimento').value;
+            const vencimento = vencimentoIso.split('-').reverse().join('/');
+            const apuracao = document.getElementById('cad-apuracao').value.trim() || '-';
+            const valor = Number(document.getElementById('cad-valor').value);
+            const valorTotal = calcularValorTotal();
+            const obs = document.getElementById('cad-obs').value;
+
+            const novoTributo = {
+                codigo: String(Math.floor(1000 + Math.random() * 9000)),
+                tipo_tributo: tipo,
+                centro_custo: centro,
+                numero_documento: apuracao,
+                emissao: new Date().toLocaleDateString('pt-BR'),
+                vencimento,
+                periodo_apuracao: apuracao,
+                valor,
+                valor_total: valorTotal,
+                status: 'Não consolidado',
+                observacoes: obs
+            };
+
+            // 1. Grava na tabela de tributos
+            const { error: errTributo } = await supabaseClient.from('financeiro_tributos').insert([novoTributo]);
+            if (errTributo) {
+                alert('Erro ao guardar tributo: ' + errTributo.message);
+                return;
+            }
+
+            // 2. Sincroniza automaticamente criando o registo correspondente no Contas a Pagar
+            const novaContaPagar = {
+                codigo: novoTributo.codigo,
+                nfe: apuracao,
+                beneficiario: `Governo / Receita (${tipo})`,
+                valor: valorTotal,
+                vencimento,
+                status: 'Pendente',
+                obra: centro,
+                etiqueta: `Tributo - ${tipo}`
+            };
+
+            await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
+
+            alert('Tributo cadastrado e sincronizado automaticamente com o Contas a Pagar na nuvem!');
+            fecharModalTributo();
+            carregarTributos();
+        }
+    </script>
+</body>
+</html>
