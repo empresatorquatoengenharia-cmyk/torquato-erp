@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torquato ERP - Cadastros & Hierarquia de Suprimentos</title>
+    <title>Torquato ERP - Cadastros & Fornecedores</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client -->
@@ -17,7 +17,7 @@
             <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
-                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Parâmetros & Hierarquia</p>
+                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Parâmetros & Fornecedores</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -28,7 +28,7 @@
 
     <!-- Layout Principal -->
     <div class="flex flex-1">
-        <!-- Sidebar de Navegação Unificada e Definitiva -->
+        <!-- Sidebar de Navegação Unificada -->
         <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
             <div class="space-y-6">
                 <div>
@@ -144,11 +144,11 @@
         </aside>
 
         <!-- Conteúdo Central -->
-        <main class="flex-1 p-8 max-w-6xl space-y-6">
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
             <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
                 <div>
                     <h2 class="text-xl font-bold text-white">Hierarquia e Parâmetros de Suprimentos</h2>
-                    <p class="text-xs text-slate-400">Gerencie unidades, categorias, subcategorias e fornecedores do ERP.</p>
+                    <p class="text-xs text-slate-400">Gerencie unidades, categorias, subcategorias e o cadastro completo de fornecedores.</p>
                 </div>
                 <!-- Abas de Navegação interna -->
                 <div class="flex flex-wrap items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 text-xs">
@@ -159,10 +159,10 @@
                 </div>
             </div>
 
-            <!-- Formulário de Cadastro / Edição Dinâmico -->
-            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+            <!-- Formulário de Cadastro / Edição Dinâmico (Unidades / Categorias / Subcategorias) -->
+            <div id="form-padrao-wrapper" class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
                 <h3 class="text-sm font-bold text-amber-400" id="form-titulo">Adicionar Novo Registo</h3>
-                <form onsubmit="salvarCadastro(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <form onsubmit="salvarCadastroPadrao(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                     <input type="hidden" id="item-id">
                     
                     <div id="wrapper-campo-0" class="hidden md:col-span-3">
@@ -182,6 +182,40 @@
                     <div class="md:col-span-3 flex items-center justify-end space-x-3">
                         <button type="button" onclick="limparFormulario()" id="btn-cancelar-edicao" class="hidden px-4 py-2 bg-slate-800 text-slate-300 rounded-xl cursor-pointer">Cancelar</button>
                         <button type="submit" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar Registo</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Formulário Completo de Cadastro de Fornecedores (Visível Apenas na Aba Fornecedores) -->
+            <div id="form-fornecedor-wrapper" class="hidden bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+                <h3 class="text-sm font-bold text-amber-400">Registo Completo de Fornecedor</h3>
+                <form onsubmit="salvarFornecedorCompleto(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <input type="hidden" id="forn-id">
+
+                    <div class="md:col-span-2">
+                        <label class="block text-slate-400 font-bold mb-1">Nome Completo / Razão Social *</label>
+                        <input type="text" id="forn-nome" required placeholder="Ex: Comércio de Materiais Ltda" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">CPF / CNPJ *</label>
+                        <input type="text" id="forn-cpf-cnpj" required placeholder="Ex: 00.000.000/0001-00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-slate-400 font-bold mb-1">Endereço Completo *</label>
+                        <input type="text" id="forn-endereco" required placeholder="Ex: Rua das Obras, 100 - Centro, Belo Horizonte - MG" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Inscrição Estadual (IE)</label>
+                        <input type="text" id="forn-ie" placeholder="Ex: Isento ou número" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Inscrição Municipal (IM)</label>
+                        <input type="text" id="forn-im" placeholder="Ex: Número municipal" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                    </div>
+
+                    <div class="md:col-span-3 flex items-center justify-end space-x-3 pt-2">
+                        <button type="button" onclick="limparFormularioFornecedor()" id="btn-cancelar-forn" class="hidden px-4 py-2 bg-slate-800 text-slate-300 rounded-xl cursor-pointer">Cancelar</button>
+                        <button type="submit" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar Fornecedor</button>
                     </div>
                 </form>
             </div>
@@ -246,6 +280,7 @@
         function mudarAba(aba) {
             abaAtual = aba;
             limparFormulario();
+            limparFormularioFornecedor();
 
             ['unidades', 'cat_produtos', 'sub_produtos', 'cat_fornecedores'].forEach(a => {
                 const btn = document.getElementById(`btn-aba-${a}`);
@@ -257,31 +292,36 @@
             });
 
             const wrapperPai = document.getElementById('wrapper-campo-0');
+            const formPadrao = document.getElementById('form-padrao-wrapper');
+            const formForn = document.getElementById('form-fornecedor-wrapper');
 
-            if (aba === 'sub_produtos') {
-                wrapperPai.classList.remove('hidden');
-                document.getElementById('form-titulo').innerText = "Adicionar Nova Subcategoria";
-                document.getElementById('label-campo-1').innerText = "Nome da Subcategoria (Ex: Aço CA-50)";
-                document.getElementById('input-campo-1').placeholder = "Ex: Aço CA-50";
-                document.getElementById('label-campo-2').innerText = "Descrição";
-                document.getElementById('input-campo-2').placeholder = "Ex: Barras para armadura";
+            if (aba === 'cat_fornecedores') {
+                formPadrao.classList.add('hidden');
+                formForn.classList.remove('hidden');
             } else {
-                wrapperPai.classList.add('hidden');
-                if (aba === 'unidades') {
-                    document.getElementById('form-titulo').innerText = "Adicionar Nova Unidade de Medida";
-                    document.getElementById('label-campo-1').innerText = "Sigla (Ex: kg, m²)";
-                    document.getElementById('input-campo-1').placeholder = "Ex: kg";
-                    document.getElementById('label-campo-2').innerText = "Descrição Completa";
-                } else if (aba === 'cat_produtos') {
-                    document.getElementById('form-titulo').innerText = "Adicionar Nova Categoria de Produtos";
-                    document.getElementById('label-campo-1').innerText = "Nome da Categoria";
-                    document.getElementById('input-campo-1').placeholder = "Ex: Armaduras";
+                formForn.classList.add('hidden');
+                formPadrao.classList.remove('hidden');
+
+                if (aba === 'sub_produtos') {
+                    wrapperPai.classList.remove('hidden');
+                    document.getElementById('form-titulo').innerText = "Adicionar Nova Subcategoria";
+                    document.getElementById('label-campo-1').innerText = "Nome da Subcategoria (Ex: Aço CA-50)";
+                    document.getElementById('input-campo-1').placeholder = "Ex: Aço CA-50";
                     document.getElementById('label-campo-2').innerText = "Descrição";
+                    document.getElementById('input-campo-2').placeholder = "Ex: Barras para armadura";
                 } else {
-                    document.getElementById('form-titulo').innerText = "Adicionar Categoria de Fornecedores";
-                    document.getElementById('label-campo-1').innerText = "Nome da Categoria";
-                    document.getElementById('input-campo-1').placeholder = "Ex: Empreiteiros";
-                    document.getElementById('label-campo-2').innerText = "Descrição";
+                    wrapperPai.classList.add('hidden');
+                    if (aba === 'unidades') {
+                        document.getElementById('form-titulo').innerText = "Adicionar Nova Unidade de Medida";
+                        document.getElementById('label-campo-1').innerText = "Sigla (Ex: kg, m²)";
+                        document.getElementById('input-campo-1').placeholder = "Ex: kg";
+                        document.getElementById('label-campo-2').innerText = "Descrição Completa";
+                    } else if (aba === 'cat_produtos') {
+                        document.getElementById('form-titulo').innerText = "Adicionar Nova Categoria de Produtos";
+                        document.getElementById('label-campo-1').innerText = "Nome da Categoria";
+                        document.getElementById('input-campo-1').placeholder = "Ex: Armaduras";
+                        document.getElementById('label-campo-2').innerText = "Descrição";
+                    }
                 }
             }
 
@@ -293,17 +333,47 @@
             const tabelaCabecalho = document.getElementById('tabela-cabecalho');
             const tituloTabela = document.getElementById('tabela-titulo');
 
-            tabelaCorpo.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">A carregar...</td></tr>`;
+            tabelaCorpo.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">A carregar...</td></tr>`;
 
-            let nomeTabela = '';
-            if (abaAtual === 'unidades') nomeTabela = 'unidades_medida';
-            else if (abaAtual === 'cat_produtos') nomeTabela = 'categorias_produtos';
-            else if (abaAtual === 'sub_produtos') nomeTabela = 'subcategorias_produtos';
-            else nomeTabela = 'categorias_fornecedores';
+            if (abaAtual === 'cat_fornecedores') {
+                tituloTabela.innerText = 'Lista de Fornecedores Cadastrados';
+                tabelaCabecalho.innerHTML = `
+                    <th class="p-3">Razão Social / Nome</th>
+                    <th class="p-3">CPF / CNPJ</th>
+                    <th class="p-3">Endereço</th>
+                    <th class="p-3">Inscrição Estadual</th>
+                    <th class="p-3">Inscrição Municipal</th>
+                    <th class="p-3 text-right">Ações</th>
+                `;
 
-            tituloTabela.innerText = abaAtual === 'sub_produtos' ? 'Lista de Subcategorias Cadastradas' : 'Lista de Registos';
+                const { data, error } = await supabaseClient.from('categorias_fornecedores').select('*').order('id', { ascending: true });
 
-            if (abaAtual === 'sub_produtos') {
+                if (error) {
+                    tabelaCorpo.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Erro: ${error.message}</td></tr>`;
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    tabelaCorpo.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">Nenhum fornecedor cadastrado.</td></tr>`;
+                    return;
+                }
+
+                tabelaCorpo.innerHTML = data.map(item => `
+                    <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                        <td class="p-3 font-medium text-white">${item.nome || item.razao_social || '-'}</td>
+                        <td class="p-3 text-amber-300 font-mono">${item.cpf_cnpj || '-'}</td>
+                        <td class="p-3 text-slate-300">${item.endereco || '-'}</td>
+                        <td class="p-3 text-slate-300">${item.inscricao_estadual || '-'}</td>
+                        <td class="p-3 text-slate-300">${item.inscricao_municipal || '-'}</td>
+                        <td class="p-3 text-right space-x-2">
+                            <button onclick="prepararEdicaoFornecedor(${item.id}, '${item.nome || item.razao_social || ''}', '${item.cpf_cnpj || ''}', '${item.endereco || ''}', '${item.inscricao_estadual || ''}', '${item.inscricao_municipal || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Editar</button>
+                            <button onclick="excluirRegisto(${item.id}, 'categorias_fornecedores')" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } else if (abaAtual === 'sub_produtos') {
+                tituloTabela.innerText = 'Lista de Subcategorias Cadastradas';
                 tabelaCabecalho.innerHTML = `
                     <th class="p-3">Categoria Pai</th>
                     <th class="p-3">Subcategoria</th>
@@ -316,12 +386,7 @@
                     .select('id, nome, descricao, categoria_id, categorias_produtos(nome)')
                     .order('id', { ascending: true });
 
-                if (error) {
-                    tabelaCorpo.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-400">Erro: ${error.message}</td></tr>`;
-                    return;
-                }
-
-                if (!data || data.length === 0) {
+                if (error || !data || data.length === 0) {
                     tabelaCorpo.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">Nenhuma subcategoria encontrada.</td></tr>`;
                     return;
                 }
@@ -339,20 +404,17 @@
                 `).join('');
 
             } else {
+                tituloTabela.innerText = 'Lista de Registos';
                 tabelaCabecalho.innerHTML = `
                     <th class="p-3">${abaAtual === 'unidades' ? 'Sigla' : 'Nome'}</th>
                     <th class="p-3">Descrição</th>
                     <th class="p-3 text-right">Ações</th>
                 `;
 
+                let nomeTabela = abaAtual === 'unidades' ? 'unidades_medida' : 'categorias_produtos';
                 const { data, error } = await supabaseClient.from(nomeTabela).select('*').order('id', { ascending: true });
 
-                if (error) {
-                    tabelaCorpo.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-400">Erro: ${error.message}</td></tr>`;
-                    return;
-                }
-
-                if (!data || data.length === 0) {
+                if (error || !data || data.length === 0) {
                     tabelaCorpo.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Nenhum registo encontrado.</td></tr>`;
                     return;
                 }
@@ -370,7 +432,7 @@
             }
         }
 
-        async function salvarCadastro(e) {
+        async function salvarCadastroPadrao(e) {
             e.preventDefault();
             const id = document.getElementById('item-id').value;
             const val1 = document.getElementById('input-campo-1').value.trim();
@@ -389,9 +451,6 @@
                 nomeTabela = 'subcategorias_produtos';
                 const catPaiId = document.getElementById('input-campo-0').value;
                 payload = { categoria_id: catPaiId, nome: val1, descricao: val2 };
-            } else {
-                nomeTabela = 'categorias_fornecedores';
-                payload = { nome: val1, descricao: val2 };
             }
 
             let res;
@@ -407,6 +466,40 @@
                 alert('Registo guardado com sucesso!');
                 limparFormulario();
                 carregarCategoriasCache().then(() => carregarDadosAtuais());
+            }
+        }
+
+        async function salvarFornecedorCompleto(e) {
+            e.preventDefault();
+            const id = document.getElementById('forn-id').value;
+            const nome = document.getElementById('forn-nome').value.trim();
+            const cpf_cnpj = document.getElementById('forn-cpf-cnpj').value.trim();
+            const endereco = document.getElementById('forn-endereco').value.trim();
+            const inscricao_estadual = document.getElementById('forn-ie').value.trim();
+            const inscricao_municipal = document.getElementById('forn-im').value.trim();
+
+            const payload = {
+                nome,
+                cpf_cnpj,
+                endereco,
+                inscricao_estadual,
+                inscricao_municipal,
+                descricao: 'Fornecedor Cadastrado'
+            };
+
+            let res;
+            if (id) {
+                res = await supabaseClient.from('categorias_fornecedores').update(payload).eq('id', id);
+            } else {
+                res = await supabaseClient.from('categorias_fornecedores').insert([payload]);
+            }
+
+            if (res.error) {
+                alert('Erro ao salvar fornecedor: ' + res.error.message);
+            } else {
+                alert('Fornecedor guardado com sucesso!');
+                limparFormularioFornecedor();
+                carregarDadosAtuais();
             }
         }
 
@@ -427,11 +520,32 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        function prepararEdicaoFornecedor(id, nome, cpf_cnpj, endereco, ie, im) {
+            document.getElementById('forn-id').value = id;
+            document.getElementById('forn-nome').value = nome;
+            document.getElementById('forn-cpf-cnpj').value = cpf_cnpj;
+            document.getElementById('forn-endereco').value = endereco;
+            document.getElementById('forn-ie').value = ie;
+            document.getElementById('forn-im').value = im;
+            document.getElementById('btn-cancelar-forn').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function limparFormulario() {
             document.getElementById('item-id').value = '';
             document.getElementById('input-campo-1').value = '';
             document.getElementById('input-campo-2').value = '';
             document.getElementById('btn-cancelar-edicao').classList.add('hidden');
+        }
+
+        function limparFormularioFornecedor() {
+            document.getElementById('forn-id').value = '';
+            document.getElementById('forn-nome').value = '';
+            document.getElementById('forn-cpf-cnpj').value = '';
+            document.getElementById('forn-endereco').value = '';
+            document.getElementById('forn-ie').value = '';
+            document.getElementById('forn-im').value = '';
+            document.getElementById('btn-cancelar-forn').classList.add('hidden');
         }
 
         async function excluirRegisto(id, tabela) {
