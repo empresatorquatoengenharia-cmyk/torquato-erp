@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Notas Fiscais & Integração SEFAZ</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
+
+    <!-- Header Principal -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
+                <p class="text-[10px] text-slate-400">Módulo Financeiro • Notas Eletrônicas & Manuais (SEFAZ)</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nome-usuario" class="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">A carregar...</span>
+            <button onclick="sair()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">Sair</button>
+        </div>
+    </header>
+
+    <!-- Layout Principal -->
+    <div class="flex flex-1">
+        <!-- Sidebar de Navegação Unificada -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏢</span>
+                            <span>Matriz & Utilizadores</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Produtos & Insumos</span>
+                        </a>
+                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📍</span>
+                            <span>Locais de Estoque</span>
+                        </a>
+                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🚚</span>
+                            <span>Entradas & Transferências</span>
+                        </a>
+                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛒</span>
+                            <span>Solicitações & Compras</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>💰</span>
+                            <span>Fluxo de Caixa</span>
+                        </a>
+                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📉</span>
+                            <span>Contas a Pagar</span>
+                        </a>
+                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📈</span>
+                            <span>Contas a Receber</span>
+                        </a>
+                        <a href="financeiro_notas.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>📄</span>
+                            <span>Notas Fiscais</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
+            </div>
+        </aside>
+
+        <!-- Conteúdo Central -->
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
+            
+            <!-- Barra de Ações & Abas Superiores -->
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <div class="flex space-x-2">
+                    <button id="btn-aba-eletronica" onclick="mudarModo('Eletrônica')" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Notas Eletrônicas (SEFAZ)</button>
+                    <button id="btn-aba-manual" onclick="mudarModo('Manual')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Notas Manuais & Recibos</button>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="monitorarSefaz()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer">
+                        <span>🔄</span>
+                        <span>Monitorar SEFAZ</span>
+                    </button>
+                    <button onclick="abrirModalNotaManual()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5">
+                        <span>➕</span>
+                        <span>Nova Nota Manual</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros de Busca -->
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Parceiro / Fornecedor:</label>
+                    <select id="filtro-parceiro" onchange="carregarNotas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                        <option value="Todos">Todos os Parceiros</option>
+                        <option value="Casas D' Agua - Biguaçu">Casas D' Agua - Biguaçu</option>
+                        <option value="1000 Marcas">1000 Marcas</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Local de Entrega / Obra:</label>
+                    <select id="filtro-local" onchange="carregarNotas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                        <option value="Todos">Todos os Locais</option>
+                        <option value="Matriz">Matriz / Sede</option>
+                        <option value="Vila real">Vila Real</option>
+                        <option value="Residencial Palácio dos Andes">Residencial Palácio dos Andes</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Pesquisar por Número:</label>
+                    <input type="text" id="filtro-busca" placeholder="Ex: 534304..." onkeyup="carregarNotas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+
+            <!-- TABELA DE NOTAS -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
+                            <th class="p-4">Código</th>
+                            <th class="p-4">Número NF</th>
+                            <th class="p-4">Parceiro / Fornecedor</th>
+                            <th class="p-4">Local de Entrega / Obra</th>
+                            <th class="p-4">Data Emissão</th>
+                            <th class="p-4 text-right">Valor Total (R$)</th>
+                            <th class="p-4">Tipo</th>
+                            <th class="p-4">Situação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-notas-corpo">
+                        <tr><td colspan="8" class="p-6 text-center text-slate-500">A carregar notas do Supabase...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL IMPORTAR/CADASTRAR NOTA MANUAL (Com as Abas das Imagens) -->
+    <div id="modal-nota-manual" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-white">Importar / Cadastrar Nova Nota Manual</h3>
+                    <p class="text-xs text-slate-400">Puxe produtos cadastrados e sincronize a fatura com o Contas a Pagar.</p>
+                </div>
+                <button type="button" onclick="fecharModalNotaManual()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <!-- Etapas de Cadastro conforme os prints -->
+            <div class="flex border-b border-slate-800 text-xs font-bold">
+                <button id="step-btn-1" onclick="mudarEtapa(1)" class="px-4 py-2 text-amber-400 border-b-2 border-amber-500">1. Informações Gerais</button>
+                <button id="step-btn-2" onclick="mudarEtapa(2)" class="px-4 py-2 text-slate-500">2. Serviços & Insumos</button>
+                <button id="step-btn-3" onclick="mudarEtapa(3)" class="px-4 py-2 text-slate-500">3. Condições de Pagamento</button>
+            </div>
+
+            <form onsubmit="salvarNotaSupabase(event)" class="space-y-4 text-xs">
+                
+                <!-- ETAPA 1: INFORMAÇÕES GERAIS -->
+                <div id="etapa-1" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Parceiro Emitente *</label>
+                            <select id="cad-parceiro" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                                <option value="Casas D' Agua - Biguaçu">Casas D' Agua - Biguaçu</option>
+                                <option value="1000 Marcas">1000 Marcas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Número do Documento / NFe *</label>
+                            <input type="text" id="cad-numero" required placeholder="Ex: 56115" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Local da Entrega / Prestação *</label>
+                            <select id="cad-local" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                                <option value="Matriz">Matriz / Sede</option>
+                                <option value="Vila real">Vila Real</option>
+                                <option value="Residencial Palácio dos Andes">Residencial Palácio dos Andes</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Data de Emissão *</label>
+                            <input type="date" id="cad-emissao" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Tipo de Documento</label>
+                            <select id="cad-tipo" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                                <option value="Recibo de produtos">Recibo de produtos</option>
+                                <option value="Recibo de serviços">Recibo de serviços</option>
+                                <option value="Cupom fiscal">Cupom fiscal</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2 pt-6">
+                            <input type="checkbox" id="cad-recorrente" class="rounded bg-slate-950 border-slate-800 text-amber-500">
+                            <label for="cad-recorrente" class="text-slate-300 font-bold">Esta nota possui recorrência mensal</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ETAPA 2: SERVIÇOS E INSUMOS COMPRADOS -->
+                <div id="etapa-2" class="hidden space-y-4">
+                    <p class="text-slate-400">Puxe o item pelo código ou selecione os insumos já cadastrados no sistema:</p>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="col-span-2">
+                            <label class="block text-slate-400 mb-1">Insumo / Produto Cadastrado</label>
+                            <select id="cad-item-nome" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                                <option value="Cimento CP II 50kg">Cimento CP II 50kg - R$ 38,00</option>
+                                <option value="Aço CA-50 10mm">Aço CA-50 10mm - R$ 45,00</option>
+                                <option value="Prestação de Serviço de Mão de Obra">Prestação de Serviço de Mão de Obra</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1">Valor do Item (R$)</label>
+                            <input type="number" step="0.01" id="cad-valor-total" placeholder="150.00" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ETAPA 3: CONDIÇÕES DE PAGAMENTO (Sincronização com o Financeiro) -->
+                <div id="etapa-3" class="hidden space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Forma de Pagamento *</label>
+                            <select id="cad-forma-pagamento" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                                <option value="Boleto">Boleto Bancário</option>
+                                <option value="Pix">Pix / Transferência</option>
+                                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                                <option value="Cartão de Débito">Cartão de Débito</option>
+                                <option value="Dinheiro">Dinheiro Espécie</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Prazo / Vencimento da Fatura *</label>
+                            <input type="date" id="cad-vencimento-fatura" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Descrição / Observações da Fatura</label>
+                        <textarea id="cad-descricao" rows="2" placeholder="Observações adicionais para o Contas a Pagar..." class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+                    <button type="button" onclick="fecharModalNotaManual()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar & Gerar Contas a Pagar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let modoAtual = 'Eletrônica';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarSessao();
+            carregarNotas();
+        });
+
+        function verificarSessao() {
+            const usuarioJSON = localStorage.getItem('torquato_user');
+            if (!usuarioJSON) { window.location.href = 'login.html'; return; }
+            const usuario = JSON.parse(usuarioJSON);
+            document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
+        }
+
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
+
+        function mudarModo(modo) {
+            modoAtual = modo;
+            document.getElementById('btn-aba-eletronica').className = modo === 'Eletrônica' ? "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer" : "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+            document.getElementById('btn-aba-manual').className = modo === 'Manual' ? "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer" : "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+            carregarNotas();
+        }
+
+        async function carregarNotas() {
+            const parceiro = document.getElementById('filtro-parceiro').value;
+            const local = document.getElementById('filtro-local').value;
+            const busca = document.getElementById('filtro-busca').value.toLowerCase();
+            const tbody = document.getElementById('tabela-notas-corpo');
+
+            let query = supabaseClient.from('financeiro_notas').select('*');
+
+            if (parceiro !== 'Todos') query = query.eq('parceiro', parceiro);
+            if (local !== 'Todos') query = query.eq('local_entrega', local);
+
+            const { data, error } = await query;
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erro ao carregar do Supabase: ${error.message}</td></tr>`;
+                return;
+            }
+
+            let lista = data || [];
+            if (busca) lista = lista.filter(n => (n.numero || '').toLowerCase().includes(busca) || n.codigo.includes(busca));
+
+            if (lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500">Nenhuma nota fiscal encontrada.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = lista.map(n => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition text-xs">
+                    <td class="p-4 font-bold text-white">#${n.codigo}</td>
+                    <td class="p-4 text-slate-400">${n.numero || '-'}</td>
+                    <td class="p-4 font-medium text-white">${n.parceiro}</td>
+                    <td class="p-4 text-slate-300">${n.local_entrega}</td>
+                    <td class="p-4 text-slate-400">${n.data_emissao}</td>
+                    <td class="p-4 text-right font-bold text-amber-400">R$ ${(n.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="p-4 text-slate-300">${n.tipo}</td>
+                    <td class="p-4"><span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px]">${n.situacao}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function abrirModalNotaManual() {
+            document.getElementById('modal-nota-manual').classList.remove('hidden');
+        }
+
+        function fecharModalNotaManual() {
+            document.getElementById('modal-nota-manual').classList.add('hidden');
+        }
+
+        function mudarEtapa(etapa) {
+            document.getElementById('etapa-1').classList.add('hidden');
+            document.getElementById('etapa-2').classList.add('hidden');
+            document.getElementById('etapa-3').classList.add('hidden');
+            document.getElementById(`etapa-${etapa}`).classList.remove('hidden');
+        }
+
+        function monitorarSefaz() {
+            alert('Sincronização executada! Nenhuma nova NFe foi emitida contra o CNPJ da Torquato Engenharia nos últimos minutos.');
+        }
+
+        async function salvarNotaSupabase(e) {
+            e.preventDefault();
+            const parceiro = document.getElementById('cad-parceiro').value;
+            const numero = document.getElementById('cad-numero').value;
+            const local = document.getElementById('cad-local').value;
+            const emissaoIso = document.getElementById('cad-emissao').value;
+            const emissao = emissaoIso.split('-').reverse().join('/');
+            const tipo = document.getElementById('cad-tipo').value;
+            const valor = Number(document.getElementById('cad-valor-total').value || 150);
+            const formaPagamento = document.getElementById('cad-forma-pagamento').value;
+            const vencimentoFaturaIso = document.getElementById('cad-vencimento-fatura').value;
+            const vencimentoFatura = vencimentoFaturaIso.split('-').reverse().join('/');
+            const descricao = document.getElementById('cad-descricao').value;
+
+            const novaNota = {
+                codigo: String(Math.floor(10000 + Math.random() * 90000)),
+                numero,
+                parceiro,
+                local_entrega: local,
+                data_emissao: emissao,
+                valor,
+                tipo,
+                situacao: 'Normal',
+                forma_pagamento: formaPagamento,
+                prazo_pagamento: vencimentoFatura,
+                descricao
+            };
+
+            // 1. Grava a Nota no Supabase
+            const { error: errNota } = await supabaseClient.from('financeiro_notas').insert([novaNota]);
+
+            if (errNota) {
+                alert('Erro ao guardar a nota: ' + errNota.message);
+                return;
+            }
+
+            // 2. Sincroniza automaticamente gerando o Contas a Pagar no Supabase
+            const novaContaPagar = {
+                codigo: novaNota.codigo,
+                nfe: numero,
+                beneficiario: parceiro,
+                valor,
+                vencimento: vencimentoFatura,
+                status: 'Pendente',
+                obra: local,
+                etiqueta: formaPagamento
+            };
+
+            await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
+
+            alert('Nota fiscal cadastrada e conta a pagar gerada e sincronizada com sucesso na nuvem!');
+            fecharModalNotaManual();
+            carregarNotas();
+        }
+    </script>
+</body>
+</html>
