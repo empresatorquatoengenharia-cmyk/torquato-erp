@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Gestão de Clientes & Compradores</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
+
+    <!-- Header Principal -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
+                <p class="text-[10px] text-slate-400">Módulo Comercial • Cadastro de Clientes & Compradores</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nome-usuario" class="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">A carregar...</span>
+            <button onclick="sair()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">Sair</button>
+        </div>
+    </header>
+
+    <!-- Layout Principal -->
+    <div class="flex flex-1">
+        <!-- Sidebar de Navegação Unificada -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Comercial</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="vendas_clientes.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>👥</span>
+                            <span>Clientes & Compradores</span>
+                        </a>
+                        <a href="vendas_imoveis.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏡</span>
+                            <span>Vendas & Contratos</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>💰</span>
+                            <span>Fluxo de Caixa</span>
+                        </a>
+                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📉</span>
+                            <span>Contas a Pagar</span>
+                        </a>
+                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📈</span>
+                            <span>Contas a Receber</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
+            </div>
+        </aside>
+
+        <!-- Conteúdo Central -->
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
+            
+            <!-- Barra de Ações & Busca -->
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Clientes & Compradores</h2>
+                    <p class="text-xs text-slate-400">Cadastro centralizado de pessoas físicas e jurídicas vinculadas às negociações e vendas.</p>
+                </div>
+                <div class="flex items-center space-x-3 w-full md:w-auto">
+                    <input type="text" id="filtro-busca" placeholder="Pesquisar por nome ou CPF/CNPJ..." onkeyup="carregarClientes()" class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white text-xs w-full md:w-72 focus:outline-none focus:border-amber-500">
+                    <button onclick="abrirModalCliente()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5 whitespace-nowrap">
+                        <span>➕</span>
+                        <span>Novo Cliente</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TABELA DE CLIENTES -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
+                            <th class="p-4">Razão Social / Nome</th>
+                            <th class="p-4">Tipo</th>
+                            <th class="p-4">CPF / CNPJ</th>
+                            <th class="p-4">E-mail</th>
+                            <th class="p-4">Telefone</th>
+                            <th class="p-4 text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-clientes-corpo">
+                        <tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar clientes...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: NOVO CLIENTE -->
+    <div id="modal-cliente" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-white">Registar Novo Cliente / Comprador</h3>
+                    <p class="text-xs text-slate-400">Cadastre pessoa física ou jurídica para futuras vendas e propostas.</p>
+                </div>
+                <button type="button" onclick="fecharModalCliente()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form onsubmit="salvarClienteSupabase(event)" class="space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Tipo de Cadastro *</label>
+                        <select id="cad-tipo" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                            <option value="Física">Pessoa Física</option>
+                            <option value="Jurídica">Pessoa Jurídica</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Nome / Razão Social *</label>
+                        <input type="text" id="cad-nome" required placeholder="Ex: Bianca Oi" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">CPF / CNPJ *</label>
+                        <input type="text" id="cad-cpf" required placeholder="000.000.000-00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">E-mail</label>
+                        <input type="email" id="cad-email" placeholder="cliente@email.com" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Telefone / Celular</label>
+                        <input type="text" id="cad-telefone" placeholder="(31) 99999-9999" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Cidade / Estado</label>
+                        <input type="text" id="cad-cidade" placeholder="Belo Horizonte - MG" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+                    <button type="button" onclick="fecharModalCliente()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar Cliente na Nuvem</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarSessao();
+            carregarClientes();
+        });
+
+        function verificarSessao() {
+            const usuarioJSON = localStorage.getItem('torquato_user');
+            if (!usuarioJSON) { window.location.href = 'login.html'; return; }
+            const usuario = JSON.parse(usuarioJSON);
+            document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
+        }
+
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
+
+        async function carregarClientes() {
+            const busca = document.getElementById('filtro-busca').value.toLowerCase();
+            const tbody = document.getElementById('tabela-clientes-corpo');
+
+            const { data, error } = await supabaseClient.from('vendas_clientes').select('*');
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-400">Erro ao carregar clientes: ${error.message}</td></tr>`;
+                return;
+            }
+
+            let lista = data || [];
+            if (busca) {
+                lista = lista.filter(c => c.nome.toLowerCase().includes(busca) || c.cpf_cnpj.includes(busca));
+            }
+
+            if (lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhum cliente encontrado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = lista.map(c => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition text-xs">
+                    <td class="p-4 font-bold text-white">${c.nome}</td>
+                    <td class="p-4 text-slate-300"><span class="bg-slate-800 px-2 py-1 rounded text-[10px]">${c.tipo_pessoa}</span></td>
+                    <td class="p-4 text-amber-400 font-mono">${c.cpf_cnpj}</td>
+                    <td class="p-4 text-slate-300">${c.email || '-'}</td>
+                    <td class="p-4 text-slate-300">${c.telefone || '-'}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="alert('Detalhes do cliente ${c.nome}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">Ver Perfil</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function abrirModalCliente() {
+            document.getElementById('modal-cliente').classList.remove('hidden');
+        }
+
+        function fecharModalCliente() {
+            document.getElementById('modal-cliente').classList.add('hidden');
+        }
+
+        async function salvarClienteSupabase(e) {
+            e.preventDefault();
+            const tipo = document.getElementById('cad-tipo').value;
+            const nome = document.getElementById('cad-nome').value;
+            const cpfCnpj = document.getElementById('cad-cpf').value;
+            const email = document.getElementById('cad-email').value;
+            const telefone = document.getElementById('cad-telefone').value;
+            const cidade = document.getElementById('cad-cidade').value;
+
+            const novoCliente = {
+                codigo: String(Math.floor(100 + Math.random() * 900)),
+                nome,
+                tipo_pessoa: tipo,
+                cpf_cnpj: cpfCnpj,
+                email,
+                telefone,
+                cidade
+            };
+
+            const { error } = await supabaseClient.from('vendas_clientes').insert([novoCliente]);
+
+            if (error) {
+                alert('Erro ao guardar cliente: ' + error.message);
+            } else {
+                alert('Cliente registado com sucesso na nuvem!');
+                fecharModalCliente();
+                carregarClientes();
+            }
+        }
+    </script>
+</body>
+</html>
