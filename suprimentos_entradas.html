@@ -17,7 +17,7 @@
             <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
-                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Entradas & Transferências em Obras Reais</p>
+                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Entradas, Produtos & Fornecedores Reais</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -28,7 +28,7 @@
 
     <!-- Layout Principal -->
     <div class="flex flex-1">
-        <!-- Sidebar de Navegação Unificada e Definitiva -->
+        <!-- Sidebar de Navegação Unificada -->
         <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
             <div class="space-y-6">
                 <div>
@@ -176,7 +176,7 @@
                         <thead>
                             <tr class="border-b border-slate-800 text-slate-400">
                                 <th class="p-4">Código</th>
-                                <th class="p-4">Fornecedor / Origem</th>
+                                <th class="p-4">Fornecedor</th>
                                 <th class="p-4">Obra Destino</th>
                                 <th class="p-4">Produto</th>
                                 <th class="p-4 text-center">Qtd. Prevista</th>
@@ -264,7 +264,7 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-white">Lançar Nova Entrada de Material</h3>
-                    <p class="text-xs text-slate-400">Registe uma nota fiscal para conferência numa obra real.</p>
+                    <p class="text-xs text-slate-400">Registe uma nota fiscal escolhendo o fornecedor e o produto cadastrados.</p>
                 </div>
                 <button type="button" onclick="fecharModalNovaEntrada()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -272,7 +272,9 @@
             <form onsubmit="salvarNovaEntrada(event)" class="space-y-4 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Fornecedor / Origem *</label>
-                    <input type="text" id="nova-origem" required placeholder="Ex: Comércio de Materiais Ltda" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                    <select id="nova-origem" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                        <option value="">A carregar fornecedores...</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Obra Destino *</label>
@@ -354,8 +356,9 @@
 
         let cacheLocais = [];
         let cacheProdutos = [];
+        let cacheFornecedores = [];
         let listaEntradasPendentes = [
-            { id: 1, codigo: '8491', origem: 'Comércio de Materiais', destino: 'Torquato Engenharia - Matriz', produto: 'Cimento CP-1 50kg', previsto: 50, nfe: '#4921', status: 'Pendente' }
+            { id: 1, codigo: '8491', origem: 'Torquato Engenharia (Matriz)', destino: 'Torquato Engenharia - Matriz', produto: 'Cimento CP-1 50kg', previsto: 50, nfe: '#4921', status: 'Pendente' }
         ];
         let listaEntradasFinalizadas = [];
         let entradaEmConferencia = null;
@@ -364,6 +367,7 @@
             verificarSessao();
             carregarLocaisEObras();
             carregarProdutos();
+            carregarFornecedores();
             carregarEntradas();
             carregarFinalizadas();
         });
@@ -401,10 +405,7 @@
         }
 
         async function carregarLocaisEObras() {
-            let locais = [
-                { id: 'matriz', nome: 'Torquato Engenharia - Matriz' }
-            ];
-
+            let locais = [{ id: 'matriz', nome: 'Torquato Engenharia - Matriz' }];
             const { data } = await supabaseClient.from('vendas_empreendimentos_obras').select('*');
             if (data && data.length > 0) {
                 data.forEach(o => locais.push({ id: o.id, nome: o.nome_obra }));
@@ -420,6 +421,7 @@
         }
 
         async function carregarProdutos() {
+            // Puxa produtos reais cadastrados na tabela suprimentos_produtos
             const { data } = await supabaseClient.from('suprimentos_produtos').select('*');
             cacheProdutos = data || [];
 
@@ -428,12 +430,28 @@
 
             if (cacheProdutos.length > 0) {
                 const opts = cacheProdutos.map(p => `<option value="${p.nome}">${p.nome} (${p.unidade || 'un'})</option>`).join('');
-                selectProd.innerHTML = '<option value="">Selecione um produto...</option>' + opts;
-                selectTransf.innerHTML = '<option value="">Selecione um produto...</option>' + opts;
+                selectProd.innerHTML = '<option value="">Selecione um produto cadastrado...</option>' + opts;
+                selectTransf.innerHTML = '<option value="">Selecione um produto cadastrado...</option>' + opts;
             } else {
-                selectProd.innerHTML = '<option value="">Nenhum produto cadastrado no ERP</option>';
-                selectTransf.innerHTML = '<option value="">Nenhum produto cadastrado no ERP</option>';
+                selectProd.innerHTML = '<option value="">Nenhum produto encontrado na planilha de Produtos & Insumos</option>';
+                selectTransf.innerHTML = '<option value="">Nenhum produto encontrado</option>';
             }
+        }
+
+        async function carregarFornecedores() {
+            // Puxa fornecedores reais cadastrados nas contas a pagar / financeiro ou outras tabelas do ERP
+            let fornecedoresSet = new Set(['Torquato Engenharia (Matriz)']);
+            
+            const { data } = await supabaseClient.from('financeiro_contas_pagar').select('beneficiario');
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    if (item.beneficiario) fornecedoresSet.add(item.beneficiario);
+                });
+            }
+
+            cacheFornecedores = Array.from(fornecedoresSet);
+            const selectOrigem = document.getElementById('nova-origem');
+            selectOrigem.innerHTML = '<option value="">Selecione um fornecedor cadastrado...</option>' + cacheFornecedores.map(f => `<option value="${f}">${f}</option>`).join('');
         }
 
         function carregarEntradas() {
@@ -485,6 +503,8 @@
         }
 
         function abrirModalNovaEntrada() {
+            carregarProdutos();
+            carregarFornecedores();
             document.getElementById('modal-nova-entrada').classList.remove('hidden');
         }
 
@@ -494,7 +514,7 @@
 
         function salvarNovaEntrada(e) {
             e.preventDefault();
-            const origem = document.getElementById('nova-origem').value.trim();
+            const origem = document.getElementById('nova-origem').value;
             const destino = document.getElementById('nova-destino').value;
             const produto = document.getElementById('nova-produto').value;
             const previsto = Number(document.getElementById('nova-previsto').value);
@@ -538,10 +558,7 @@
         async function finalizarConferencia() {
             const recebido = Number(document.getElementById('conf-recebido').value);
             
-            // Retirar dos pendentes
             listaEntradasPendentes = listaEntradasPendentes.filter(e => e.id !== entradaEmConferencia.id);
-            
-            // Adicionar aos finalizados
             entradaEmConferencia.recebido = recebido;
             listaEntradasFinalizadas.unshift(entradaEmConferencia);
 
