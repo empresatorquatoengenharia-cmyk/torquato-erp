@@ -155,11 +155,11 @@
                     <button onclick="mudarAba('unidades')" id="btn-aba-unidades" class="px-3.5 py-2 rounded-lg font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Unidades</button>
                     <button onclick="mudarAba('cat_produtos')" id="btn-aba-cat_produtos" class="px-3.5 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer">Categorias</button>
                     <button onclick="mudarAba('sub_produtos')" id="btn-aba-sub_produtos" class="px-3.5 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer">Subcategorias</button>
-                    <button onclick="mudarAba('cat_fornecedores')" id="btn-aba-cat_fornecedores" class="px-3.5 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer">Fornecedores</button>
+                    <button onclick="mudarAba('fornecedores')" id="btn-aba-fornecedores" class="px-3.5 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer">Fornecedores</button>
                 </div>
             </div>
 
-            <!-- Formulário de Cadastro / Edição Dinâmico (Unidades / Categorias / Subcategorias) -->
+            <!-- Formulário Padrão (Unidades / Categorias / Subcategorias) -->
             <div id="form-padrao-wrapper" class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
                 <h3 class="text-sm font-bold text-amber-400" id="form-titulo">Adicionar Novo Registo</h3>
                 <form onsubmit="salvarCadastroPadrao(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
@@ -186,7 +186,7 @@
                 </form>
             </div>
 
-            <!-- Formulário Completo de Cadastro de Fornecedores (Visível Apenas na Aba Fornecedores) -->
+            <!-- Formulário Completo de Cadastro de Fornecedores -->
             <div id="form-fornecedor-wrapper" class="hidden bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
                 <h3 class="text-sm font-bold text-amber-400">Registo Completo de Fornecedor</h3>
                 <form onsubmit="salvarFornecedorCompleto(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
@@ -257,10 +257,7 @@
 
         function verificarSessao() {
             const usuarioJSON = localStorage.getItem('torquato_user');
-            if (!usuarioJSON) {
-                window.location.href = 'login.html';
-                return;
-            }
+            if (!usuarioJSON) { window.location.href = 'login.html'; return; }
             const usuario = JSON.parse(usuarioJSON);
             document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
         }
@@ -282,12 +279,14 @@
             limparFormulario();
             limparFormularioFornecedor();
 
-            ['unidades', 'cat_produtos', 'sub_produtos', 'cat_fornecedores'].forEach(a => {
+            ['unidades', 'cat_produtos', 'sub_produtos', 'fornecedores'].forEach(a => {
                 const btn = document.getElementById(`btn-aba-${a}`);
-                if (a === aba) {
-                    btn.className = "px-3.5 py-2 rounded-lg font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
-                } else {
-                    btn.className = "px-3.5 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer";
+                if (btn) {
+                    if (a === aba) {
+                        btn.className = "px-3.5 py-2 rounded-lg font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+                    } else {
+                        btn.className = "px-3.5 py-2 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer";
+                    }
                 }
             });
 
@@ -295,7 +294,7 @@
             const formPadrao = document.getElementById('form-padrao-wrapper');
             const formForn = document.getElementById('form-fornecedor-wrapper');
 
-            if (aba === 'cat_fornecedores') {
+            if (aba === 'fornecedores') {
                 formPadrao.classList.add('hidden');
                 formForn.classList.remove('hidden');
             } else {
@@ -335,7 +334,7 @@
 
             tabelaCorpo.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">A carregar...</td></tr>`;
 
-            if (abaAtual === 'cat_fornecedores') {
+            if (abaAtual === 'fornecedores') {
                 tituloTabela.innerText = 'Lista de Fornecedores Cadastrados';
                 tabelaCabecalho.innerHTML = `
                     <th class="p-3">Razão Social / Nome</th>
@@ -346,7 +345,7 @@
                     <th class="p-3 text-right">Ações</th>
                 `;
 
-                const { data, error } = await supabaseClient.from('categorias_fornecedores').select('*').order('id', { ascending: true });
+                const { data, error } = await supabaseClient.from('fornecedores').select('*').order('id', { ascending: true });
 
                 if (error) {
                     tabelaCorpo.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Erro: ${error.message}</td></tr>`;
@@ -360,14 +359,14 @@
 
                 tabelaCorpo.innerHTML = data.map(item => `
                     <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                        <td class="p-3 font-medium text-white">${item.nome || item.razao_social || '-'}</td>
+                        <td class="p-3 font-medium text-white">${item.nome || '-'}</td>
                         <td class="p-3 text-amber-300 font-mono">${item.cpf_cnpj || '-'}</td>
                         <td class="p-3 text-slate-300">${item.endereco || '-'}</td>
                         <td class="p-3 text-slate-300">${item.inscricao_estadual || '-'}</td>
                         <td class="p-3 text-slate-300">${item.inscricao_municipal || '-'}</td>
                         <td class="p-3 text-right space-x-2">
-                            <button onclick="prepararEdicaoFornecedor(${item.id}, '${item.nome || item.razao_social || ''}', '${item.cpf_cnpj || ''}', '${item.endereco || ''}', '${item.inscricao_estadual || ''}', '${item.inscricao_municipal || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Editar</button>
-                            <button onclick="excluirRegisto(${item.id}, 'categorias_fornecedores')" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
+                            <button onclick="prepararEdicaoFornecedor(${item.id}, '${item.nome || ''}', '${item.cpf_cnpj || ''}', '${item.endereco || ''}', '${item.inscricao_estadual || ''}', '${item.inscricao_municipal || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Editar</button>
+                            <button onclick="excluirRegisto(${item.id}, 'fornecedores')" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
                         </td>
                     </tr>
                 `).join('');
@@ -483,21 +482,20 @@
                 cpf_cnpj,
                 endereco,
                 inscricao_estadual,
-                inscricao_municipal,
-                descricao: 'Fornecedor Cadastrado'
+                inscricao_municipal
             };
 
             let res;
             if (id) {
-                res = await supabaseClient.from('categorias_fornecedores').update(payload).eq('id', id);
+                res = await supabaseClient.from('fornecedores').update(payload).eq('id', id);
             } else {
-                res = await supabaseClient.from('categorias_fornecedores').insert([payload]);
+                res = await supabaseClient.from('fornecedores').insert([payload]);
             }
 
             if (res.error) {
                 alert('Erro ao salvar fornecedor: ' + res.error.message);
             } else {
-                alert('Fornecedor guardado com sucesso!');
+                alert('Fornecedor guardado com sucesso na tabela de fornecedores!');
                 limparFormularioFornecedor();
                 carregarDadosAtuais();
             }
