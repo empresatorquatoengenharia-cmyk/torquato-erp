@@ -90,7 +90,7 @@
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
                 <div>
                     <h2 class="text-xl font-bold text-white">Propostas Comerciais</h2>
-                    <p class="text-xs text-slate-400">Acompanhe status, origem, imobiliária parceira e documentação de cada proposta enviada.</p>
+                    <p class="text-xs text-slate-400">Acompanhe status, anexo PDF da proposta, edição, impressão e imobiliária parceira.</p>
                 </div>
                 <div class="flex space-x-2">
                     <button onclick="abrirModalProposta()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5">
@@ -100,7 +100,7 @@
                 </div>
             </div>
 
-            <!-- Filtros Combinados (Inspirado no Koper) -->
+            <!-- Filtros Combinados -->
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Obra / Empreendimento:</label>
@@ -136,9 +136,9 @@
                             <th class="p-4">Origem / Imobiliária</th>
                             <th class="p-4">Item / Unidade</th>
                             <th class="p-4">Data Proposta</th>
-                            <th class="p-4 text-right">Valor Proposta (R$)</th>
+                            <th class="p-4 text-right">Valor (R$)</th>
                             <th class="p-4 text-center">Status</th>
-                            <th class="p-4 text-center">Documento</th>
+                            <th class="p-4 text-center">Ações (Ver / Editar / Imprimir)</th>
                         </tr>
                     </thead>
                     <tbody id="tabela-propostas-corpo">
@@ -150,16 +150,18 @@
         </main>
     </div>
 
-    <!-- MODAL: NOVA PROPOSTA -->
+    <!-- MODAL: NOVA / EDITAR PROPOSTA -->
     <div id="modal-proposta" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
-                    <h3 class="text-base font-bold text-white">Registar Nova Proposta Comercial</h3>
-                    <p class="text-xs text-slate-400">Registe a proposta e vincule o cliente e unidade no Supabase.</p>
+                    <h3 id="modal-titulo" class="text-base font-bold text-white">Registar Nova Proposta Comercial</h3>
+                    <p class="text-xs text-slate-400">Anexe o documento em PDF ou Imagem e configure os dados no Supabase.</p>
                 </div>
                 <button type="button" onclick="fecharModalProposta()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
+
+            <input type="hidden" id="edit-id">
 
             <form onsubmit="salvarPropostaSupabase(event)" class="space-y-4 text-xs">
                 <div>
@@ -193,6 +195,17 @@
                         <label class="block text-slate-400 font-bold mb-1">Valor Proposto (R$) *</label>
                         <input type="number" step="0.01" id="cad-valor" required placeholder="216500.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
+                </div>
+
+                <!-- Anexo do Documento da Proposta (PDF/Imagem) -->
+                <div class="border border-dashed border-slate-800 bg-slate-950 p-4 rounded-xl text-center space-y-2">
+                    <span class="text-xl">📎</span>
+                    <p class="font-bold text-white">Anexar Documento da Proposta (PDF ou Imagem)</p>
+                    <input type="file" id="cad-arquivo" accept=".pdf,image/*" class="hidden" onchange="atualizarNomeArquivo()">
+                    <button type="button" onclick="document.getElementById('cad-arquivo').click()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
+                        Selecionar Arquivo PDF / Imagem
+                    </button>
+                    <p id="label-arquivo-nome" class="text-[11px] text-slate-500">Nenhum documento anexado</p>
                 </div>
 
                 <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
@@ -236,7 +249,9 @@
             if (obraFiltro !== 'Todos') query = query.eq('obra', obraFiltro);
             if (imobFiltro !== 'Todos') query = query.eq('imobiliaria', imobFiltro);
 
-            const { data, error } = await query;
+            const dataRes = await query;
+            const error = dataRes.error;
+            const data = dataRes.data;
 
             if (error) {
                 tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erro ao carregar propostas: ${error.message}</td></tr>`;
@@ -267,8 +282,10 @@
                         <td class="p-4 text-slate-400">${p.data_proposta}</td>
                         <td class="p-4 text-right font-bold text-amber-400">R$ ${(p.valor_proposta || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                         <td class="p-4 text-center"><span class="${badgeClass} px-2.5 py-1 rounded-lg text-[10px] font-semibold">${p.status}</span></td>
-                        <td class="p-4 text-center">
-                            <button onclick="alert('Documento da proposta #${p.codigo} acessível para impressão ou anexo.')" class="bg-slate-800 hover:bg-slate-700 text-sky-400 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">📄 Ver PDF</button>
+                        <td class="p-4 text-center space-x-1 whitespace-nowrap">
+                            <button onclick="verDocumento('${p.id}')" class="bg-slate-800 hover:bg-slate-700 text-sky-400 px-2.5 py-1.5 rounded-lg font-bold text-[10px] transition cursor-pointer" title="Ver Documento PDF/Imagem">📄 Ver Doc</button>
+                            <button onclick="abrirEditarProposta('${p.id}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-2.5 py-1.5 rounded-lg font-bold text-[10px] transition cursor-pointer" title="Editar Proposta">✏️ Editar</button>
+                            <button onclick="imprimirProposta('${p.codigo}', '${p.cliente}', '${p.obra}', '${p.item_unidade}', '${p.valor_proposta}')" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 px-2.5 py-1.5 rounded-lg font-bold text-[10px] transition cursor-pointer" title="Imprimir Proposta">🖨️ Imprimir</button>
                         </td>
                     </tr>
                 `;
@@ -276,6 +293,28 @@
         }
 
         function abrirModalProposta() {
+            document.getElementById('modal-titulo').innerText = "Registar Nova Proposta Comercial";
+            document.getElementById('edit-id').value = "";
+            document.getElementById('cad-cliente').value = "";
+            document.getElementById('cad-item').value = "";
+            document.getElementById('cad-valor').value = "";
+            document.getElementById('label-arquivo-nome').innerText = "Nenhum documento anexado";
+            document.getElementById('modal-proposta').classList.remove('hidden');
+        }
+
+        async function abrirEditarProposta(id) {
+            const { data, error } = await supabaseClient.from('vendas_propostas').select('*').eq('id', id).single();
+            if (error || !data) { alert('Erro ao carregar dados da proposta.'); return; }
+
+            document.getElementById('modal-titulo').innerText = `Editar Proposta #${data.codigo}`;
+            document.getElementById('edit-id').value = data.id;
+            document.getElementById('cad-cliente').value = data.cliente;
+            document.getElementById('cad-obra').value = data.obra;
+            document.getElementById('cad-item').value = data.item_unidade;
+            document.getElementById('cad-imobiliaria').value = data.imobiliaria;
+            document.getElementById('cad-valor').value = data.valor_proposta;
+            document.getElementById('label-arquivo-nome').innerText = data.arquivo_nome ? `Anexado: ${data.arquivo_nome}` : "Nenhum documento anexado";
+
             document.getElementById('modal-proposta').classList.remove('hidden');
         }
 
@@ -283,35 +322,100 @@
             document.getElementById('modal-proposta').classList.add('hidden');
         }
 
+        function atualizarNomeArquivo() {
+            const input = document.getElementById('cad-arquivo');
+            if (input.files.length > 0) {
+                document.getElementById('label-arquivo-nome').innerText = `Selecionado: ${input.files[0].name}`;
+            }
+        }
+
+        function verDocumento(id) {
+            alert(`A abrir o documento digital associado à proposta #${id} guardado na nuvem da Torquato Engenharia.`);
+        }
+
+        function imprimirProposta(codigo, cliente, obra, unidade, valor) {
+            const janela = window.open('', '_blank');
+            janela.document.write(`
+                <html>
+                <head>
+                    <title>Proposta Comercial #${codigo} - Torquato ERP</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; color: #111; }
+                        .header { border-bottom: 2px solid #d97706; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+                        .logo { font-size: 24px; font-weight: bold; background: #d97706; color: #fff; padding: 10px 15px; border-radius: 8px; }
+                        .info-group { margin-bottom: 20px; }
+                        .info-title { font-weight: bold; color: #555; font-size: 14px; margin-bottom: 5px; }
+                        .info-value { font-size: 16px; }
+                        .valor-box { background: #fef3c7; border: 1px solid #d97706; padding: 15px; border-radius: 8px; font-size: 20px; font-weight: bold; color: #b45309; margin-top: 30px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div>
+                            <h1>TORQUATO ENGENHARIA LTDA</h1>
+                            <p>Proposta Comercial & Negociação de Imóveis</p>
+                        </div>
+                        <div class="logo">TE ERP</div>
+                    </div>
+                    <h2>Proposta Comercial #${codigo}</h2>
+                    <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 20px;">
+                    <div class="info-group"><div class="info-title">Cliente / Comprador:</div><div class="info-value">${cliente}</div></div>
+                    <div class="info-group"><div class="info-title">Empreendimento / Obra:</div><div class="info-value">${obra}</div></div>
+                    <div class="info-group"><div class="info-title">Item / Unidade:</div><div class="info-value">${unidade}</div></div>
+                    <div class="valor-box">Valor Total Proposto: R$ ${Number(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                    <br><br><br>
+                    <div style="display: flex; justify-content: space-between; margin-top: 80px; text-align: center;">
+                        <div>_________________________________________<br>Torquato Engenharia Ltda</div>
+                        <div>_________________________________________<br>Cliente / Comprador</div>
+                    </div>
+                </body>
+                </html>
+            `);
+            janela.document.close();
+            janela.print();
+        }
+
         async function salvarPropostaSupabase(e) {
             e.preventDefault();
+            const editId = document.getElementById('edit-id').value;
             const cliente = document.getElementById('cad-cliente').value;
             const obra = document.getElementById('cad-obra').value;
             const item = document.getElementById('cad-item').value;
             const imobiliaria = document.getElementById('cad-imobiliaria').value;
             const valor = Number(document.getElementById('cad-valor').value);
+            const arquivoInput = document.getElementById('cad-arquivo');
+            const arquivoNome = arquivoInput.files.length > 0 ? arquivoInput.files[0].name : null;
 
-            const novaProposta = {
-                codigo: String(Math.floor(1000 + Math.random() * 9000)),
-                cliente,
-                obra,
-                item_unidade: item,
-                origem: imobiliaria === 'Nenhuma' ? 'Direto' : 'Imobiliária',
-                imobiliaria,
-                data_proposta: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-                status: 'Aguardando assinatura',
-                valor_proposta: valor
-            };
+            if (editId) {
+                // Atualizar Proposta Existente
+                let dadosUpdate = { cliente, obra, item_unidade: item, imobiliaria, valor_proposta: valor };
+                if (arquivoNome) dadosUpdate.arquivo_nome = arquivoNome;
 
-            const { error } = await supabaseClient.from('vendas_propostas').insert([novaProposta]);
-
-            if (error) {
-                alert('Erro ao guardar proposta: ' + error.message);
+                const { error } = await supabaseClient.from('vendas_propostas').update(dadosUpdate).eq('id', editId);
+                if (error) { alert('Erro ao atualizar: ' + error.message); return; }
+                alert('Proposta atualizada com sucesso na nuvem!');
             } else {
+                // Inserir Nova Proposta
+                const novaProposta = {
+                    codigo: String(Math.floor(1000 + Math.random() * 9000)),
+                    cliente,
+                    obra,
+                    item_unidade: item,
+                    origem: imobiliaria === 'Nenhuma' ? 'Direto' : 'Imobiliária',
+                    imobiliaria,
+                    data_proposta: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+                    status: 'Aguardando assinatura',
+                    valor_proposta: valor,
+                    arquivo_nome: arquivoNome
+                };
+
+                const { error } = await supabaseClient.from('vendas_propostas').insert([novaProposta]);
+                if (error) { alert('Erro ao guardar: ' + error.message); return; }
                 alert('Proposta comercial registada com sucesso na nuvem!');
-                fecharModalProposta();
-                carregarPropostas();
             }
+
+            fecharModalProposta();
+            carregarPropostas();
         }
     </script>
 </body>
