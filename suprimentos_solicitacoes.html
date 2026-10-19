@@ -42,16 +42,6 @@
                 </div>
 
                 <div>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
-                    <nav class="space-y-1 text-xs">
-                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏢</span>
-                            <span>Matriz & Utilizadores</span>
-                        </a>
-                    </nav>
-                </div>
-
-                <div>
                     <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
                     <nav class="space-y-1 text-xs">
                         <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
@@ -94,8 +84,7 @@
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
                 <div class="flex space-x-2">
                     <button onclick="mudarAba('solicitacoes')" id="btn-aba-solicitacoes" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Solicitações de Compra</button>
-                    <!-- Aba de Aprovação restrita à gerência -->
-                    <button onclick="mudarAba('aprovacao')" id="btn-aba-aprovacao" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Aprovação de Compras (Gerência)</button>
+                    <button onclick="mudarAba('aprovacao')" id="btn-aba-aprovacao" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Aprovação & Integração Financeira</button>
                 </div>
                 <button onclick="abrirModalNovaSolicitacao()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-2">
                     <span>➕</span>
@@ -103,16 +92,13 @@
                 </button>
             </div>
 
-            <div id="mensagem-status" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
-
-            <!-- SEÇÃO 1: SOLICITAÇÕES (Visão do Solicitante / Engenheiro) -->
+            <!-- SEÇÃO 1: SOLICITAÇÕES -->
             <section id="secao-solicitacoes" class="space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <h2 class="text-xl font-bold text-white">Minhas Solicitações e Pedidos</h2>
-                        <p class="text-xs text-slate-400">Acompanhe o status de aprovação em tempo real e prazos de entrega vinculados às obras[cite: 16].</p>
+                        <p class="text-xs text-slate-400">Acompanhe o status de aprovação em tempo real e prazos de entrega vinculados às obras.</p>
                     </div>
-                    <input type="text" id="filtro-solicitacoes" placeholder="Pesquisar por obra ou código..." onkeyup="filtrarSolicicitacoes()" class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 w-64">
                 </div>
 
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
@@ -121,9 +107,9 @@
                             <tr class="border-b border-slate-800 text-slate-400">
                                 <th class="p-4">Solicitação</th>
                                 <th class="p-4">Local de Consumo (Obra)</th>
+                                <th class="p-4">Produto</th>
                                 <th class="p-4">Quantidade</th>
-                                <th class="p-4">Solicitado Em</th>
-                                <th class="p-4">Entregar Até (Prazo)</th>
+                                <th class="p-4">Prazo de Entrega</th>
                                 <th class="p-4">Status</th>
                             </tr>
                         </thead>
@@ -134,14 +120,14 @@
                 </div>
             </section>
 
-            <!-- SEÇÃO 2: APROVAÇÃO DE COMPRAS (Visão exclusiva da Gerência) -->
+            <!-- SEÇÃO 2: APROVAÇÃO E INTEGRAÇÃO COM CONTAS A PAGAR -->
             <section id="secao-aprovacao" class="hidden space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-xl font-bold text-white">Aprovação de Solicitações de Compra</h2>
-                        <p class="text-xs text-slate-400">Analise, aprove, reprove ou ajuste quantidades e prazos de entrega.</p>
+                        <h2 class="text-xl font-bold text-white">Aprovação de Solicitações & Envio ao Contas a Pagar</h2>
+                        <p class="text-xs text-slate-400">Ao aprovar o pedido, o sistema gera o compromisso financeiro correspondente automaticamente.</p>
                     </div>
-                    <button onclick="carregarAprovacoes()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">Atualizar Lista</button>
+                    <button onclick="carregarDadosSupabase()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">Atualizar Lista</button>
                 </div>
 
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
@@ -149,17 +135,16 @@
                         <thead>
                             <tr class="border-b border-slate-800 text-slate-400">
                                 <th class="p-4">Solicitação</th>
-                                <th class="p-4">Local de Consumo</th>
-                                <th class="p-4">Itens</th>
-                                <th class="p-4">Solicitado Em</th>
-                                <th class="p-4">Prazo de Entrega</th>
+                                <th class="p-4">Local</th>
+                                <th class="p-4">Produto</th>
+                                <th class="p-4">Qtd.</th>
+                                <th class="p-4">Prazo</th>
                                 <th class="p-4">Status</th>
-                                <th class="p-4 text-center">Relatório PDF</th>
-                                <th class="p-4 text-right">Ações</th>
+                                <th class="p-4 text-right">Ações (Aprovar / Enviar ao Financeiro)</th>
                             </tr>
                         </thead>
                         <tbody id="tabela-aprovacao-corpo">
-                            <tr><td colspan="8" class="p-6 text-center text-slate-500">A carregar painel de aprovação...</td></tr>
+                            <tr><td colspan="7" class="p-6 text-center text-slate-500">A carregar painel...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -168,140 +153,46 @@
         </main>
     </div>
 
-    <!-- MODAL: CRIAR NOVA SOLICITAÇÃO -->
+    <!-- MODAL: NOVA SOLICITAÇÃO -->
     <div id="modal-solicitacao" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-white">Nova Solicitação de Compra</h3>
-                    <p class="text-xs text-slate-400">Selecione o produto cadastrado, a quantidade, a obra e o prazo de urgência.</p>
+                    <p class="text-xs text-slate-400">Insira o produto, quantidade e obra de destino.</p>
                 </div>
                 <button type="button" onclick="fecharModalNovaSolicitacao()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
 
-            <form onsubmit="salvarSolicitacao(event)" class="space-y-4 text-xs">
+            <form onsubmit="salvarSolicitacaoSupabase(event)" class="space-y-4 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Produto / Insumo *</label>
-                    <select id="sol-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                        <!-- Preenchido dinamicamente -->
-                    </select>
+                    <input type="text" id="sol-produto" required placeholder="Ex: Cimento CP-1 50kg" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Quantidade *</label>
-                        <input type="number" step="0.01" id="sol-qtd" required placeholder="Ex: 50" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                        <input type="number" step="0.01" id="sol-qtd" required placeholder="50" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Prazo de Entrega *</label>
-                        <input type="date" id="sol-prazo" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                        <input type="date" id="sol-prazo" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                 </div>
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Local de Consumo (Obra) *</label>
-                    <select id="sol-local" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                        <!-- Preenchido dinamicamente -->
+                    <select id="sol-local" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <option value="Vila Real">Vila Real</option>
+                        <option value="Casa da Andreia">Casa da Andreia</option>
+                        <option value="Loteamento Tamandaré">Loteamento Tamandaré</option>
                     </select>
-                </div>
-                <div>
-                    <label class="block text-slate-400 font-bold mb-1">Observações / Justificativa</label>
-                    <textarea id="sol-obs" rows="2" placeholder="Detalhes adicionais para o gestor..." class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
-                    <button type="button" onclick="fecharModalNovaSolicitacao()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Enviar para Análise</button>
+                    <button type="button" onclick="fecharModalNovaSolicitacao()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Enviar para Análise</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- MODAL: APROVAR / MODIFICAR SOLICITAÇÃO (GERENTE) -->
-    <div id="modal-aprovacao" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-6">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <div>
-                    <h3 class="text-base font-bold text-white" id="modal-aprov-titulo">Analisar Solicitação</h3>
-                    <p class="text-xs text-slate-400">Verifique, modifique a quantidade aprovada ou o local de consumo e salve[cite: 14].</p>
-                </div>
-                <button type="button" onclick="fecharModalAprovacao()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
-            </div>
-
-            <input type="hidden" id="aprov-id">
-
-            <div class="space-y-4 text-xs">
-                <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl grid grid-cols-2 gap-2">
-                    <div><span class="text-slate-400">Solicitante:</span> <strong id="aprov-solicitante" class="text-white">---</strong></div>
-                    <div><span class="text-slate-400">Data:</span> <strong id="aprov-data" class="text-white">---</strong></div>
-                    <div><span class="text-slate-400">Produto:</span> <strong id="aprov-produto" class="text-amber-400">---</strong></div>
-                    <div><span class="text-slate-400">Qtd. Solicitada:</span> <strong id="aprov-qtd-sol" class="text-white">---</strong></div>
-                </div>
-
-                <div>
-                    <label class="block text-slate-400 font-bold mb-1">Modificar Quantidade a ser Aprovada/Comprada *</label>
-                    <input type="number" step="0.01" id="aprov-qtd-nova" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white font-bold focus:outline-none focus:border-amber-500">
-                </div>
-
-                <div>
-                    <label class="block text-slate-400 font-bold mb-1">Modificar Local de Consumo (Obra) *</label>
-                    <select id="aprov-local-novo" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                        <!-- Preenchido dinamicamente -->
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between border-t border-slate-800 pt-4 text-xs">
-                <button type="button" onclick="reprovarSolicitacao()" class="px-4 py-2 bg-red-950 hover:bg-red-900 text-red-300 font-bold rounded-xl transition cursor-pointer">Reprovar Pedido</button>
-                <div class="space-x-2">
-                    <button type="button" onclick="fecharModalAprovacao()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
-                    <button type="button" onclick="salvarAprovacao()" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar & Aprovar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: IMPRESSÃO DE PDF / RELATÓRIO -->
-    <div id="modal-pdf" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-white text-slate-900 rounded-2xl w-full max-w-2xl p-8 shadow-2xl space-y-6 relative">
-            <button type="button" onclick="fecharModalPdf()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-900 text-lg font-bold cursor-pointer">✕</button>
-            
-            <div class="border-b border-slate-300 pb-4 flex justify-between items-center">
-                <div>
-                    <h2 class="text-lg font-black text-slate-900">Torquato Engenharia Ltda</h2>
-                    <p class="text-xs text-slate-500">Relatório Oficial de Solicitação de Compra</p>
-                </div>
-                <div class="text-right text-xs text-slate-500" id="pdf-data-emissao">Data: ---</div>
-            </div>
-
-            <div class="space-y-3 text-xs">
-                <div class="grid grid-cols-2 gap-2 bg-slate-100 p-4 rounded-xl">
-                    <div><strong>Solicitação:</strong> <span id="pdf-cod">---</span></div>
-                    <div><strong>Solicitante:</strong> <span id="pdf-solicitante">---</span></div>
-                    <div><strong>Local de Consumo:</strong> <span id="pdf-local">---</span></div>
-                    <div><strong>Prazo de Entrega:</strong> <span id="pdf-prazo">---</span></div>
-                    <div><strong>Status:</strong> <span id="pdf-status" class="font-bold text-amber-600">---</span></div>
-                </div>
-
-                <table class="w-full text-left border-collapse border border-slate-300 mt-4">
-                    <thead>
-                        <tr class="bg-slate-200 text-slate-700">
-                            <th class="p-2 border border-slate-300">Produto</th>
-                            <th class="p-2 border border-slate-300 text-center">Qtd. Solicitada</th>
-                            <th class="p-2 border border-slate-300 text-center">Qtd. Aprovada</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="p-2 border border-slate-300" id="pdf-produto">---</td>
-                            <td class="p-2 border border-slate-300 text-center" id="pdf-qtd-sol">---</td>
-                            <td class="p-2 border border-slate-300 text-center font-bold text-emerald-600" id="pdf-qtd-apr">---</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="flex justify-end space-x-3 pt-4 border-t border-slate-300">
-                <button onclick="window.print()" class="px-6 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition cursor-pointer">Imprimir / Salvar PDF</button>
-            </div>
         </div>
     </div>
 
@@ -310,20 +201,9 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let cacheLocais = [];
-        let cacheProdutos = [];
-        let solicitacoesCache = [
-            { id: 1, codigo: '9586', solicitante: 'Koper', obra: '1201', produto: 'Aço Ca-50 10Mm 1', qtd: 2, qtd_aprovada: 2, data: '18/05/2026 11:06', prazo: '25/05/2026', status: 'Em análise' },
-            { id: 2, codigo: '9558', solicitante: 'Koper', obra: 'Vila real', produto: 'Cimento CP-1', qtd: 10, qtd_aprovada: 10, data: '11/05/2026 14:55', prazo: '18/05/2026', status: 'Em análise' },
-            { id: 3, codigo: '9356', solicitante: 'Maria E.', obra: 'Vila real', produto: 'Areia', qtd: 15, qtd_aprovada: 15, data: '02/04/2026 10:50', prazo: '06/04/2026', status: 'Urgente / Aprovado' }
-        ];
-
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
-            verificarPermissaoGerencia();
-            carregarLocais();
-            carregarProdutos();
-            renderizarTabelas();
+            carregarDadosSupabase();
         });
 
         function verificarSessao() {
@@ -333,113 +213,88 @@
             document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
         }
 
-        function verificarPermissaoGerencia() {
-            const usuarioJSON = localStorage.getItem('torquato_user');
-            if (!usuarioJSON) return;
-            const usuario = JSON.parse(usuarioJSON);
-            const paginas = usuario.paginas_permitidas || [];
-            
-            // Verifica se é gestor (master, admin ou possui permissão explícita 'suprimentos_solicitacoes')
-            const ehGestor = usuario.perfil === 'master' || usuario.perfil === 'admin' || paginas.includes('suprimentos_solicitacoes');
-
-            const btnAprovacao = document.getElementById('btn-aba-aprovacao');
-            if (!ehGestor && btnAprovacao) {
-                btnAprovacao.style.display = 'none'; // Oculta a aba de aprovação para colaboradores comuns
-            }
-        }
-
         function sair() {
             localStorage.removeItem('torquato_user');
             window.location.href = 'login.html';
         }
 
         function mudarAba(aba) {
-            // Verifica segurança caso tentem aceder à aprovação sem permissão
-            if (aba === 'aprovacao') {
-                const usuarioJSON = localStorage.getItem('torquato_user');
-                if (usuarioJSON) {
-                    const usuario = JSON.parse(usuarioJSON);
-                    const paginas = usuario.paginas_permitidas || [];
-                    const ehGestor = usuario.perfil === 'master' || usuario.perfil === 'admin' || paginas.includes('suprimentos_solicitacoes');
-                    if (!ehGestor) {
-                        alert('Acesso restrito à gerência.');
-                        return;
-                    }
-                }
-            }
-
             document.getElementById('secao-solicitacoes').classList.add('hidden');
             document.getElementById('secao-aprovacao').classList.add('hidden');
             document.getElementById('btn-aba-solicitacoes').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
-            const btnAprov = document.getElementById('btn-aba-aprovacao');
-            if (btnAprov) btnAprov.className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+            document.getElementById('btn-aba-aprovacao').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
 
             if (aba === 'solicitacoes') {
                 document.getElementById('secao-solicitacoes').classList.remove('hidden');
                 document.getElementById('btn-aba-solicitacoes').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
             } else {
                 document.getElementById('secao-aprovacao').classList.remove('hidden');
-                if (btnAprov) btnAprov.className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+                document.getElementById('btn-aba-aprovacao').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
             }
         }
 
-        async function carregarLocais() {
-            const { data } = await supabaseClient.from('obras_ou_locais').select('*');
-            cacheLocais = data || [
-                { id: 1, nome: '1201' },
-                { id: 2, nome: 'Vila real' },
-                { id: 3, nome: 'Casa Diário' },
-                { id: 4, nome: 'Casa da Andreia' }
-            ];
+        async function carregarDadosSupabase() {
+            const { data, error } = await supabaseClient.from('suprimentos_solicitacoes').select('*');
+            const tbodySol = document.getElementById('tabela-solicitacoes-corpo');
+            const tbodyApr = document.getElementById('tabela-aprovacao-corpo');
 
-            const options = cacheLocais.map(l => `<option value="${l.nome}">${l.nome}</option>`).join('');
-            document.getElementById('sol-local').innerHTML = options;
-            document.getElementById('aprov-local-novo').innerHTML = options;
-        }
+            if (error || !data || data.length === 0) {
+                tbodySol.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhuma solicitação encontrada na nuvem.</td></tr>`;
+                tbodyApr.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma solicitação para aprovação.</td></tr>`;
+                return;
+            }
 
-        async function carregarProdutos() {
-            const { data } = await supabaseClient.from('suprimentos_produtos').select('*');
-            cacheProdutos = data || [
-                { id: 1, nome: 'Aço Ca-50 10Mm 1' },
-                { id: 2, nome: 'Cimento CP-1' },
-                { id: 3, nome: 'Areia' },
-                { id: 4, nome: 'Abraçadeira tipo D 3/4' }
-            ];
-
-            document.getElementById('sol-produto').innerHTML = cacheProdutos.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
-        }
-
-        function renderizarTabelas() {
-            const corpoSolicitacoes = document.getElementById('tabela-solicitacoes-corpo');
-            const corpoAprovacao = document.getElementById('tabela-aprovacao-corpo');
-
-            corpoSolicitacoes.innerHTML = solicitacoesCache.map(s => `
-                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                    <td class="p-4 font-bold text-amber-400">#${s.codigo} por ${s.solicitante}</td>
-                    <td class="p-4 font-medium text-white">${s.obra}</td>
-                    <td class="p-4 text-slate-300">${s.qtd} item(ns)</td>
-                    <td class="p-4 text-slate-300">${s.data}</td>
-                    <td class="p-4 text-amber-300 font-semibold">${s.prazo} ⚠️</td>
-                    <td class="p-4"><span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-full text-[10px] font-bold">${s.status}</span></td>
-                </tr>
-            `).join('');
-
-            corpoAprovacao.innerHTML = solicitacoesCache.map(s => `
+            tbodySol.innerHTML = data.map(s => `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
                     <td class="p-4 font-bold text-amber-400">#${s.codigo}</td>
-                    <td class="p-4 font-medium text-white">${s.obra}</td>
-                    <td class="p-4 text-slate-300">${s.produto} (${s.qtd})</td>
-                    <td class="p-4 text-slate-300">${s.data}</td>
+                    <td class="p-4 text-white">${s.obra}</td>
+                    <td class="p-4 text-slate-300">${s.produto}</td>
+                    <td class="p-4 text-slate-300">${s.qtd} un</td>
+                    <td class="p-4 text-amber-300">${s.prazo}</td>
+                    <td class="p-4"><span class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-bold">${s.status}</span></td>
+                </tr>
+            `).join('');
+
+            tbodyApr.innerHTML = data.map(s => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                    <td class="p-4 font-bold text-amber-400">#${s.codigo}</td>
+                    <td class="p-4 text-white">${s.obra}</td>
+                    <td class="p-4 text-slate-300">${s.produto}</td>
+                    <td class="p-4 text-slate-300">${s.qtd} un</td>
                     <td class="p-4 text-slate-300">${s.prazo}</td>
-                    <td class="p-4"><span class="bg-blue-500/10 text-blue-400 px-2 py-1 rounded text-[10px] font-bold">${s.status}</span></td>
-                    <td class="p-4 text-center">
-                        <button onclick="abrirPdf(${s.id})" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">📄 PDF</button>
-                    </td>
-                    <td class="p-4 text-right space-x-2">
-                        <button onclick="abrirModalAprovacao(${s.id})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">Analisar / Editar</button>
+                    <td class="p-4"><span class="bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded text-[10px] font-bold">${s.status}</span></td>
+                    <td class="p-4 text-right">
+                        ${s.status !== 'Aprovado / Comprar' ? `<button onclick="aprovarEIntegrarCompra(${s.id}, '${s.codigo}', '${s.produto}',${s.qtd}, '${s.obra}', '${s.prazo}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✅ Aprovar & Gerar Contas a Pagar</button>` : `<span class="text-emerald-400 font-bold text-[11px]">Integrado ao Financeiro ✓</span>`}
                     </td>
                 </tr>
             `).join('');
+        }
+
+        // FUNÇÃO DE INTEGRAÇÃO AUTOMÁTICA REATIVA: SOLICITAÇÃO -> CONTAS A PAGAR
+        async function aprovarEIntegrarCompra(id, codigo, produto, qtd, obra, prazo) {
+            const valorEstimado = qtd * 50.00; // Valor base estimado por unidade para teste
+
+            if (!confirm(`Deseja aprovar a compra de ${qtd} un de "${produto}" para a obra "${obra}"?\n\nIsso irá:\n1. Atualizar o status da solicitação para Aprovado\n2. Inserir o compromisso no Contas a Pagar automaticamente.`)) return;
+
+            // 1. Atualizar status no Supabase
+            await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Aprovado / Comprar' }).eq('id', id);
+
+            // 2. Inserir automaticamente no Contas a Pagar
+            const novaContaPagar = {
+                codigo,
+                nfe: 'Pedido #' + codigo,
+                beneficiario: 'Fornecedor de Materiais (' + produto + ')',
+                valor: valorEstimado,
+                vencimento: prazo,
+                status: 'Pendente',
+                obra,
+                etiqueta: 'Compra de Insumos - Obra'
+            };
+
+            await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
+
+            alert('Solicitação aprovada e Contas a Pagar gerado com sucesso na nuvem!');
+            carregarDadosSupabase();
         }
 
         function abrirModalNovaSolicitacao() {
@@ -450,98 +305,34 @@
             document.getElementById('modal-solicitacao').classList.add('hidden');
         }
 
-        function salvarSolicitacao(e) {
+        async function salvarSolicitacaoSupabase(e) {
             e.preventDefault();
             const produto = document.getElementById('sol-produto').value;
             const qtd = Number(document.getElementById('sol-qtd').value);
-            const prazo = document.getElementById('sol-prazo').value;
+            const prazoIso = document.getElementById('sol-prazo').value;
+            const prazo = prazoIso.split('-').reverse().join('/');
             const obra = document.getElementById('sol-local').value;
 
-            const nova = {
-                id: Date.now(),
+            const novaSolicitacao = {
                 codigo: String(Math.floor(1000 + Math.random() * 9000)),
-                solicitante: 'Andrey T.',
+                solicitante: 'Engenharia Torquato',
                 obra,
                 produto,
                 qtd,
-                qtd_aprovada: qtd,
-                data: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
-                prazo: prazo.split('-').reverse().join('/'),
+                data: new Date().toLocaleDateString('pt-BR'),
+                prazo,
                 status: 'Em análise'
             };
 
-            solicitacoesCache.unshift(nova);
-            renderizarTabelas();
-            fecharModalNovaSolicitacao();
-            alert('Solicitação criada com sucesso e enviada para análise da gerência!');
-        }
+            const { error } = await supabaseClient.from('suprimentos_solicitacoes').insert([novaSolicitacao]);
 
-        function abrirModalAprovacao(id) {
-            const s = solicitacoesCache.find(item => item.id === id);
-            if (!s) return;
-
-            document.getElementById('aprov-id').value = s.id;
-            document.getElementById('aprov-solicitante').innerText = s.solicitante;
-            document.getElementById('aprov-data').innerText = s.data;
-            document.getElementById('aprov-produto').innerText = s.produto;
-            document.getElementById('aprov-qtd-sol').innerText = s.qtd;
-            document.getElementById('aprov-qtd-nova').value = s.qtd_aprovada;
-            document.getElementById('aprov-local-novo').value = s.obra;
-
-            document.getElementById('modal-aprovacao').classList.remove('hidden');
-        }
-
-        function fecharModalAprovacao() {
-            document.getElementById('modal-aprovacao').classList.add('hidden');
-        }
-
-        function salvarAprovacao() {
-            const id = Number(document.getElementById('aprov-id').value);
-            const qtdNova = Number(document.getElementById('aprov-qtd-nova').value);
-            const obraNova = document.getElementById('aprov-local-novo').value;
-
-            const s = solicitacoesCache.find(item => item.id === id);
-            if (s) {
-                s.qtd_aprovada = qtdNova;
-                s.obra = obraNova;
-                s.status = 'Aprovado / Comprar';
+            if (error) {
+                alert('Erro ao guardar: ' + error.message);
+            } else {
+                alert('Solicitação criada com sucesso!');
+                fecharModalNovaSolicitacao();
+                carregarDadosSupabase();
             }
-
-            renderizarTabelas();
-            fecharModalAprovacao();
-            alert('Solicitação aprovada e atualizada com sucesso! O solicitante já pode visualizar a alteração.');
-        }
-
-        function reprovarSolicitacao() {
-            const id = Number(document.getElementById('aprov-id').value);
-            const s = solicitacoesCache.find(item => item.id === id);
-            if (s) {
-                s.status = 'Reprovado';
-            }
-            renderizarTabelas();
-            fecharModalAprovacao();
-            alert('Solicitação reprovada.');
-        }
-
-        function abrirPdf(id) {
-            const s = solicitacoesCache.find(item => item.id === id);
-            if (!s) return;
-
-            document.getElementById('pdf-cod').innerText = '#' + s.codigo;
-            document.getElementById('pdf-solicitante').innerText = s.solicitante;
-            document.getElementById('pdf-local').innerText = s.obra;
-            document.getElementById('pdf-prazo').innerText = s.prazo;
-            document.getElementById('pdf-status').innerText = s.status;
-            document.getElementById('pdf-produto').innerText = s.produto;
-            document.getElementById('pdf-qtd-sol').innerText = s.qtd;
-            document.getElementById('pdf-qtd-apr').innerText = s.qtd_aprovada;
-            document.getElementById('pdf-data-emissao').innerText = 'Data: ' + new Date().toLocaleDateString('pt-BR');
-
-            document.getElementById('modal-pdf').classList.remove('hidden');
-        }
-
-        function fecharModalPdf() {
-            document.getElementById('modal-pdf').classList.add('hidden');
         }
     </script>
 </body>
