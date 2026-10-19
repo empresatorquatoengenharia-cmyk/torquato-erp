@@ -42,33 +42,23 @@
                 </div>
 
                 <div>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Comercial</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <a href="vendas_empreendimentos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
                             <span>🏢</span>
-                            <span>Matriz & Utilizadores</span>
+                            <span>Empreendimentos & Obras</span>
                         </a>
-                    </nav>
-                </div>
-
-                <div>
-                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
-                    <nav class="space-y-1 text-xs">
-                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏷️</span>
-                            <span>Produtos & Insumos</span>
+                        <a href="vendas_clientes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>👥</span>
+                            <span>Clientes & Compradores</span>
                         </a>
-                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📍</span>
-                            <span>Locais de Estoque</span>
+                        <a href="vendas_propostas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📄</span>
+                            <span>Propostas Comerciais</span>
                         </a>
-                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🚚</span>
-                            <span>Entradas & Transferências</span>
-                        </a>
-                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🛒</span>
-                            <span>Solicitações & Compras</span>
+                        <a href="vendas_imoveis.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏡</span>
+                            <span>Vendas & Contratos</span>
                         </a>
                     </nav>
                 </div>
@@ -99,6 +89,20 @@
                         <a href="financeiro_contas_bancarias.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
                             <span>🏦</span>
                             <span>Contas Bancárias</span>
+                        </a>
+                        <a href="financeiro_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Indexadores & Regras</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛡️</span>
+                            <span>Matriz & Utilizadores</span>
                         </a>
                     </nav>
                 </div>
@@ -366,13 +370,8 @@
             }
         }
 
-        function abrirModalConta() {
-            document.getElementById('modal-conta').classList.remove('hidden');
-        }
-
-        function fecharModalConta() {
-            document.getElementById('modal-conta').classList.add('hidden');
-        }
+        function abrirModalConta() { document.getElementById('modal-conta').classList.remove('hidden'); }
+        function fecharModalConta() { document.getElementById('modal-conta').classList.add('hidden'); }
 
         async function salvarContaSupabase(e) {
             e.preventDefault();
@@ -388,16 +387,7 @@
 
             const novaConta = {
                 codigo: String(Math.floor(100 + Math.random() * 900)),
-                nome,
-                tipo_conta: tipoConta,
-                titular,
-                banco,
-                agencia,
-                conta,
-                saldo_inicial: saldo,
-                saldo_atual: saldo,
-                chave_pix: pix,
-                emite_cheques: cheques
+                nome, tipo_conta: tipoConta, titular, banco, agencia, conta, saldo_inicial: saldo, saldo_atual: saldo, chave_pix: pix, emite_cheques: cheques
             };
 
             const { error } = await supabaseClient.from('financeiro_contas_bancarias').insert([novaConta]);
