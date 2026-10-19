@@ -171,34 +171,35 @@
         </main>
     </div>
 
-    <!-- MODAL IMPORTAR/CADASTRAR NOTA MANUAL (Com as Abas das Imagens) -->
+    <!-- MODAL IMPORTAR/CADASTRAR NOTA MANUAL (Com Multi-Seleção de Itens e Anexo em PDF) -->
     <div id="modal-nota-manual" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-white">Importar / Cadastrar Nova Nota Manual</h3>
-                    <p class="text-xs text-slate-400">Puxe produtos cadastrados e sincronize a fatura com o Contas a Pagar.</p>
+                    <p class="text-xs text-slate-400">Adicione múltiplos produtos/serviços, anexe a fatura PDF e sincronize com o Contas a Pagar.</p>
                 </div>
                 <button type="button" onclick="fecharModalNotaManual()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
 
-            <!-- Etapas de Cadastro conforme os prints -->
+            <!-- Etapas de Cadastro -->
             <div class="flex border-b border-slate-800 text-xs font-bold">
-                <button id="step-btn-1" onclick="mudarEtapa(1)" class="px-4 py-2 text-amber-400 border-b-2 border-amber-500">1. Informações Gerais</button>
-                <button id="step-btn-2" onclick="mudarEtapa(2)" class="px-4 py-2 text-slate-500">2. Serviços & Insumos</button>
-                <button id="step-btn-3" onclick="mudarEtapa(3)" class="px-4 py-2 text-slate-500">3. Condições de Pagamento</button>
+                <button id="step-btn-1" type="button" onclick="mudarEtapa(1)" class="px-4 py-2 text-amber-400 border-b-2 border-amber-500">1. Informações Gerais & Anexo</button>
+                <button id="step-btn-2" type="button" onclick="mudarEtapa(2)" class="px-4 py-2 text-slate-500">2. Produtos & Serviços (Múltiplos)</button>
+                <button id="step-btn-3" type="button" onclick="mudarEtapa(3)" class="px-4 py-2 text-slate-500">3. Condições de Pagamento</button>
             </div>
 
             <form onsubmit="salvarNotaSupabase(event)" class="space-y-4 text-xs">
                 
-                <!-- ETAPA 1: INFORMAÇÕES GERAIS -->
+                <!-- ETAPA 1: INFORMAÇÕES GERAIS E ANEXO PDF/IMAGEM -->
                 <div id="etapa-1" class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-slate-400 font-bold mb-1">Parceiro Emitente *</label>
+                            <label class="block text-slate-400 font-bold mb-1">Parceiro Emitente / Fornecedor *</label>
                             <select id="cad-parceiro" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                                 <option value="Casas D' Agua - Biguaçu">Casas D' Agua - Biguaçu</option>
                                 <option value="1000 Marcas">1000 Marcas</option>
+                                <option value="2-Agro Ferragens Luizão">2-Agro Ferragens Luizão</option>
                             </select>
                         </div>
                         <div>
@@ -208,11 +209,12 @@
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-slate-400 font-bold mb-1">Local da Entrega / Prestação *</label>
+                            <label class="block text-slate-400 font-bold mb-1">Local da Entrega / Obra *</label>
                             <select id="cad-local" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                                 <option value="Matriz">Matriz / Sede</option>
                                 <option value="Vila real">Vila Real</option>
                                 <option value="Residencial Palácio dos Andes">Residencial Palácio dos Andes</option>
+                                <option value="Casa da Andreia">Casa da Andreia</option>
                             </select>
                         </div>
                         <div>
@@ -226,6 +228,7 @@
                             <select id="cad-tipo" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                                 <option value="Recibo de produtos">Recibo de produtos</option>
                                 <option value="Recibo de serviços">Recibo de serviços</option>
+                                <option value="Nota fiscal de prestação de serviços">Nota fiscal de prestação de serviços</option>
                                 <option value="Cupom fiscal">Cupom fiscal</option>
                             </select>
                         </div>
@@ -234,35 +237,46 @@
                             <label for="cad-recorrente" class="text-slate-300 font-bold">Esta nota possui recorrência mensal</label>
                         </div>
                     </div>
-                </div>
 
-                <!-- ETAPA 2: SERVIÇOS E INSUMOS COMPRADOS -->
-                <div id="etapa-2" class="hidden space-y-4">
-                    <p class="text-slate-400">Puxe o item pelo código ou selecione os insumos já cadastrados no sistema:</p>
-                    <div class="grid grid-cols-3 gap-3">
-                        <div class="col-span-2">
-                            <label class="block text-slate-400 mb-1">Insumo / Produto Cadastrado</label>
-                            <select id="cad-item-nome" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
-                                <option value="Cimento CP II 50kg">Cimento CP II 50kg - R$ 38,00</option>
-                                <option value="Aço CA-50 10mm">Aço CA-50 10mm - R$ 45,00</option>
-                                <option value="Prestação de Serviço de Mão de Obra">Prestação de Serviço de Mão de Obra</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 mb-1">Valor do Item (R$)</label>
-                            <input type="number" step="0.01" id="cad-valor-total" placeholder="150.00" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
-                        </div>
+                    <!-- Caixa de Anexo da Fatura/Nota (PDF ou Imagem) -->
+                    <div class="border border-dashed border-slate-800 bg-slate-950 p-4 rounded-xl text-center space-y-2">
+                        <span class="text-xl">📄</span>
+                        <p class="font-bold text-white">Anexar Fatura / Nota Fiscal Digitalizada (PDF ou Imagem)</p>
+                        <input type="file" id="cad-arquivo-pdf" accept=".pdf,image/*" class="hidden" onchange="mostrarStatusArquivo()">
+                        <button type="button" onclick="document.getElementById('cad-arquivo-pdf').click()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
+                            Selecionar Arquivo PDF / Imagem
+                        </button>
+                        <p id="status-pdf-nome" class="text-[11px] text-slate-500">Nenhum arquivo anexado</p>
                     </div>
                 </div>
 
-                <!-- ETAPA 3: CONDIÇÕES DE PAGAMENTO (Sincronização com o Financeiro) -->
+                <!-- ETAPA 2: MÚLTIPLOS PRODUTOS E SERVIÇOS -->
+                <div id="etapa-2" class="hidden space-y-4">
+                    <div class="flex items-center justify-between">
+                        <p class="text-slate-400">Selecione os itens do catálogo e adicione múltiplos produtos/serviços à nota:</p>
+                        <button type="button" onclick="adicionarLinhaItem()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg font-bold text-xs transition cursor-pointer">
+                            ➕ Adicionar Outro Item
+                        </button>
+                    </div>
+
+                    <!-- Lista Dinâmica de Itens -->
+                    <div id="container-itens" class="space-y-3">
+                        <!-- Linha inicial de item preenchida via script -->
+                    </div>
+
+                    <div class="flex justify-end pt-2 border-t border-slate-800">
+                        <span class="text-sm font-bold text-slate-300">Valor Total da Nota: <strong id="subtotal-nota" class="text-amber-400 text-base">R$ 0,00</strong></span>
+                    </div>
+                </div>
+
+                <!-- ETAPA 3: CONDIÇÕES DE PAGAMENTO & SINCRONIZAÇÃO -->
                 <div id="etapa-3" class="hidden space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-slate-400 font-bold mb-1">Forma de Pagamento *</label>
                             <select id="cad-forma-pagamento" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                                 <option value="Boleto">Boleto Bancário</option>
-                                <option value="Pix">Pix / Transferência</option>
+                                <option value="Pix">Pix / Transferência Directa</option>
                                 <option value="Cartão de Crédito">Cartão de Crédito</option>
                                 <option value="Cartão de Débito">Cartão de Débito</option>
                                 <option value="Dinheiro">Dinheiro Espécie</option>
@@ -274,8 +288,8 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-slate-400 font-bold mb-1">Descrição / Observações da Fatura</label>
-                        <textarea id="cad-descricao" rows="2" placeholder="Observações adicionais para o Contas a Pagar..." class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white"></textarea>
+                        <label class="block text-slate-400 font-bold mb-1">Descrição / Observações para o Contas a Pagar</label>
+                        <textarea id="cad-descricao" rows="2" placeholder="Observações adicionais para conferência financeira..." class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white"></textarea>
                     </div>
                 </div>
 
@@ -293,10 +307,12 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let modoAtual = 'Eletrônica';
+        let produtosCadastradosSupabase = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
             carregarNotas();
+            carregarProdutosDoSupabase();
         });
 
         function verificarSessao() {
@@ -309,6 +325,21 @@
         function sair() {
             localStorage.removeItem('torquato_user');
             window.location.href = 'login.html';
+        }
+
+        async function carregarProdutosDoSupabase() {
+            const { data, error } = await supabaseClient.from('suprimentos_produtos').select('*');
+            if (!error && data && data.length > 0) {
+                produtosCadastradosSupabase = data;
+            } else {
+                // Lista fallback caso a tabela ainda não tenha itens salvos
+                produtosCadastradosSupabase = [
+                    { nome: 'Cimento CP II 50kg', unidade: 'Saco' },
+                    { nome: 'Aço CA-50 10mm', unidade: 'Barra' },
+                    { nome: 'Tijolo Cerâmico 9x19x19', unidade: 'Milheiro' },
+                    { nome: 'Mão de Obra Especializada (Serviço)', unidade: 'Horas' }
+                ];
+            }
         }
 
         function mudarModo(modo) {
@@ -360,6 +391,8 @@
 
         function abrirModalNotaManual() {
             document.getElementById('modal-nota-manual').classList.remove('hidden');
+            document.getElementById('container-itens').innerHTML = '';
+            adicionarLinhaItem(); // cria o primeiro item padrão
         }
 
         function fecharModalNotaManual() {
@@ -370,7 +403,72 @@
             document.getElementById('etapa-1').classList.add('hidden');
             document.getElementById('etapa-2').classList.add('hidden');
             document.getElementById('etapa-3').classList.add('hidden');
+
+            document.getElementById('step-btn-1').className = "px-4 py-2 text-slate-500";
+            document.getElementById('step-btn-2').className = "px-4 py-2 text-slate-500";
+            document.getElementById('step-btn-3').className = "px-4 py-2 text-slate-500";
+
             document.getElementById(`etapa-${etapa}`).classList.remove('hidden');
+            document.getElementById(`step-btn-${etapa}`).className = "px-4 py-2 text-amber-400 border-b-2 border-amber-500 font-bold";
+        }
+
+        function mostrarStatusArquivo() {
+            const file = document.getElementById('cad-arquivo-pdf').files[0];
+            if (file) {
+                document.getElementById('status-pdf-nome').innerText = `Anexado: ${file.name}`;
+            }
+        }
+
+        function adicionarLinhaItem() {
+            const container = document.getElementById('container-itens');
+            const optionsHtml = produtosCadastradosSupabase.map(p => `<option value="${p.nome}">${p.nome} (${p.unidade || 'Un'})</option>`).join('');
+
+            const idLinha = Date.now();
+            const div = document.createElement('div');
+            div.id = `item-linha-${idLinha}`;
+            div.className = "grid grid-cols-12 gap-2 items-center bg-slate-950 p-3 rounded-xl border border-slate-800";
+            div.innerHTML = `
+                <div class="col-span-6">
+                    <label class="block text-slate-500 text-[10px] mb-1">Item / Produto / Serviço</label>
+                    <select class="item-select-nome w-full bg-slate-900 border border-slate-800 p-2 rounded-lg text-white text-xs">
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-slate-500 text-[10px] mb-1">Qtd.</label>
+                    <input type="number" step="0.01" value="1" onchange="calcularTotalNota()" class="item-input-qtd w-full bg-slate-900 border border-slate-800 p-2 rounded-lg text-white text-xs">
+                </div>
+                <div class="col-span-3">
+                    <label class="block text-slate-500 text-[10px] mb-1">Valor Unit. (R$)</label>
+                    <input type="number" step="0.01" value="50.00" onchange="calcularTotalNota()" class="item-input-valor w-full bg-slate-900 border border-slate-800 p-2 rounded-lg text-white text-xs">
+                </div>
+                <div class="col-span-1 text-center pt-4">
+                    <button type="button" onclick="removerLinhaItem('${idLinha}')" class="text-rose-400 hover:text-rose-300 font-bold">✕</button>
+                </div>
+            `;
+            container.appendChild(div);
+            calcularTotalNota();
+        }
+
+        function removerLinhaItem(id) {
+            const el = document.getElementById(`item-linha-${id}`);
+            if (el) el.remove();
+            calcularTotalNota();
+        }
+
+        function calcularTotalNota() {
+            const qtds = document.querySelectorAll('.item-input-qtd');
+            const valores = document.querySelectorAll('.item-input-valor');
+            let total = 0;
+
+            for (let i = 0; i < qtds.length; i++) {
+                const q = Number(qtds[i].value || 0);
+                const v = Number(valores[i].value || 0);
+                total += (q * v);
+            }
+
+            document.getElementById('subtotal-nota').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            return total;
         }
 
         function monitorarSefaz() {
@@ -385,7 +483,7 @@
             const emissaoIso = document.getElementById('cad-emissao').value;
             const emissao = emissaoIso.split('-').reverse().join('/');
             const tipo = document.getElementById('cad-tipo').value;
-            const valor = Number(document.getElementById('cad-valor-total').value || 150);
+            const valorTotal = calcularTotalNota();
             const formaPagamento = document.getElementById('cad-forma-pagamento').value;
             const vencimentoFaturaIso = document.getElementById('cad-vencimento-fatura').value;
             const vencimentoFatura = vencimentoFaturaIso.split('-').reverse().join('/');
@@ -397,7 +495,7 @@
                 parceiro,
                 local_entrega: local,
                 data_emissao: emissao,
-                valor,
+                valor: valorTotal,
                 tipo,
                 situacao: 'Normal',
                 forma_pagamento: formaPagamento,
@@ -405,7 +503,7 @@
                 descricao
             };
 
-            // 1. Grava a Nota no Supabase
+            // 1. Salva a Nota no Supabase
             const { error: errNota } = await supabaseClient.from('financeiro_notas').insert([novaNota]);
 
             if (errNota) {
@@ -418,7 +516,7 @@
                 codigo: novaNota.codigo,
                 nfe: numero,
                 beneficiario: parceiro,
-                valor,
+                valor: valorTotal,
                 vencimento: vencimentoFatura,
                 status: 'Pendente',
                 obra: local,
@@ -427,7 +525,7 @@
 
             await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
 
-            alert('Nota fiscal cadastrada e conta a pagar gerada e sincronizada com sucesso na nuvem!');
+            alert('Nota fiscal cadastrada com múltiplos itens e conta a pagar gerada/sincronizada com sucesso no Supabase!');
             fecharModalNotaManual();
             carregarNotas();
         }
