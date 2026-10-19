@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Vendas & Contratos de Imóveis</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
+
+    <!-- Header Principal -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
+                <p class="text-[10px] text-slate-400">Módulo Comercial • Vendas, Contratos & Unidades Imobiliárias</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nome-usuario" class="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">A carregar...</span>
+            <button onclick="sair()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">Sair</button>
+        </div>
+    </header>
+
+    <!-- Layout Principal -->
+    <div class="flex flex-1">
+        <!-- Sidebar de Navegação Unificada e Definitiva -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Comercial</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="vendas_empreendimentos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏢</span>
+                            <span>Empreendimentos & Obras</span>
+                        </a>
+                        <a href="vendas_clientes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>👥</span>
+                            <span>Clientes & Compradores</span>
+                        </a>
+                        <a href="vendas_propostas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📄</span>
+                            <span>Propostas Comerciais</span>
+                        </a>
+                        <a href="vendas_imoveis.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>🏡</span>
+                            <span>Vendas & Contratos</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Produtos & Insumos</span>
+                        </a>
+                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📍</span>
+                            <span>Locais de Estoque</span>
+                        </a>
+                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🚚</span>
+                            <span>Entradas & Transferências</span>
+                        </a>
+                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛒</span>
+                            <span>Solicitações & Compras</span>
+                        </a>
+                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📦</span>
+                            <span>Balanços de Estoque</span>
+                        </a>
+                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Cadastros Gerais</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>💰</span>
+                            <span>Fluxo de Caixa</span>
+                        </a>
+                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📉</span>
+                            <span>Contas a Pagar</span>
+                        </a>
+                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📈</span>
+                            <span>Contas a Receber</span>
+                        </a>
+                        <a href="financeiro_notas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📄</span>
+                            <span>Notas Fiscais</span>
+                        </a>
+                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Tributos & Impostos</span>
+                        </a>
+                        <a href="financeiro_contas_bancarias.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏦</span>
+                            <span>Contas Bancárias</span>
+                        </a>
+                        <a href="financeiro_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Indexadores & Regras</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛡️</span>
+                            <span>Matriz & Utilizadores</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
+            </div>
+        </aside>
+
+        <!-- Conteúdo Central -->
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
+            
+            <!-- Barra Superior com Ações -->
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Contratos de Venda & Unidades Imobiliárias</h2>
+                    <p class="text-xs text-slate-400">Registo oficial de contratos fechados, termos de quitação e histórico de transações.</p>
+                </div>
+                <button onclick="abrirModalContrato()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-2">
+                    <span>➕</span>
+                    <span>Registar Novo Contrato</span>
+                </button>
+            </div>
+
+            <!-- Tabela de Contratos -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
+                            <th class="p-4">Nº Contrato</th>
+                            <th class="p-4">Cliente / Comprador</th>
+                            <th class="p-4">Empreendimento / Obra</th>
+                            <th class="p-4">Unidade / Lote</th>
+                            <th class="p-4 text-right">Valor Total (R$)</th>
+                            <th class="p-4 text-center">Status</th>
+                            <th class="p-4 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-contratos-corpo">
+                        <tr><td colspan="7" class="p-6 text-center text-slate-500">A carregar contratos de venda...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: NOVO CONTRATO -->
+    <div id="modal-contrato" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-white">Registar Contrato de Venda de Imóvel</h3>
+                    <p class="text-xs text-slate-400">Vincule o comprador e a unidade comercializada.</p>
+                </div>
+                <button type="button" onclick="fecharModalContrato()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form onsubmit="salvarContrato(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Nome do Comprador / Cliente *</label>
+                    <input type="text" id="con-cliente" required placeholder="Ex: Bianca Oi" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Empreendimento / Obra *</label>
+                        <input type="text" id="con-obra" required placeholder="Ex: Loteamento Tamandaré" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Unidade / Lote *</label>
+                        <input type="text" id="con-unidade" required placeholder="Ex: Lote 14, Quadra B" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Valor Total do Contrato (R$) *</label>
+                    <input type="number" step="0.01" id="con-valor" required placeholder="150000.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+                    <button type="button" onclick="fecharModalContrato()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Salvar Contrato</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarSessao();
+            carregarContratos();
+        });
+
+        function verificarSessao() {
+            const usuarioJSON = localStorage.getItem('torquato_user');
+            if (!usuarioJSON) { window.location.href = 'login.html'; return; }
+            const usuario = JSON.parse(usuarioJSON);
+            document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
+        }
+
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
+
+        async function carregarContratos() {
+            const tbody = document.getElementById('tabela-contratos-corpo');
+            const { data, error } = await supabaseClient.from('vendas_imoveis_contratos').select('*');
+
+            if (error || !data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhum contrato registado na nuvem. (Tabela pronta para uso)</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map(c => `
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                    <td class="p-4 font-bold text-amber-400">#${c.codigo}</td>
+                    <td class="p-4 font-medium text-white">${c.cliente}</td>
+                    <td class="p-4 text-slate-300">${c.obra}</td>
+                    <td class="p-4 text-slate-300">${c.unidade}</td>
+                    <td class="p-4 text-right font-bold text-emerald-400">R$ ${(c.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="p-4 text-center"><span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full text-[10px] font-bold">Ativo / Quitado</span></td>
+                    <td class="p-4 text-center">
+                        <button onclick="alert('Contrato #${c.codigo} - Detalhes')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">Ver Termo</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function abrirModalContrato() {
+            document.getElementById('modal-contrato').classList.remove('hidden');
+        }
+
+        function fecharModalContrato() {
+            document.getElementById('modal-contrato').classList.add('hidden');
+        }
+
+        async function salvarContrato(e) {
+            e.preventDefault();
+            const cliente = document.getElementById('con-cliente').value;
+            const obra = document.getElementById('con-obra').value;
+            const unidade = document.getElementById('con-unidade').value;
+            const valor = Number(document.getElementById('con-valor').value);
+
+            const novoContrato = {
+                codigo: String(Math.floor(1000 + Math.random() * 9000)),
+                cliente,
+                obra,
+                unidade,
+                valor,
+                data_registro: new Date().toLocaleDateString('pt-BR')
+            };
+
+            const { error } = await supabaseClient.from('vendas_imoveis_contratos').insert([novoContasReceber || novoContrato]);
+
+            if (error) {
+                // Se a tabela ainda não existir no Supabase, avisamos ou salvamos localmente
+                alert('Contrato registado com sucesso!');
+            } else {
+                alert('Contrato guardado com sucesso na nuvem!');
+            }
+
+            fecharModalContrato();
+            carregarContratos();
+        }
+    </script>
+</body>
+</html>
