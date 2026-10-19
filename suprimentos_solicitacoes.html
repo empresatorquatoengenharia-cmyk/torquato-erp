@@ -173,7 +173,7 @@
                             <tr class="border-b border-slate-800 text-slate-400">
                                 <th class="p-4">Solicitação</th>
                                 <th class="p-4">Local de Consumo (Obra / Matriz)</th>
-                                <th class="p-4">Produto</th>
+                                <th class="p-4">Produto (Insumo)</th>
                                 <th class="p-4">Quantidade</th>
                                 <th class="p-4">Prazo de Entrega</th>
                                 <th class="p-4">Status</th>
@@ -225,16 +225,16 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-white">Nova Solicitação de Compra</h3>
-                    <p class="text-xs text-slate-400">Selecione o produto cadastrado e o local de consumo (Obra ou Matriz).</p>
+                    <p class="text-xs text-slate-400">Selecione o produto da planilha "Produtos & Insumos" e o local de consumo.</p>
                 </div>
                 <button type="button" onclick="fecharModalNovaSolicitacao()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form onsubmit="salvarSolicitacaoSupabase(event)" class="space-y-4 text-xs">
                 <div>
-                    <label class="block text-slate-400 font-bold mb-1">Produto / Insumo *</label>
+                    <label class="block text-slate-400 font-bold mb-1">Produto / Insumo (Cadastrado) *</label>
                     <select id="sol-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                        <option value="">A carregar produtos...</option>
+                        <option value="">A carregar produtos de Insumos...</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -302,12 +302,13 @@
         }
 
         async function carregarProdutosSelect() {
+            // Puxa estritamente da tabela/planilha de Produtos & Insumos (suprimentos_produtos)
             const { data, error } = await supabaseClient.from('suprimentos_produtos').select('*');
             const selectProd = document.getElementById('sol-produto');
             if (data && data.length > 0) {
                 selectProd.innerHTML = '<option value="">Selecione um produto cadastrado...</option>' + data.map(p => `<option value="${p.nome}">${p.nome} (${p.unidade || 'un'})</option>`).join('');
             } else {
-                selectProd.innerHTML = '<option value="">Nenhum produto cadastrado no ERP</option>';
+                selectProd.innerHTML = '<option value="">Nenhum produto encontrado na planilha Produtos & Insumos</option>';
             }
         }
 
