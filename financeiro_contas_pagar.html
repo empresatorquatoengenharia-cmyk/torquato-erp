@@ -42,33 +42,23 @@
                 </div>
 
                 <div>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Comercial</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <a href="vendas_empreendimentos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
                             <span>🏢</span>
-                            <span>Matriz & Utilizadores</span>
+                            <span>Empreendimentos & Obras</span>
                         </a>
-                    </nav>
-                </div>
-
-                <div>
-                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
-                    <nav class="space-y-1 text-xs">
-                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏷️</span>
-                            <span>Produtos & Insumos</span>
+                        <a href="vendas_clientes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>👥</span>
+                            <span>Clientes & Compradores</span>
                         </a>
-                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📍</span>
-                            <span>Locais de Estoque</span>
+                        <a href="vendas_propostas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📄</span>
+                            <span>Propostas Comerciais</span>
                         </a>
-                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🚚</span>
-                            <span>Entradas & Transferências</span>
-                        </a>
-                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🛒</span>
-                            <span>Solicitações & Compras</span>
+                        <a href="vendas_imoveis.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏡</span>
+                            <span>Vendas & Contratos</span>
                         </a>
                     </nav>
                 </div>
@@ -87,6 +77,32 @@
                         <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
                             <span>📈</span>
                             <span>Contas a Receber</span>
+                        </a>
+                        <a href="financeiro_notas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📄</span>
+                            <span>Notas Fiscais</span>
+                        </a>
+                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Tributos & Impostos</span>
+                        </a>
+                        <a href="financeiro_contas_bancarias.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏦</span>
+                            <span>Contas Bancárias</span>
+                        </a>
+                        <a href="financeiro_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Indexadores & Regras</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛡️</span>
+                            <span>Matriz & Utilizadores</span>
                         </a>
                     </nav>
                 </div>
@@ -320,12 +336,8 @@
 
             let query = supabaseClient.from('financeiro_contas_pagar').select('*');
 
-            if (obraFiltro !== 'Todos') {
-                query = query.eq('obra', obraFiltro);
-            }
-            if (statusFiltro !== 'Todos') {
-                query = query.eq('status', statusFiltro);
-            }
+            if (obraFiltro !== 'Todos') query = query.eq('obra', obraFiltro);
+            if (statusFiltro !== 'Todos') query = query.eq('status', statusFiltro);
 
             const { data, error } = await query;
 
@@ -335,11 +347,7 @@
             }
 
             const lista = data || [];
-
-            // Atualiza os cards de resumo
-            let totalGeral = 0;
-            let totalPago = 0;
-            let totalNaoPago = 0;
+            let totalGeral = 0, totalPago = 0, totalNaoPago = 0;
 
             lista.forEach(c => {
                 totalGeral += Number(c.valor || 0);
@@ -378,10 +386,7 @@
 
         async function abrirModalDetalhes(id) {
             const { data, error } = await supabaseClient.from('financeiro_contas_pagar').select('*').eq('id', id).single();
-            if (error || !data) {
-                alert('Erro ao carregar detalhes.');
-                return;
-            }
+            if (error || !data) { alert('Erro ao carregar detalhes.'); return; }
 
             contaAtualEmEdicao = data;
             document.getElementById('modal-titulo-cod').innerText = `Detalhes da Conta #${data.codigo}`;
@@ -404,15 +409,9 @@
             const dataPagIso = document.getElementById('pag-data').value;
             const dataPagFormatada = dataPagIso.split('-').reverse().join('/');
 
-            const { error } = await supabaseClient
-                .from('financeiro_contas_pagar')
-                .update({
-                    status: 'Paga',
-                    pago_em: dataPagFormatada,
-                    caixa: banco,
-                    etiqueta: 'Paga'
-                })
-                .eq('id', contaAtualEmEdicao.id);
+            const { error } = await supabaseClient.from('financeiro_contas_pagar').update({
+                status: 'Paga', pago_em: dataPagFormatada, caixa: banco, etiqueta: 'Paga'
+            }).eq('id', contaAtualEmEdicao.id);
 
             if (error) {
                 alert('Erro ao atualizar no Supabase: ' + error.message);
@@ -423,13 +422,8 @@
             }
         }
 
-        function abrirModalNovaConta() {
-            document.getElementById('modal-nova-conta').classList.remove('hidden');
-        }
-
-        function fecharModalNovaConta() {
-            document.getElementById('modal-nova-conta').classList.add('hidden');
-        }
+        function abrirModalNovaConta() { document.getElementById('modal-nova-conta').classList.remove('hidden'); }
+        function fecharModalNovaConta() { document.getElementById('modal-nova-conta').classList.add('hidden'); }
 
         async function salvarNovaContaSupabase(e) {
             e.preventDefault();
@@ -442,15 +436,7 @@
 
             const nova = {
                 codigo: String(Math.floor(10000 + Math.random() * 90000)),
-                nfe,
-                beneficiario,
-                valor,
-                vencimento,
-                pago_em: null,
-                caixa: '-',
-                etiqueta: 'Pendente',
-                status: 'Pendente',
-                obra
+                nfe, beneficiario, valor, vencimento, pago_em: null, caixa: '-', etiqueta: 'Pendente', status: 'Pendente', obra
             };
 
             const { error } = await supabaseClient.from('financeiro_contas_pagar').insert([nova]);
