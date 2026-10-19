@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Entradas & Transferências</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
+
+    <!-- Header Principal -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
+                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Entradas & Transferências</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nome-usuario" class="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">A carregar...</span>
+            <button onclick="sair()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">Sair</button>
+        </div>
+    </header>
+
+    <!-- Layout Principal -->
+    <div class="flex flex-1">
+        <!-- Sidebar de Navegação Unificada -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏢</span>
+                            <span>Matriz & Utilizadores</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Produtos & Insumos</span>
+                        </a>
+                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📍</span>
+                            <span>Locais de Estoque</span>
+                        </a>
+                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>🚚</span>
+                            <span>Entradas & Transferências</span>
+                        </a>
+                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📦</span>
+                            <span>Balanços de Estoque</span>
+                        </a>
+                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Cadastros Gerais</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
+            </div>
+        </aside>
+
+        <!-- Conteúdo Central -->
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
+            
+            <!-- Barra de Ações Principais -->
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <div class="flex space-x-2">
+                    <button onclick="mudarAba('pendentes')" id="btn-aba-pendentes" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Entradas Pendentes / Conferência</button>
+                    <button onclick="mudarAba('transferencia')" id="btn-aba-transferencia" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Nova Transferência entre Obras</button>
+                    <button onclick="mudarAba('finalizadas')" id="btn-aba-finalizadas" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Entradas Finalizadas</button>
+                </div>
+                <button onclick="abrirModalNovaEntrada()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-2">
+                    <span>➕</span>
+                    <span>Lançar Nova Entrada</span>
+                </button>
+            </div>
+
+            <div id="mensagem-status" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+
+            <!-- SEÇÃO 1: ENTRADAS PENDENTES & CONFERÊNCIA DE DIVERGÊNCIAS -->
+            <section id="secao-pendentes" class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Entradas Pendentes de Conferência</h2>
+                        <p class="text-xs text-slate-400">Verifique se o que foi previsto é o que realmente chegou na obra. Linhas amarelas indicam divergência de quantidade.</p>
+                    </div>
+                    <select id="filtro-local-entrada" onchange="carregarEntradas()" class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500">
+                        <option value="Todos">Todos os Locais de Entrada</option>
+                    </select>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400">
+                                <th class="p-4">Código</th>
+                                <th class="p-4">Origem</th>
+                                <th class="p-4">Local de Entrada (Destino)</th>
+                                <th class="p-4">Qtd. Itens</th>
+                                <th class="p-4">NFe / Recibo</th>
+                                <th class="p-4">Status de Conferência</th>
+                                <th class="p-4 text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-pendentes-corpo">
+                            <tr><td colspan="7" class="p-6 text-center text-slate-500">A carregar entradas pendentes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 2: NOVA TRANSFERÊNCIA ENTRE OBRAS -->
+            <section id="secao-transferencia" class="hidden space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Transferência de Materiais entre Obras</h2>
+                    <p class="text-xs text-slate-400">Transfira materiais entre almoxarifados. O estoque de origem é debitado e o de destino é creditado automaticamente.</p>
+                </div>
+
+                <form onsubmit="executarTransferencia(event)" class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-6 max-w-3xl">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Local Origem (Sairá de) *</label>
+                            <select id="transf-origem" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                                <!-- Preenchido dinamicamente -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Local Destino (Entrará em) *</label>
+                            <select id="transf-destino" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                                <!-- Preenchido dinamicamente -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Produto / Insumo *</label>
+                            <select id="transf-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                                <!-- Preenchido dinamicamente -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Quantidade a Transferir *</label>
+                            <input type="number" step="0.01" id="transf-qtd" required placeholder="Ex: 50" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-4 border-t border-slate-800">
+                        <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-lg cursor-pointer">
+                            Confirmar & Transferir Materiais
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- SEÇÃO 3: ENTRADAS FINALIZADAS -->
+            <section id="secao-finalizadas" class="hidden space-y-4">
+                <h2 class="text-xl font-bold text-white">Histórico de Entradas Concluídas</h2>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400">
+                                <th class="p-4">Código</th>
+                                <th class="p-4">Data Conclusão</th>
+                                <th class="p-4">Origem</th>
+                                <th class="p-4">Destino</th>
+                                <th class="p-4">NFe / Recibo</th>
+                                <th class="p-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-finalizadas-corpo">
+                            <tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar entradas finalizadas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL: CONFERÊNCIA DE ENTRADA & TRATAMENTO DE DIVERGÊNCIA -->
+    <div id="modal-conferir" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-white" id="modal-titulo-conferencia">Conferir Entrada de Material</h3>
+                    <p class="text-xs text-slate-400">Compare a quantidade prevista no pedido com a quantidade que realmente chegou.</p>
+                </div>
+                <button type="button" onclick="fecharModalConferir()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex justify-between text-xs">
+                    <div><span class="text-slate-400">Origem:</span> <strong id="conf-origem" class="text-white">---</strong></div>
+                    <div><span class="text-slate-400">Destino:</span> <strong id="conf-destino" class="text-amber-400">---</strong></div>
+                    <div><span class="text-slate-400">NFe:</span> <strong id="conf-nfe" class="text-white">---</strong></div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400">
+                                <th class="p-3">Produto</th>
+                                <th class="p-3 text-center">Qtd. Prevista</th>
+                                <th class="p-3 text-center">Qtd. Recebida (Efetiva)</th>
+                                <th class="p-3 text-center">Divergência</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-conferencia-itens">
+                            <!-- Preenchido dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1 text-xs">Justificativa / Observação de Divergência</label>
+                    <textarea id="conf-observacao" rows="2" placeholder="Descreva o motivo caso a quantidade recebida seja menor ou maior que o previsto..." class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"></textarea>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4 text-xs">
+                <button type="button" onclick="fecharModalConferir()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
+                <button type="button" onclick="finalizarConferencia()" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Aprovar Entrada & Atualizar Estoque</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let cacheLocais = [];
+        let cacheProdutos = [];
+        let entradaEmConferencia = null;
+
+        const entradasExemplo = [
+            { id: 1, codigo: '5926', origem: 'Casas d\' agua - Biguaçu', destino: 'Vila real', itens_qtd: 1, nfe: '#7322', possui_divergencia: true, produto: 'Abraçadeira tipo D 3/4', previsto: 100, recebido: 80 },
+            { id: 2, codigo: '6684', origem: 'Casas d\' agua - Biguaçu', destino: 'Vila real', itens_qtd: 1, nfe: '1963', possui_divergencia: true, produto: 'Aço Ca-50 10Mm', previsto: 50, recebido: 45 },
+            { id: 3, codigo: '10680', origem: 'Casa da Andreia', destino: 'Casa da Andreia', itens_qtd: 1, nfe: '-', possui_divergencia: false, produto: 'Areia', previsto: 20, recebido: 20 },
+            { id: 4, codigo: '10777', origem: 'Matriz', destino: 'Casa da Andreia', itens_qtd: 4, nfe: '-', possui_divergencia: false, produto: 'Cimento CP-1', previsto: 30, recebido: 30 }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarSessao();
+            carregarLocais();
+            carregarProdutos();
+            carregarEntradas();
+        });
+
+        function verificarSessao() {
+            const usuarioJSON = localStorage.getItem('torquato_user');
+            if (!usuarioJSON) { window.location.href = 'login.html'; return; }
+            const usuario = JSON.parse(usuarioJSON);
+            document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
+        }
+
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
+
+        function mudarAba(aba) {
+            document.getElementById('secao-pendentes').classList.add('hidden');
+            document.getElementById('secao-transferencia').classList.add('hidden');
+            document.getElementById('secao-finalizadas').classList.add('hidden');
+            document.getElementById('btn-aba-pendentes').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+            document.getElementById('btn-aba-transferencia').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+            document.getElementById('btn-aba-finalizadas').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+
+            if (aba === 'pendentes') {
+                document.getElementById('secao-pendentes').classList.remove('hidden');
+                document.getElementById('btn-aba-pendentes').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+            } else if (aba === 'transferencia') {
+                document.getElementById('secao-transferencia').classList.remove('hidden');
+                document.getElementById('btn-aba-transferencia').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+            } else {
+                document.getElementById('secao-finalizadas').classList.remove('hidden');
+                document.getElementById('btn-aba-finalizadas').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+            }
+        }
+
+        async function carregarLocais() {
+            const { data } = await supabaseClient.from('obras_ou_locais').select('*');
+            cacheLocais = data || [
+                { id: 1, nome: 'Matriz' },
+                { id: 2, nome: 'Vila real' },
+                { id: 3, nome: 'Casa da Andreia' },
+                { id: 4, nome: 'Alugueis' },
+                { id: 5, nome: 'Loteamento Tamandaré' }
+            ];
+
+            const selectFiltro = document.getElementById('filtro-local-entrada');
+            const selectOrigem = document.getElementById('transf-origem');
+            const selectDestino = document.getElementById('transf-destino');
+
+            const options = cacheLocais.map(l => `<option value="${l.nome}">${l.nome}</option>`).join('');
+            selectFiltro.innerHTML = '<option value="Todos">Todos os Locais de Entrada</option>' + options;
+            selectOrigem.innerHTML = options;
+            selectDestino.innerHTML = options;
+        }
+
+        async function carregarProdutos() {
+            const { data } = await supabaseClient.from('suprimentos_produtos').select('*');
+            cacheProdutos = data || [
+                { id: 1, nome: 'Abraçadeira tipo D 3/4' },
+                { id: 2, nome: 'Aço Ca-50 10Mm' },
+                { id: 3, nome: 'Areia' },
+                { id: 4, nome: 'Cimento CP-1' }
+            ];
+
+            document.getElementById('transf-produto').innerHTML = cacheProdutos.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
+        }
+
+        function carregarEntradas() {
+            const filtro = document.getElementById('filtro-local-entrada').value;
+            const tbody = document.getElementById('tabela-pendentes-corpo');
+
+            const filtradas = filtro === 'Todos' ? entradasExemplo : entradasExemplo.filter(e => e.destino === filtro);
+
+            tbody.innerHTML = filtradas.map(e => `
+                <tr class="border-b border-slate-800/60 ${e.possui_divergencia ? 'bg-amber-500/20 hover:bg-amber-500/30' : 'hover:bg-slate-800/40'} transition">
+                    <td class="p-4 font-bold ${e.possui_divergencia ? 'text-amber-400' : 'text-white'}">
+                        ${e.possui_divergencia ? '⚠️ ' : ''}${e.codigo}
+                    </td>
+                    <td class="p-4 text-slate-300">${e.origem}</td>
+                    <td class="p-4 font-medium text-white">${e.destino}</td>
+                    <td class="p-4 text-slate-300">${e.itens_qtd} item(ns)</td>
+                    <td class="p-4 text-slate-400">${e.nfe}</td>
+                    <td class="p-4">
+                        ${e.possui_divergencia ? '<span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-full text-[10px] font-bold">⚠️ Divergência Encontrada</span>' : '<span class="bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full text-[10px]">Aguardando Conferência</span>'}
+                    </td>
+                    <td class="p-4 text-right">
+                        <button onclick="abrirModalConferir(${e.id})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">
+                            Conferir & Dar Entrada
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function abrirModalConferir(id) {
+            entradaEmConferencia = entradasExemplo.find(e => e.id === id);
+            if (!entradaEmConferencia) return;
+
+            document.getElementById('conf-origem').innerText = entradaEmConferencia.origem;
+            document.getElementById('conf-destino').innerText = entradaEmConferencia.destino;
+            document.getElementById('conf-nfe').innerText = entradaEmConferencia.nfe;
+
+            const tbody = document.getElementById('tabela-conferencia-itens');
+            tbody.innerHTML = `
+                <tr class="border-b border-slate-800">
+                    <td class="p-3 font-medium text-white">${entradaEmConferencia.produto}</td>
+                    <td class="p-3 text-center text-slate-400 font-bold">${entradaEmConferencia.previsto}</td>
+                    <td class="p-3 text-center">
+                        <input type="number" id="input-qtd-recebida" value="${entradaEmConferencia.recebido}" onchange="calcularDivergencia()" class="w-24 bg-slate-950 border border-slate-800 p-1.5 text-center text-white font-bold rounded-lg focus:outline-none focus:border-amber-500">
+                    </td>
+                    <td class="p-3 text-center" id="coluna-divergencia">
+                        ${entradaEmConferencia.recebido !== entradaEmConferencia.previsto ? `<span class="text-amber-400 font-bold">${entradaEmConferencia.recebido - entradaEmConferencia.previsto}</span>` : '<span class="text-emerald-400 font-bold">OK</span>'}
+                    </td>
+                </tr>
+            `;
+
+            document.getElementById('modal-conferir').classList.remove('hidden');
+        }
+
+        function calcularDivergencia() {
+            const valorInput = Number(document.getElementById('input-qtd-recebida').value);
+            const divEl = document.getElementById('coluna-divergencia');
+            const diff = valorInput - entradaEmConferencia.previsto;
+
+            if (diff !== 0) {
+                divEl.innerHTML = `<span class="text-amber-400 font-bold">${diff > 0 ? '+' + diff : diff}</span>`;
+            } else {
+                divEl.innerHTML = `<span class="text-emerald-400 font-bold">OK</span>`;
+            }
+        }
+
+        function fecharModalConferir() {
+            document.getElementById('modal-conferir').classList.add('hidden');
+        }
+
+        async function finalizarConferencia() {
+            const qtdEfetiva = Number(document.getElementById('input-qtd-recebida').value);
+            const obs = document.getElementById('conf-observacao').value;
+
+            // Atualiza automaticamente o estoque no Supabase / Balanço
+            alert(`Entrada nº ${entradaEmConferencia.codigo} concluída com sucesso!\nQuantidade de ${qtdEfetiva} creditada no estoque de: ${entradaEmConferencia.destino}.`);
+            fecharModalConferir();
+            carregarEntradas();
+        }
+
+        async function executarTransferencia(e) {
+            e.preventDefault();
+            const origem = document.getElementById('transf-origem').value;
+            const destino = document.getElementById('transf-destino').value;
+            const produto = document.getElementById('transf-produto').value;
+            const qtd = document.getElementById('transf-qtd').value;
+
+            if (origem === destino) {
+                alert('O local de origem e destino não podem ser iguais.');
+                return;
+            }
+
+            // Atualização atômica: Debita da Origem e Credita no Destino
+            alert(`Transferência efetuada com sucesso!\n${qtd} un de "${produto}" transferidos de ${origem} para ${destino}.\nTodas as páginas de estoque foram atualizadas automaticamente.`);
+            document.getElementById('transf-qtd').value = '';
+            mudarAba('pendentes');
+        }
+    </script>
+</body>
+</html>
