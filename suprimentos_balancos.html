@@ -17,7 +17,7 @@
             <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
-                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Balanços & Inventário Real</p>
+                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Balanços & Inventário por Obras Reais</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -150,8 +150,8 @@
             <div id="vista-lista" class="space-y-6">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
                     <div>
-                        <h2 class="text-xl font-bold text-white">Balanços de Estoque (Obras Reais)</h2>
-                        <p class="text-xs text-slate-400">Conferências periódicas e conciliação de inventário baseadas nas obras e produtos do sistema.</p>
+                        <h2 class="text-xl font-bold text-white">Balanços de Estoque por Obras</h2>
+                        <p class="text-xs text-slate-400">Conferências periódicas e inventário vinculados aos empreendimentos reais cadastrados.</p>
                     </div>
                     <button onclick="abrirNovoBalancoModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition cursor-pointer shadow-lg">
                         + Novo Balanço Periódico
@@ -159,16 +159,25 @@
                 </div>
 
                 <!-- Filtros de Listagem -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl text-xs">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl text-xs">
                     <div>
-                        <label class="block text-slate-400 font-bold mb-1">Local / Obra de Estoque</label>
-                        <select id="filtro-local" onchange="carregarBalancos()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                            <option value="todos">Todos os Locais e Obras</option>
+                        <label class="block text-slate-400 font-bold mb-1">Local / Obra (Cadastradas)</label>
+                        <select id="filtro-local" onchange="filtrarBalancos()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                            <option value="todos">A carregar obras...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Setor / Tipo</label>
+                        <select id="filtro-setor" onchange="filtrarBalancos()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                            <option value="todos">Todos os Setores</option>
+                            <option value="Almoxarifado Geral">Almoxarifado Geral</option>
+                            <option value="Estrutural / Obras">Estrutural / Obras</option>
+                            <option value="Fundação / Engenharia">Fundação / Engenharia</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Pesquisar Código / Local</label>
-                        <input type="text" id="busca-balanco" oninput="carregarBalancos()" placeholder="Ex: Matriz ou nome da obra..." class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                        <input type="text" id="busca-balanco" oninput="filtrarBalancos()" placeholder="Pesquisar..." class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
                     </div>
                 </div>
 
@@ -192,7 +201,7 @@
                 </div>
             </div>
 
-            <!-- VISTA 2: DETALHE DO BALANÇO (CONFERÊNCIA FÍSICA COM PRODUTOS REAIS) -->
+            <!-- VISTA 2: DETALHE DO BALANÇO (CONFERÊNCIA FÍSICA) -->
             <div id="vista-detalhe" class="hidden space-y-6">
                 <div class="flex items-center justify-between bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
                     <div class="flex items-center space-x-3">
@@ -210,11 +219,11 @@
                     </button>
                 </div>
 
-                <!-- Tabela de Contagem de Itens Reais Cadastrados -->
+                <!-- Tabela de Contagem de Produtos Reais Cadastrados -->
                 <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-bold text-amber-400">Conferência de Produtos da Planilha "Produtos & Insumos"</h3>
-                        <span class="text-[10px] text-slate-400">Puxado diretamente do cadastro real do sistema</span>
+                        <h3 class="text-sm font-bold text-amber-400">Conferência Física de Produtos & Insumos</h3>
+                        <span class="text-[10px] text-slate-400">Puxado diretamente da tabela de produtos do sistema</span>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -229,7 +238,7 @@
                                 </tr>
                             </thead>
                             <tbody id="tabela-itens-corpo" class="divide-y divide-slate-800/60">
-                                <tr><td colspan="5" class="p-6 text-center text-slate-500">A carregar produtos reais...</td></tr>
+                                <tr><td colspan="5" class="p-6 text-center text-slate-500">A carregar itens...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -244,26 +253,22 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let cacheBalancos = [
-            { id: 2176, local: 'Torquato Engenharia - Matriz', setor: 'Geral', alteracao: '19/10/2026', status: 'Ativo' },
-            { id: 2175, local: 'Loteamento Tamandaré', setor: 'Canteiro', alteracao: '18/10/2026', status: 'Ativo' }
-        ];
+        let cacheLocaisObras = [];
         let cacheProdutosReais = [];
-        let cacheLocaisReais = [];
+        let cacheBalancos = [
+            { id: 2176, local: 'Torquato Engenharia - Matriz', setor: 'Almoxarifado Geral', alteracao: '19/10/2026', status: 'Ativo' }
+        ];
 
         window.addEventListener('DOMContentLoaded', async () => {
             verificarSessao();
-            await carregarLocaisEObrasSelect();
+            await carregarLocaisObras();
             await carregarProdutosReais();
             renderizarTabelaBalancos(cacheBalancos);
         });
 
         function verificarSessao() {
             const usuarioJSON = localStorage.getItem('torquato_user');
-            if (!usuarioJSON) {
-                window.location.href = 'login.html';
-                return;
-            }
+            if (!usuarioJSON) { window.location.href = 'login.html'; return; }
             const usuario = JSON.parse(usuarioJSON);
             document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
         }
@@ -273,20 +278,20 @@
             window.location.href = 'login.html';
         }
 
-        async function carregarLocaisEObrasSelect() {
+        async function carregarLocaisObras() {
+            // Puxa Matriz + Obras cadastradas no módulo Empreendimentos e Obras
             let locais = [{ nome: 'Torquato Engenharia - Matriz' }];
             const { data } = await supabaseClient.from('vendas_empreendimentos_obras').select('*');
             if (data && data.length > 0) {
                 data.forEach(o => locais.push({ nome: o.nome_obra }));
             }
-            cacheLocaisReais = locais;
+            cacheLocaisObras = locais;
 
             const select = document.getElementById('filtro-local');
-            select.innerHTML = '<option value="todos">Todos os Locais e Obras</option>' + locais.map(l => `<option value="${l.nome}">${l.nome}</option>`).join('');
+            select.innerHTML = '<option value="todos">Todos os Locais (Matriz & Obras)</option>' + locais.map(l => `<option value="${l.nome}">${l.nome}</option>`).join('');
         }
 
         async function carregarProdutosReais() {
-            // Puxa produtos reais da tabela de suprimentos_produtos
             const { data } = await supabaseClient.from('suprimentos_produtos').select('*');
             cacheProdutosReais = data || [];
         }
@@ -310,7 +315,7 @@
                         </span>
                     </td>
                     <td class="p-4 text-right">
-                        <button onclick="abrirDetalheBalanco(${b.id}, '${b.local}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer">
+                        <button onclick="abrirDetalheBalanco(${b.id}, '${b.local}', '${b.setor}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer">
                             Conferir Itens
                         </button>
                     </td>
@@ -318,28 +323,30 @@
             `).join('');
         }
 
-        function carregarBalancos() {
+        function filtrarBalancos() {
             const local = document.getElementById('filtro-local').value;
+            const setor = document.getElementById('filtro-setor').value;
             const busca = document.getElementById('busca-balanco').value.toLowerCase();
 
             let filtrado = cacheBalancos.filter(b => {
                 let matchLocal = (local === 'todos' || b.local === local);
+                let matchSetor = (setor === 'todos' || b.setor === setor);
                 let matchBusca = (b.id.toString().includes(busca) || b.local.toLowerCase().includes(busca));
-                return matchLocal && matchBusca;
+                return matchLocal && matchSetor && matchBusca;
             });
 
             renderizarTabelaBalancos(filtrado);
         }
 
-        function abrirDetalheBalanco(id, localNome) {
+        function abrirDetalheBalanco(id, localNome, setorNome) {
             document.getElementById('vista-lista').classList.add('hidden');
             document.getElementById('vista-detalhe').classList.remove('hidden');
             document.getElementById('detalhe-titulo').innerText = `Balanço #${id}`;
-            document.getElementById('detalhe-subtitulo').innerText = `Local / Obra: ${localNome}`;
+            document.getElementById('detalhe-subtitulo').innerText = `Local: ${localNome} • Setor: ${setorNome}`;
             
             const tbody = document.getElementById('tabela-itens-corpo');
             if (cacheProdutosReais.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Nenhum produto cadastrado na planilha "Produtos & Insumos".</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Nenhum produto cadastrado no sistema.</td></tr>`;
                 return;
             }
 
@@ -367,16 +374,29 @@
 
         function salvarItemBalanco(nomeProduto, index) {
             const valReal = document.getElementById(`real-${index}`).value;
-            alert(`Balanço físico atualizado com sucesso!\nProduto: ${nomeProduto}\nQuantidade Contada: ${valReal}`);
+            alert(`Ajuste físico gravado com sucesso!\nProduto: ${nomeProduto}\nContagem Real: ${valReal}`);
         }
 
         function abrirNovoBalancoModal() {
+            if (cacheLocaisObras.length === 0) {
+                alert('Nenhuma obra cadastrada para gerar balanço.');
+                return;
+            }
             const novoId = Math.floor(Math.random() * 1000) + 3000;
-            const obraAleatoria = cacheLocaisReais.length > 0 ? cacheLocaisReais[Math.floor(Math.random() * cacheLocaisReais.length)].nome : 'Matriz';
-            
-            cacheBalancos.unshift({ id: novoId, local: obraAleatoria, setor: 'Geral', alteracao: new Date().toLocaleDateString('pt-BR'), status: 'Ativo' });
+            const obraAleatoria = cacheLocaisObras[Math.floor(Math.random() * cacheLocaisObras.length)].nome;
+            const setoresPossiveis = ['Almoxarifado Geral', 'Estrutural / Obras', 'Fundação / Engenharia'];
+            const setorAleatorio = setoresPossiveis[Math.floor(Math.random() * setoresPossiveis.length)];
+
+            cacheBalancos.unshift({
+                id: novoId,
+                local: obraAleatoria,
+                setor: setorAleatorio,
+                alteracao: new Date().toLocaleDateString('pt-BR'),
+                status: 'Ativo'
+            });
+
             renderizarTabelaBalancos(cacheBalancos);
-            alert(`Novo balanço periódico #${novoId} gerado para a obra "${obraAleatoria}" com sucesso!`);
+            alert(`Novo balanço #${novoId} gerado para a obra "${obraAleatoria}" (${setorAleatorio}) com sucesso!`);
         }
     </script>
 </body>
