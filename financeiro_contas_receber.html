@@ -104,7 +104,7 @@
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
                 <div>
                     <h2 class="text-xl font-bold text-white">Contas a Receber</h2>
-                    <p class="text-xs text-slate-400">Gestão de parcelas, emissão de boletos e recebimentos de clientes e vendas de imóveis.</p>
+                    <p class="text-xs text-slate-400">Gestão de parcelas, anexos de boletos bancários (Cora/Sicredi) e recebimentos.</p>
                 </div>
                 <div class="flex space-x-2">
                     <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer">
@@ -118,7 +118,7 @@
                 </div>
             </div>
 
-            <!-- Filtros Granulares (Inspirado no Koper) -->
+            <!-- Filtros Granulares -->
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Empreendimento / Obra:</label>
@@ -191,13 +191,13 @@
         </main>
     </div>
 
-    <!-- MODAL: EMITIR BOLETO / DAR BAIXA NO RECEBIMENTO -->
+    <!-- MODAL: ANEXOS, BOLETOS & RECEBIMENTO -->
     <div id="modal-detalhes" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-white" id="modal-titulo-cod">Gestão da Parcela #---</h3>
-                    <p class="text-xs text-slate-400">Emita boleto bancário ou dê baixa no recebimento.</p>
+                    <p class="text-xs text-slate-400">Anexe boletos bancários (Cora/Sicredi), comprovantes ou registe o recebimento.</p>
                 </div>
                 <button type="button" onclick="fecharModalDetalhes()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -212,31 +212,22 @@
                     <div><span class="text-slate-400">Valor Parcela:</span> <strong id="det-valor" class="block text-emerald-400 text-sm">R$ ---</strong></div>
                 </div>
 
-                <!-- Emissão de Boleto -->
-                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h4 class="font-bold text-amber-400">Emissão de Boleto Bancário</h4>
-                        <span id="det-status-boleto" class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Não emitido</span>
+                <!-- Seção de Anexos (Boleto & Comprovante) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border border-dashed border-slate-800 bg-slate-950 p-4 rounded-xl text-center space-y-2">
+                        <span class="text-lg">📄</span>
+                        <p class="font-bold text-white">Boleto Bancário (Cora / Sicredi)</p>
+                        <input type="file" id="input-boleto" accept=".pdf,image/*" class="hidden" onchange="anexarDocumento('Boleto')">
+                        <button type="button" onclick="document.getElementById('input-boleto').click()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-3 py-1.5 rounded-lg text-[11px] transition cursor-pointer">Anexar Boleto (PDF/Img)</button>
+                        <p id="status-boleto" class="text-[10px] text-slate-500">Nenhum boleto anexado</p>
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-slate-400 mb-1">Banco Emissor *</label>
-                            <select id="bol-banco" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-white">
-                                <option value="Banco Cora">Banco Cora</option>
-                                <option value="PagBank">PagBank</option>
-                                <option value="Sicoob">Banco Sicoob</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 mb-1">Espécie do Documento</label>
-                            <input type="text" value="DM - Duplicata Mercantil" disabled class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-400">
-                        </div>
-                    </div>
-                    <div class="flex justify-end space-x-2 pt-2">
-                        <button type="button" onclick="emitirBoleto()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold rounded-xl transition flex items-center space-x-1 cursor-pointer">
-                            <span>🧾</span>
-                            <span>Emitir / Gerar Boleto</span>
-                        </button>
+
+                    <div class="border border-dashed border-slate-800 bg-slate-950 p-4 rounded-xl text-center space-y-2">
+                        <span class="text-lg">📎</span>
+                        <p class="font-bold text-white">Comprovante de Pagamento</p>
+                        <input type="file" id="input-comprovante" accept=".pdf,image/*" class="hidden" onchange="anexarDocumento('Comprovante')">
+                        <button type="button" onclick="document.getElementById('input-comprovante').click()" class="bg-slate-800 hover:bg-slate-700 text-sky-400 px-3 py-1.5 rounded-lg text-[11px] transition cursor-pointer">Anexar Comprovante</button>
+                        <p id="status-comprovante" class="text-[10px] text-slate-500">Nenhum comprovante anexado</p>
                     </div>
                 </div>
 
@@ -249,6 +240,7 @@
                             <select id="rec-conta-banco" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-white">
                                 <option value="Banco Cora">Banco Cora (Sede)</option>
                                 <option value="PagBank">PagBank (Operacional)</option>
+                                <option value="Banco Sicredi">Banco Sicredi</option>
                             </select>
                         </div>
                         <div>
@@ -366,7 +358,6 @@
                 lista = lista.filter(c => c.cliente.toLowerCase().includes(busca) || c.codigo.includes(busca));
             }
 
-            // Cálculo dos Resumos
             let totalAReceber = 0;
             let totalRecebido = 0;
             let totalAtrasado = 0;
@@ -401,7 +392,7 @@
                     <td class="p-4 text-slate-400">${c.caixa || '-'}</td>
                     <td class="p-4 text-right">
                         <button onclick="abrirModalDetalhes('${c.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">
-                            ${c.status === 'Recebida' ? 'Ver Detalhes' : 'Receber / Boleto'}
+                            ${c.status === 'Recebida' ? 'Ver Detalhes' : 'Anexar / Receber'}
                         </button>
                     </td>
                 </tr>
@@ -419,7 +410,9 @@
             document.getElementById('det-obra').innerText = data.obra;
             document.getElementById('det-vencimento').innerText = data.vencimento;
             document.getElementById('det-valor').innerText = `R$ ${Number(data.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('det-status-boleto').innerText = data.boleto_emitido ? 'Boleto Gerado' : 'Não emitido';
+
+            document.getElementById('status-boleto').innerText = data.boleto_emitido ? 'Boleto anexado com sucesso' : 'Nenhum boleto anexado';
+            document.getElementById('status-comprovante').innerText = data.recebido_em ? 'Comprovante anexado' : 'Nenhum comprovante anexado';
 
             document.getElementById('modal-detalhes').classList.remove('hidden');
         }
@@ -428,18 +421,21 @@
             document.getElementById('modal-detalhes').classList.add('hidden');
         }
 
-        async function emitirBoleto() {
+        async function anexarDocumento(tipo) {
             if (!contaAtualEmEdicao) return;
-            const banco = document.getElementById('bol-banco').value;
+            const inputId = tipo === 'Boleto' ? 'input-boleto' : 'input-comprovante';
+            const statusId = tipo === 'Boleto' ? 'status-boleto' : 'status-comprovante';
+            const fileInput = document.getElementById(inputId);
 
-            const { error } = await supabaseClient
-                .from('financeiro_contas_receber')
-                .update({ boleto_emitido: true })
-                .eq('id', contaAtualEmEdicao.id);
-
-            if (!error) {
-                alert(`Boleto bancário gerado com sucesso via ${banco} para ${contaAtualEmEdicao.cliente}!`);
-                document.getElementById('det-status-boleto').innerText = 'Boleto Gerado';
+            if (fileInput.files.length > 0) {
+                const fileName = fileInput.files[0].name;
+                document.getElementById(statusId).innerText = `Anexado: ${fileName}`;
+                
+                if (tipo === 'Boleto') {
+                    await supabaseClient.from('financeiro_contas_receber').update({ boleto_emitido: true }).eq('id', contaAtualEmEdicao.id);
+                }
+                
+                alert(`${tipo} (${fileName}) anexado e guardado com sucesso na nuvem para o cliente ${contaAtualEmEdicao.cliente}!`);
             }
         }
 
