@@ -185,14 +185,15 @@
             <form onsubmit="salvarObraSupabase(event)" class="space-y-4 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Nome do Empreendimento / Obra *</label>
-                    <input type="text" id="cad-nome" required placeholder="Ex: Residencial Alphaville" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    <input type="text" id="cad-nome" required placeholder="Ex: Fundação / Residencial Alphaville" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-slate-400 font-bold mb-1">Tipo de Obra *</label>
+                        <label class="block text-slate-400 font-bold mb-1">Tipo de Obra / Serviço *</label>
                         <select id="cad-tipo" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                             <option value="Obra Própria">Obra Própria</option>
                             <option value="Obra de Terceiros">Obra de Terceiros</option>
+                            <option value="Serviço de Engenharia">Serviço de Engenharia (Fundação, etc.)</option>
                         </select>
                     </div>
                     <div>
@@ -202,14 +203,14 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-slate-400 font-bold mb-1">Cliente Vinculado</label>
-                        <select id="cad-cliente" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
-                            <option value="Nenhum">Nenhum / Não vinculado</option>
+                        <label class="block text-slate-400 font-bold mb-1">Cliente Vinculado *</label>
+                        <select id="cad-cliente" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                            <option value="">A carregar clientes...</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-slate-400 font-bold mb-1">Total de Unidades *</label>
-                        <input type="number" id="cad-unidades" required value="10" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <label class="block text-slate-400 font-bold mb-1">Total de Unidades / Etapas *</label>
+                        <input type="number" id="cad-unidades" required value="1" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                 </div>
                 <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
@@ -227,6 +228,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
+            carregarClientesSelect();
             carregarEmpreendimentos();
         });
 
@@ -242,6 +244,16 @@
             window.location.href = 'login.html';
         }
 
+        async function carregarClientesSelect() {
+            const { data } = await supabaseClient.from('vendas_clientes').select('nome');
+            const select = document.getElementById('cad-cliente');
+            if (data && data.length > 0) {
+                select.innerHTML = `<option value="">Selecione um cliente...</option>` + data.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+            } else {
+                select.innerHTML = `<option value="Sem Cliente Vinculado">Nenhum cliente cadastrado</option>`;
+            }
+        }
+
         async function carregarEmpreendimentos() {
             const busca = document.getElementById('filtro-busca').value.toLowerCase();
             const grid = document.getElementById('grid-empreendimentos');
@@ -252,47 +264,93 @@
                 return;
             }
 
-            grid.innerHTML = data.map(e => `
+            let lista = data;
+            if(busca) {
+                lista = data.filter(e => e.nome_obra.toLowerCase().includes(busca) || (e.cliente_vinculado && e.cliente_vinculado.toLowerCase().includes(busca)));
+            }
+
+            grid.innerHTML = lista.map(e => `
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                     <div class="flex justify-between items-start border-b border-slate-800 pb-3">
                         <div>
                             <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 uppercase">${e.tipo_obra}</span>
                             <h3 class="text-base font-bold text-white mt-1">${e.nome_obra}</h3>
-                            <p class="text-xs text-slate-400">📍 ${e.localizacao}</p>
+                            <p class="text-xs text-slate-400">📍 ${e.localizacao} | 👤 Cliente: <strong class="text-amber-300">${e.cliente_vinculado || 'Não vinculado'}</strong></p>
                         </div>
+                        <button onclick="abrirEditarObra('${e.id}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-2 rounded-xl text-xs font-bold transition cursor-pointer" title="Editar Obra / Serviço">✏️</button>
                     </div>
                     <div class="grid grid-cols-2 gap-4 text-xs pt-2">
                         <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
                             <span class="text-slate-400 block mb-1">Unidades Disponíveis:</span>
-                            <strong class="text-emerald-400 text-sm">🟢 ${e.unidades_disponiveis} unidades</strong>
+                            <strong class="text-emerald-400 text-sm">🟢 ${e.unidades_disponiveis} un</strong>
                         </div>
                         <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
                             <span class="text-slate-400 block mb-1">Unidades Vendidas:</span>
-                            <strong class="text-amber-400 text-sm">🔴 ${e.unidades_vendidas || 0} vendidas</strong>
+                            <strong class="text-amber-400 text-sm">🔴 ${e.unidades_vendidas || 0} un</strong>
                         </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        function abrirModalObra() { document.getElementById('modal-obra').classList.remove('hidden'); }
+        function abrirModalObra() {
+            document.getElementById('modal-titulo').innerText = "Cadastrar Novo Empreendimento / Obra";
+            document.getElementById('edit-id').value = "";
+            document.getElementById('cad-nome').value = "";
+            document.getElementById('cad-local').value = "";
+            document.getElementById('cad-unidades').value = "1";
+            document.getElementById('modal-obra').classList.remove('hidden');
+        }
+
+        async function abrirEditarObra(id) {
+            const { data, error } = await supabaseClient.from('vendas_empreendimentos_obras').select('*').eq('id', id).single();
+            if (error || !data) { alert('Erro ao carregar dados.'); return; }
+
+            document.getElementById('modal-titulo').innerText = `Editar Obra: ${data.nome_obra}`;
+            document.getElementById('edit-id').value = data.id;
+            document.getElementById('cad-nome').value = data.nome_obra;
+            document.getElementById('cad-tipo').value = data.tipo_obra;
+            document.getElementById('cad-local').value = data.localizacao;
+            document.getElementById('cad-cliente').value = data.cliente_vinculado || '';
+            document.getElementById('cad-unidades').value = data.unidades_disponiveis;
+            document.getElementById('modal-obra').classList.remove('hidden');
+        }
+
         function fecharModalObra() { document.getElementById('modal-obra').classList.add('hidden'); }
 
         async function salvarObraSupabase(e) {
             e.preventDefault();
-            const novaObra = {
-                codigo: String(Math.floor(100 + Math.random() * 900)),
-                nome_obra: document.getElementById('cad-nome').value,
-                tipo_obra: document.getElementById('cad-tipo').value,
-                localizacao: document.getElementById('cad-local').value,
-                unidades_disponiveis: Number(document.getElementById('cad-unidades').value),
-                unidades_vendidas: 0,
-                valor_total_vendas: 0.00,
-                status: 'Ativa'
-            };
-            const { error } = await supabaseClient.from('vendas_empreendimentos_obras').insert([novaObra]);
-            if (error) alert('Erro: ' + error.message);
-            else { alert('Obra registada com sucesso!'); fecharModalObra(); carregarEmpreendimentos(); }
+            const editId = document.getElementById('edit-id').value;
+            const nome = document.getElementById('cad-nome').value;
+            const tipo = document.getElementById('cad-tipo').value;
+            const local = document.getElementById('cad-local').value;
+            const cliente = document.getElementById('cad-cliente').value;
+            const unidades = Number(document.getElementById('cad-unidades').value);
+
+            if (editId) {
+                const { error } = await supabaseClient.from('vendas_empreendimentos_obras').update({
+                    nome_obra: nome, type_obra: tipo, localizacao: local, cliente_vinculado: cliente, unidades_disponiveis: unidades
+                }).eq('id', editId);
+                if (error) alert('Erro: ' + error.message);
+                else alert('Obra atualizada com sucesso!');
+            } else {
+                const novaObra = {
+                    codigo: String(Math.floor(100 + Math.random() * 900)),
+                    nome_obra: nome,
+                    tipo_obra: tipo,
+                    localizacao: local,
+                    cliente_vinculado: cliente,
+                    unidades_disponiveis: unidades,
+                    unidades_vendidas: 0,
+                    valor_total_vendas: 0.00,
+                    status: 'Ativa'
+                };
+                const { error } = await supabaseClient.from('vendas_empreendimentos_obras').insert([novaObra]);
+                if (error) alert('Erro: ' + error.message);
+                else alert('Obra registada com sucesso!');
+            }
+            fecharModalObra();
+            carregarEmpreendimentos();
         }
     </script>
 </body>
