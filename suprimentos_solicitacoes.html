@@ -94,6 +94,7 @@
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
                 <div class="flex space-x-2">
                     <button onclick="mudarAba('solicitacoes')" id="btn-aba-solicitacoes" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Solicitações de Compra</button>
+                    <!-- Aba de Aprovação restrita à gerência -->
                     <button onclick="mudarAba('aprovacao')" id="btn-aba-aprovacao" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Aprovação de Compras (Gerência)</button>
                 </div>
                 <button onclick="abrirModalNovaSolicitacao()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-2">
@@ -133,7 +134,7 @@
                 </div>
             </section>
 
-            <!-- SEÇÃO 2: APROVAÇÃO DE COMPRAS (Visão do Gerente) -->
+            <!-- SEÇÃO 2: APROVAÇÃO DE COMPRAS (Visão exclusiva da Gerência) -->
             <section id="secao-aprovacao" class="hidden space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
@@ -319,6 +320,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
+            verificarPermissaoGerencia();
             carregarLocais();
             carregarProdutos();
             renderizarTabelas();
@@ -331,23 +333,53 @@
             document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
         }
 
+        function verificarPermissaoGerencia() {
+            const usuarioJSON = localStorage.getItem('torquato_user');
+            if (!usuarioJSON) return;
+            const usuario = JSON.parse(usuarioJSON);
+            const paginas = usuario.paginas_permitidas || [];
+            
+            // Verifica se é gestor (master, admin ou possui permissão explícita 'suprimentos_solicitacoes')
+            const ehGestor = usuario.perfil === 'master' || usuario.perfil === 'admin' || paginas.includes('suprimentos_solicitacoes');
+
+            const btnAprovacao = document.getElementById('btn-aba-aprovacao');
+            if (!ehGestor && btnAprovacao) {
+                btnAprovacao.style.display = 'none'; // Oculta a aba de aprovação para colaboradores comuns
+            }
+        }
+
         function sair() {
             localStorage.removeItem('torquato_user');
             window.location.href = 'login.html';
         }
 
         function mudarAba(aba) {
+            // Verifica segurança caso tentem aceder à aprovação sem permissão
+            if (aba === 'aprovacao') {
+                const usuarioJSON = localStorage.getItem('torquato_user');
+                if (usuarioJSON) {
+                    const usuario = JSON.parse(usuarioJSON);
+                    const paginas = usuario.paginas_permitidas || [];
+                    const ehGestor = usuario.perfil === 'master' || usuario.perfil === 'admin' || paginas.includes('suprimentos_solicitacoes');
+                    if (!ehGestor) {
+                        alert('Acesso restrito à gerência.');
+                        return;
+                    }
+                }
+            }
+
             document.getElementById('secao-solicitacoes').classList.add('hidden');
             document.getElementById('secao-aprovacao').classList.add('hidden');
             document.getElementById('btn-aba-solicitacoes').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
-            document.getElementById('btn-aba-aprovacao').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+            const btnAprov = document.getElementById('btn-aba-aprovacao');
+            if (btnAprov) btnAprov.className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
 
             if (aba === 'solicitacoes') {
                 document.getElementById('secao-solicitacoes').classList.remove('hidden');
                 document.getElementById('btn-aba-solicitacoes').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
             } else {
                 document.getElementById('secao-aprovacao').classList.remove('hidden');
-                document.getElementById('btn-aba-aprovacao').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+                if (btnAprov) btnAprov.className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
             }
         }
 
@@ -449,7 +481,6 @@
             if (!s) return;
 
             document.getElementById('aprov-id').value = s.id;
-            document.getElementById('aprov-aprov-titulo') ? '' : null;
             document.getElementById('aprov-solicitante').innerText = s.solicitante;
             document.getElementById('aprov-data').innerText = s.data;
             document.getElementById('aprov-produto').innerText = s.produto;
