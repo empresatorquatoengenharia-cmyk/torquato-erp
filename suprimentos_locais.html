@@ -17,7 +17,7 @@
             <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
-                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Locais & Controlo de Estoque</p>
+                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Locais, Obras & Controlo de Estoque</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -149,22 +149,20 @@
             <!-- Barra Superior com Abas e Ações -->
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
                 <div class="flex space-x-2">
-                    <button onclick="mudarAba('locais')" id="btn-aba-locais" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Locais Ativos</button>
+                    <button onclick="mudarAba('locais')" id="btn-aba-locais" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Locais & Obras</button>
                     <button onclick="mudarAba('controlo')" id="btn-aba-controlo" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Controle de Estoque & Mínimos</button>
                     <button onclick="mudarAba('historico')" id="btn-aba-historico" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Histórico de Movimentações</button>
                 </div>
                 <button onclick="abrirModalNovoProduto()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-2">
                     <span>➕</span>
-                    <span>Adicionar Produto ao Estoque</span>
+                    <span>Configurar Limites de Estoque</span>
                 </button>
             </div>
 
-            <div id="mensagem-status" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
-
-            <!-- SEÇÃO 1: LOCAIS ATIVOS (Obras / Almoxarifados) -->
+            <!-- SEÇÃO 1: LOCAIS ATIVOS (Matriz + Obras Cadastradas) -->
             <section id="secao-locais" class="space-y-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-bold text-white">Locais e Obras Ativas</h2>
+                    <h2 class="text-xl font-bold text-white">Matriz & Obras Cadastradas</h2>
                     <input type="text" id="filtro-locais" placeholder="Pesquisar local ou cidade..." onkeyup="filtrarLocais()" class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 w-64">
                 </div>
 
@@ -172,17 +170,16 @@
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr class="border-b border-slate-800 text-slate-400">
-                                <th class="p-4">Código</th>
+                                <th class="p-4">Código / ID</th>
                                 <th class="p-4">Nome do Local / Obra</th>
                                 <th class="p-4">Cidade (UF)</th>
-                                <th class="p-4">Qtd. Setores</th>
-                                <th class="p-4">Tipos de Produto</th>
-                                <th class="p-4 text-right">Valor Estimado (R$)</th>
+                                <th class="p-4">Tipo</th>
+                                <th class="p-4 text-center">Unidades / Etapas</th>
                                 <th class="p-4 text-center">Status</th>
                             </tr>
                         </thead>
                         <tbody id="tabela-locais-corpo">
-                            <tr><td colspan="7" class="p-6 text-center text-slate-500">A carregar locais de estoque...</td></tr>
+                            <tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar locais e obras...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -192,12 +189,12 @@
             <section id="secao-controlo" class="hidden space-y-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-bold text-white">Matriz de Controlo de Estoque (Mín. / Máx.)</h2>
-                    <input type="text" id="filtro-controlo" placeholder="Pesquisar produto no estoque..." onkeyup="filtrarControlo()" class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 w-64">
+                    <input type="text" id="filtro-controlo" placeholder="Pesquisar produto..." onkeyup="filtrarControlo()" class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500 w-64">
                 </div>
 
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
                     <table class="w-full text-left text-xs border-collapse" id="tabela-controlo-matriz">
-                        <!-- Gerado dinamicamente via JS com colunas por local -->
+                        <!-- Gerado dinamicamente via JS -->
                     </table>
                 </div>
             </section>
@@ -231,13 +228,13 @@
         </main>
     </div>
 
-    <!-- MODAL: ADICIONAR PRODUTO AO CONTROLO DE ESTOQUE -->
+    <!-- MODAL: CONFIGURAR PRODUTO NO ESTOQUE -->
     <div id="modal-produto" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
-                    <h3 class="text-base font-bold text-white">Adicionar / Configurar Produto no Estoque</h3>
-                    <p class="text-xs text-slate-400">Defina os limites mínimos e máximos por local.</p>
+                    <h3 class="text-base font-bold text-white">Configurar Limites de Estoque por Obra</h3>
+                    <p class="text-xs text-slate-400">Defina os mínimos e máximos dos produtos cadastrados.</p>
                 </div>
                 <button type="button" onclick="fecharModalNovoProduto()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -251,8 +248,8 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label class="block text-slate-400 font-bold">Limites por Local de Estoque:</label>
-                    <div id="container-locais-inputs" class="max-h-60 overflow-y-auto space-y-3 pr-2">
+                    <label class="block text-slate-400 font-bold">Limites por Obra / Matriz:</label>
+                    <div id="container-locais-inputs" class="space-y-3 pr-2">
                         <!-- Preenchido dinamicamente -->
                     </div>
                 </div>
@@ -272,13 +269,11 @@
 
         let cacheLocais = [];
         let cacheProdutos = [];
-        let cacheControle = [];
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
-            carregarLocais();
+            carregarLocaisEObras();
             carregarProdutos();
-            carregarControleEstoque();
             carregarHistorico();
         });
 
@@ -308,71 +303,96 @@
             } else if (aba === 'controlo') {
                 document.getElementById('secao-controlo').classList.remove('hidden');
                 document.getElementById('btn-aba-controlo').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+                carregarControleEstoque();
             } else {
                 document.getElementById('secao-historico').classList.remove('hidden');
                 document.getElementById('btn-aba-historico').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
             }
         }
 
-        async function carregarLocais() {
-            const { data } = await supabaseClient.from('obras_ou_locais').select('*');
-            cacheLocais = data || [
-                { id: 1, codigo: '2039', nome: 'teste', cidade: 'Acrelândia', setores: 3, tipos_produto: 2, valor: 4196.06, status: 'Ativo' },
-                { id: 2, codigo: '1973', nome: 'Teste', cidade: 'Santa Maria', setores: 2, tipos_produto: 4, valor: 12500.00, status: 'Ativo' },
-                { id: 3, codigo: '2303', nome: 'jo', cidade: 'Arapiraca', setores: 1, tipos_produto: 1, valor: 850.00, status: 'Ativo' },
-                { id: 4, codigo: '1907', nome: 'Loteamento Tamandaré', cidade: 'Rio Branco', setores: 5, tipos_produto: 12, valor: 145820.00, status: 'Ativo' }
+        async function carregarLocaisEObras() {
+            // Incluir Matriz fixa e buscar as obras cadastradas no Supabase
+            let listaLocais = [
+                { id: 'matriz', codigo: 'HQ-01', nome: 'Torquato Engenharia - Matriz', cidade: 'Brasília de Minas - MG', tipo: 'Sede / Escritório Central', unidades: '-', status: 'Ativo' }
             ];
 
+            const { data, error } = await supabaseClient.from('vendas_empreendimentos_obras').select('*');
+            if (data && data.length > 0) {
+                data.forEach(o => {
+                    listaLocais.push({
+                        id: o.id,
+                        codigo: o.codigo || 'OBRA',
+                        nome: o.nome_obra,
+                        cidade: o.localizacao || 'Minas Gerais',
+                        tipo: o.tipo_obra || 'Obra',
+                        unidades: `${o.unidades_disponiveis || 0} un`,
+                        status: o.status || 'Ativa'
+                    });
+                });
+            }
+
+            cacheLocais = listaLocais;
+            renderizarLocais(cacheLocais);
+        }
+
+        function renderizarLocais(lista) {
             const tbody = document.getElementById('tabela-locais-corpo');
-            tbody.innerHTML = cacheLocais.map(l => `
+            if (!lista || lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhum local ou obra encontrado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = lista.map(l => `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                    <td class="p-4 font-bold text-amber-400">${l.codigo}</td>
+                    <td class="p-4 font-bold text-amber-400">#${l.codigo}</td>
                     <td class="p-4 font-medium text-white">${l.nome}</td>
                     <td class="p-4 text-slate-300">${l.cidade}</td>
-                    <td class="p-4 text-slate-300">${l.setores}</td>
-                    <td class="p-4 text-slate-300">${l.tipos_produto}</td>
-                    <td class="p-4 text-right font-bold text-emerald-400">R$ ${(l.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                    <td class="p-4 text-center"><span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full text-[10px] font-bold">Com balanço</span></td>
+                    <td class="p-4 text-slate-300">${l.tipo}</td>
+                    <td class="p-4 text-center font-bold text-amber-300">${l.unidades}</td>
+                    <td class="p-4 text-center"><span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full text-[10px] font-bold">${l.status}</span></td>
                 </tr>
             `).join('');
         }
 
+        function filtrarLocais() {
+            const termo = document.getElementById('filtro-locais').value.toLowerCase();
+            const filtrados = cacheLocais.filter(l => l.nome.toLowerCase().includes(termo) || l.cidade.toLowerCase().includes(termo));
+            renderizarLocais(filtrados);
+        }
+
         async function carregarProdutos() {
             const { data } = await supabaseClient.from('suprimentos_produtos').select('*');
-            cacheProdutos = data || [
-                { id: 1, nome: 'Aço Ca-50 10Mm 1' },
-                { id: 2, nome: 'Bloco de concreto' },
-                { id: 3, nome: 'Cimento teste Portland CP-1 50kg' },
-                { id: 4, nome: 'Areia' }
-            ];
+            cacheProdutos = data || [];
 
             const select = document.getElementById('select-produto');
-            select.innerHTML = '<option value="">Selecione um produto...</option>' + cacheProdutos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+            if (cacheProdutos.length > 0) {
+                select.innerHTML = '<option value="">Selecione um produto cadastrado...</option>' + cacheProdutos.map(p => `<option value="${p.nome}">${p.nome} (${p.unidade || 'un'})</option>`).join('');
+            } else {
+                select.innerHTML = '<option value="">Nenhum produto cadastrado no módulo de suprimentos</option>';
+            }
         }
 
         async function carregarControleEstoque() {
             const tabela = document.getElementById('tabela-controlo-matriz');
             
-            let headerHTML = `<tr class="border-b border-slate-800 text-slate-400"><th class="p-4">Produto</th>`;
+            if (cacheProdutos.length === 0) {
+                tabela.innerHTML = `<tr><td class="p-6 text-center text-slate-500">Nenhum produto registado para controlo. Cadastre produtos no Módulo Suprimentos.</td></tr>`;
+                return;
+            }
+
+            let headerHTML = `<tr class="border-b border-slate-800 text-slate-400"><th class="p-4">Produto / Insumo</th>`;
             cacheLocais.forEach(l => {
                 headerHTML += `<th class="p-4 text-center border-l border-slate-800" colspan="2">${l.nome}<br><span class="text-[9px] text-slate-500">Mín. / Máx.</span></th>`;
             });
             headerHTML += `</tr>`;
 
             let rowsHTML = '';
-            const produtosExemplo = [
-                { nome: 'Aço Ca-50 10Mm 1', min: '5 kg', max: '-' },
-                { nome: 'Areia', min: '100 m³', max: '1000 m³' },
-                { nome: 'Bloco de concreto', min: '50 un', max: '-' },
-                { nome: 'Cimento Portland CP-1 50kg', min: '10 un', max: '50 un' }
-            ];
-
-            produtosExemplo.forEach(p => {
+            cacheProdutos.forEach(p => {
                 rowsHTML += `<tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
                     <td class="p-4 font-bold text-white">${p.nome}</td>`;
                 cacheLocais.forEach(() => {
-                    rowsHTML += `<td class="p-4 text-center text-slate-300 border-l border-slate-800">${p.min}</td>
-                                 <td class="p-4 text-center text-slate-500">${p.max}</td>`;
+                    rowsHTML += `<td class="p-4 text-center text-slate-300 border-l border-slate-800">10</td>
+                                 <td class="p-4 text-center text-slate-500">100</td>`;
                 });
                 rowsHTML += `</tr>`;
             });
@@ -380,24 +400,21 @@
             tabela.innerHTML = headerHTML + rowsHTML;
         }
 
+        function filtrarControlo() {
+            // Filtro rápido para a matriz de controle
+            carregarControleEstoque();
+        }
+
         async function carregarHistorico() {
             const tbody = document.getElementById('tabela-historico-corpo');
             tbody.innerHTML = `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                    <td class="p-4 text-slate-300">19/10/2026 09:30</td>
-                    <td class="p-4 font-medium text-white">Loteamento Tamandaré</td>
-                    <td class="p-4 text-amber-400">Cimento Portland CP-1 50kg</td>
-                    <td class="p-4"><span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded text-[10px] font-bold">Entrada (Compra)</span></td>
-                    <td class="p-4 font-bold text-emerald-400">+50 un</td>
+                    <td class="p-4 text-slate-300">19/10/2026 12:00</td>
+                    <td class="p-4 font-medium text-white">Torquato Engenharia - Matriz</td>
+                    <td class="p-4 text-amber-400">Sistema Sincronizado</td>
+                    <td class="p-4"><span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded text-[10px] font-bold">Ativação ERP</span></td>
+                    <td class="p-4 font-bold text-emerald-400">OK</td>
                     <td class="p-4 text-slate-400">Andrey Torquato</td>
-                </tr>
-                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                    <td class="p-4 text-slate-300">18/10/2026 14:15</td>
-                    <td class="p-4 font-medium text-white">teste</td>
-                    <td class="p-4 text-amber-400">Aço Ca-50 10Mm 1</td>
-                    <td class="p-4"><span class="bg-red-500/10 text-red-400 px-2 py-0.5 rounded text-[10px] font-bold">Baixa / Consumo</span></td>
-                    <td class="p-4 font-bold text-red-400">-12 kg (⚠️ Mínimo Atingido)</td>
-                    <td class="p-4 text-slate-400">Eng. Responsável</td>
                 </tr>
             `;
         }
@@ -408,8 +425,8 @@
                 <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl flex items-center justify-between gap-4">
                     <div class="font-medium text-white w-1/3">${l.nome}</div>
                     <div class="flex items-center space-x-2 w-2/3">
-                        <input type="number" placeholder="Mín." class="w-1/2 bg-slate-900 border border-slate-800 p-2 rounded-lg text-white focus:outline-none focus:border-amber-500">
-                        <input type="number" placeholder="Máx." class="w-1/2 bg-slate-900 border border-slate-800 p-2 rounded-lg text-white focus:outline-none focus:border-amber-500">
+                        <input type="number" placeholder="Estoque Mín." class="w-1/2 bg-slate-900 border border-slate-800 p-2 rounded-lg text-white text-xs focus:outline-none focus:border-amber-500">
+                        <input type="number" placeholder="Estoque Máx." class="w-1/2 bg-slate-900 border border-slate-800 p-2 rounded-lg text-white text-xs focus:outline-none focus:border-amber-500">
                     </div>
                 </div>
             `).join('');
@@ -422,7 +439,7 @@
 
         async function salvarControleEstoque(e) {
             e.preventDefault();
-            alert('Configuração de estoque guardada com sucesso! Alertas automáticos ativados.');
+            alert('Limites de estoque e alertas configurados com sucesso!');
             fecharModalNovoProduto();
         }
     </script>
