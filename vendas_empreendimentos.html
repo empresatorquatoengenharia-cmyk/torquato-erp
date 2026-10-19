@@ -17,7 +17,7 @@
             <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
-                <p class="text-[10px] text-slate-400">Módulo Comercial • Gestão de Empreendimentos, Obras & Demonstrativos</p>
+                <p class="text-[10px] text-slate-400">Módulo Comercial • Gestão de Empreendimentos, Obras & Clientes Vinculados</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -93,8 +93,8 @@
             <!-- Barra de Ações & Filtros -->
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
                 <div>
-                    <h2 class="text-xl font-bold text-white">Cadastro e Gerenciamento de Obras & Empreendimentos</h2>
-                    <p class="text-xs text-slate-400">Controle de obras ativas/desativadas, demonstrativo de vendas (Própria vs Terceiros) e montante acumulado.</p>
+                    <h2 class="text-xl font-bold text-white">Gerenciamento de Obras & Empreendimentos</h2>
+                    <p class="text-xs text-slate-400">Associação direta com clientes cadastrados, propostas comerciais e controle de unidades.</p>
                 </div>
                 <div class="flex space-x-2">
                     <button onclick="abrirModalObra()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5">
@@ -113,13 +113,6 @@
                             <option>Nome do empreendimento A-Z</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">Vendas:</label>
-                        <select class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
-                            <option>Todos</option>
-                            <option>Ativas</option>
-                        </select>
-                    </div>
                 </div>
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Pesquisa rápida:</label>
@@ -127,7 +120,7 @@
                 </div>
             </div>
 
-            <!-- GRID DOS DEMONSTRATIVOS (Inspirado no Koper) -->
+            <!-- GRID DOS DEMONSTRATIVOS -->
             <div id="grid-empreendimentos" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Preenchido via script -->
             </div>
@@ -135,16 +128,18 @@
         </main>
     </div>
 
-    <!-- MODAL: NOVO EMPREENDIMENTO -->
+    <!-- MODAL: NOVO / EDITAR EMPREENDIMENTO -->
     <div id="modal-obra" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
-                    <h3 class="text-base font-bold text-white">Cadastrar Novo Empreendimento / Obra</h3>
-                    <p class="text-xs text-slate-400">Defina se é Obra Própria ou de Terceiros e vincule à nuvem.</p>
+                    <h3 id="modal-titulo" class="text-base font-bold text-white">Cadastrar Novo Empreendimento / Obra</h3>
+                    <p class="text-xs text-slate-400">Associe o cliente cadastrado e configure os detalhes da obra.</p>
                 </div>
                 <button type="button" onclick="fecharModalObra()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
+
+            <input type="hidden" id="edit-id">
 
             <form onsubmit="salvarObraSupabase(event)" class="space-y-4 text-xs">
                 <div>
@@ -162,6 +157,20 @@
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Localização (Cidade - UF) *</label>
                         <input type="text" id="cad-local" required placeholder="Ex: Belo Horizonte - MG" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Cliente Vinculado (Banco de Clientes)</label>
+                        <select id="cad-cliente" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                            <option value="Nenhum">Nenhum / Não vinculado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Proposta Comercial Associada</label>
+                        <select id="cad-proposta" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                            <option value="Nenhuma">Nenhuma proposta vinculada</option>
+                        </select>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -194,6 +203,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
             carregarEmpreendimentos();
+            carregarListasSelect();
         });
 
         function verificarSessao() {
@@ -206,6 +216,22 @@
         function sair() {
             localStorage.removeItem('torquato_user');
             window.location.href = 'login.html';
+        }
+
+        async function carregarListasSelect() {
+            // Carregar Clientes
+            const { data: clientes } = await supabaseClient.from('vendas_clientes').select('nome');
+            const selectCliente = document.getElementById('cad-cliente');
+            if (clientes) {
+                selectCliente.innerHTML = `<option value="Nenhum">Nenhum / Não vinculado</option>` + clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+            }
+
+            // Carregar Propostas
+            const { data: propostas } = await supabaseClient.from('vendas_propostas').select('codigo, cliente');
+            const selectProposta = document.getElementById('cad-proposta');
+            if (propostas) {
+                selectProposta.innerHTML = `<option value="Nenhuma">Nenhuma proposta vinculada</option>` + propostas.map(p => `<option value="#${p.codigo} - ${p.cliente}">Proposta #${p.codigo} (${p.cliente})</option>`).join('');
+            }
         }
 
         async function carregarEmpreendimentos() {
@@ -236,10 +262,14 @@
                             <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 uppercase">${e.tipo_obra}</span>
                             <h3 class="text-base font-bold text-white mt-1">${e.nome_obra}</h3>
                             <p class="text-xs text-slate-400">📍 ${e.localizacao}</p>
+                            <p class="text-[11px] text-amber-300 mt-1">👤 Cliente: ${e.cliente_vinculado || 'Nenhum'} | 📄 Proposta: ${e.proposta_vinculada || 'Nenhuma'}</p>
                         </div>
-                        <button onclick="alternarStatusObra('${e.id}', '${e.status}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${e.status === 'Ativa' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30'}">
-                            ${e.status === 'Ativa' ? 'Desabilitar para venda' : 'Habilitar para venda'}
-                        </button>
+                        <div class="flex space-x-1">
+                            <button onclick="abrirEditarObra('${e.id}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer" title="Editar Obra">✏️</button>
+                            <button onclick="alternarStatusObra('${e.id}', '${e.status}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${e.status === 'Ativa' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}">
+                                ${e.status === 'Ativa' ? 'Ativa' : 'Desativada'}
+                            </button>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4 text-xs pt-2">
@@ -262,6 +292,28 @@
         }
 
         function abrirModalObra() {
+            document.getElementById('modal-titulo').innerText = "Cadastrar Novo Empreendimento / Obra";
+            document.getElementById('edit-id').value = "";
+            document.getElementById('cad-nome').value = "";
+            document.getElementById('cad-local').value = "";
+            document.getElementById('cad-unidades').value = "10";
+            document.getElementById('modal-obra').classList.remove('hidden');
+        }
+
+        async function abrirEditarObra(id) {
+            const { data, error } = await supabaseClient.from('vendas_empreendimentos_obras').select('*').eq('id', id).single();
+            if (error || !data) { alert('Erro ao carregar dados da obra.'); return; }
+
+            document.getElementById('modal-titulo').innerText = `Editar Obra: ${data.nome_obra}`;
+            document.getElementById('edit-id').value = data.id;
+            document.getElementById('cad-nome').value = data.nome_obra;
+            document.getElementById('cad-tipo').value = data.tipo_obra;
+            document.getElementById('cad-local').value = data.localizacao;
+            document.getElementById('cad-cliente').value = data.cliente_vinculado || 'Nenhum';
+            document.getElementById('cad-proposta').value = data.proposta_vinculada || 'Nenhuma';
+            document.getElementById('cad-unidades').value = data.unidades_disponiveis;
+            document.getElementById('cad-status').value = data.status;
+
             document.getElementById('modal-obra').classList.remove('hidden');
         }
 
@@ -272,39 +324,54 @@
         async function alternarStatusObra(id, statusAtual) {
             const novoStatus = statusAtual === 'Ativa' ? 'Desativada' : 'Ativa';
             const { error } = await supabaseClient.from('vendas_empreendimentos_obras').update({ status: novoStatus }).eq('id', id);
-            if (!error) {
-                carregarEmpreendimentos();
-            }
+            if (!error) carregarEmpreendimentos();
         }
 
         async function salvarObraSupabase(e) {
             e.preventDefault();
+            const editId = document.getElementById('edit-id').value;
             const nome = document.getElementById('cad-nome').value;
             const tipo = document.getElementById('cad-tipo').value;
             const local = document.getElementById('cad-local').value;
+            const clienteVinculado = document.getElementById('cad-cliente').value;
+            const propostaVinculada = document.getElementById('cad-proposta').value;
             const unidades = Number(document.getElementById('cad-unidades').value);
             const status = document.getElementById('cad-status').value;
 
-            const novaObra = {
-                codigo: String(Math.floor(100 + Math.random() * 900)),
-                nome_obra: nome,
-                tipo_obra: tipo,
-                localizacao: local,
-                status,
-                unidades_disponiveis: unidades,
-                unidades_vendidas: 0,
-                valor_total_vendas: 0.00
-            };
+            if (editId) {
+                const { error } = await supabaseClient.from('vendas_empreendimentos_obras').update({
+                    nome_obra: nome,
+                    tipo_obra: tipo,
+                    localizacao: local,
+                    cliente_vinculado: clienteVinculado,
+                    proposta_vinculada: propostaVinculada,
+                    unidades_disponiveis: unidades,
+                    status
+                }).eq('id', editId);
 
-            const { error } = await supabaseClient.from('vendas_empreendimentos_obras').insert([novaObra]);
-
-            if (error) {
-                alert('Erro ao guardar obra: ' + error.message);
+                if (error) { alert('Erro ao atualizar: ' + error.message); return; }
+                alert('Empreendimento atualizado com sucesso na nuvem!');
             } else {
+                const novaObra = {
+                    codigo: String(Math.floor(100 + Math.random() * 900)),
+                    nome_obra: nome,
+                    tipo_obra: tipo,
+                    localizacao: local,
+                    cliente_vinculado: clienteVinculado,
+                    proposta_vinculada: propostaVinculada,
+                    status,
+                    unidades_disponiveis: unidades,
+                    unidades_vendidas: 0,
+                    valor_total_vendas: 0.00
+                };
+
+                const { error } = await supabaseClient.from('vendas_empreendimentos_obras').insert([novaObra]);
+                if (error) { alert('Erro ao guardar: ' + error.message); return; }
                 alert('Empreendimento registado com sucesso na nuvem!');
-                fecharModalObra();
-                carregarEmpreendimentos();
             }
+
+            fecharModalObra();
+            carregarEmpreendimentos();
         }
     </script>
 </body>
