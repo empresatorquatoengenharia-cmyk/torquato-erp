@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Gestão de Empreendimentos & Obras</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
+
+    <!-- Header Principal -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
+                <p class="text-[10px] text-slate-400">Módulo Comercial • Gestão de Empreendimentos, Obras & Demonstrativos</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nome-usuario" class="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">A carregar...</span>
+            <button onclick="sair()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">Sair</button>
+        </div>
+    </header>
+
+    <!-- Layout Principal -->
+    <div class="flex flex-1">
+        <!-- Sidebar de Navegação Unificada -->
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📊</span>
+                            <span>Dashboard Executivo</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Comercial</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="vendas_empreendimentos.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
+                            <span>🏢</span>
+                            <span>Empreendimentos & Obras</span>
+                        </a>
+                        <a href="vendas_clientes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>👥</span>
+                            <span>Clientes & Compradores</span>
+                        </a>
+                        <a href="vendas_propostas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📄</span>
+                            <span>Propostas Comerciais</span>
+                        </a>
+                        <a href="vendas_imoveis.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏡</span>
+                            <span>Vendas & Contratos</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>💰</span>
+                            <span>Fluxo de Caixa</span>
+                        </a>
+                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📉</span>
+                            <span>Contas a Pagar</span>
+                        </a>
+                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📈</span>
+                            <span>Contas a Receber</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+                Torquato ERP v1.0 • Minas Gerais
+            </div>
+        </aside>
+
+        <!-- Conteúdo Central -->
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
+            
+            <!-- Barra de Ações & Filtros -->
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Cadastro e Gerenciamento de Obras & Empreendimentos</h2>
+                    <p class="text-xs text-slate-400">Controle de obras ativas/desativadas, demonstrativo de vendas (Própria vs Terceiros) e montante acumulado.</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="abrirModalObra()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5">
+                        <span>➕</span>
+                        <span>Novo Empreendimento</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros Superiores -->
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex items-center space-x-3">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Ordenar por:</label>
+                        <select class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                            <option>Nome do empreendimento A-Z</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Vendas:</label>
+                        <select class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                            <option>Todos</option>
+                            <option>Ativas</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Pesquisa rápida:</label>
+                    <input type="text" id="filtro-busca" placeholder="Pesquisar em empreendimentos..." onkeyup="carregarEmpreendimentos()" class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white w-64 focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+
+            <!-- GRID DOS DEMONSTRATIVOS (Inspirado no Koper) -->
+            <div id="grid-empreendimentos" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Preenchido via script -->
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: NOVO EMPREENDIMENTO -->
+    <div id="modal-obra" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-white">Cadastrar Novo Empreendimento / Obra</h3>
+                    <p class="text-xs text-slate-400">Defina se é Obra Própria ou de Terceiros e vincule à nuvem.</p>
+                </div>
+                <button type="button" onclick="fecharModalObra()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form onsubmit="salvarObraSupabase(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Nome do Empreendimento / Obra *</label>
+                    <input type="text" id="cad-nome" required placeholder="Ex: Residencial Alphaville" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Tipo de Obra *</label>
+                        <select id="cad-tipo" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                            <option value="Obra Própria">Obra Própria</option>
+                            <option value="Obra de Terceiros">Obra de Terceiros</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Localização (Cidade - UF) *</label>
+                        <input type="text" id="cad-local" required placeholder="Ex: Belo Horizonte - MG" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Total de Unidades Disponíveis *</label>
+                        <input type="number" id="cad-unidades" required value="10" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Status da Obra *</label>
+                        <select id="cad-status" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                            <option value="Ativa">Ativa (Habilitada para Venda)</option>
+                            <option value="Desativada">Desativada</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+                    <button type="button" onclick="fecharModalObra()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar Obra na Nuvem</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarSessao();
+            carregarEmpreendimentos();
+        });
+
+        function verificarSessao() {
+            const usuarioJSON = localStorage.getItem('torquato_user');
+            if (!usuarioJSON) { window.location.href = 'login.html'; return; }
+            const usuario = JSON.parse(usuarioJSON);
+            document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
+        }
+
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
+
+        async function carregarEmpreendimentos() {
+            const busca = document.getElementById('filtro-busca').value.toLowerCase();
+            const grid = document.getElementById('grid-empreendimentos');
+
+            const { data, error } = await supabaseClient.from('vendas_empreendimentos_obras').select('*');
+
+            if (error) {
+                grid.innerHTML = `<div class="col-span-2 p-6 text-center text-red-400">Erro ao carregar obras: ${error.message}</div>`;
+                return;
+            }
+
+            let lista = data || [];
+            if (busca) {
+                lista = lista.filter(e => e.nome_obra.toLowerCase().includes(busca) || e.localizacao.toLowerCase().includes(busca));
+            }
+
+            if (lista.length === 0) {
+                grid.innerHTML = `<div class="col-span-2 p-6 text-center text-slate-500">Nenhum empreendimento registado.</div>`;
+                return;
+            }
+
+            grid.innerHTML = lista.map(e => `
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                    <div class="flex justify-between items-start border-b border-slate-800 pb-3">
+                        <div>
+                            <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 uppercase">${e.tipo_obra}</span>
+                            <h3 class="text-base font-bold text-white mt-1">${e.nome_obra}</h3>
+                            <p class="text-xs text-slate-400">📍 ${e.localizacao}</p>
+                        </div>
+                        <button onclick="alternarStatusObra('${e.id}', '${e.status}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${e.status === 'Ativa' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30'}">
+                            ${e.status === 'Ativa' ? 'Desabilitar para venda' : 'Habilitar para venda'}
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 text-xs pt-2">
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 block mb-1">Unidades Disponíveis:</span>
+                            <strong class="text-emerald-400 text-sm">🟢 ${e.unidades_disponiveis} unidades</strong>
+                        </div>
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 block mb-1">Unidades Vendidas:</span>
+                            <strong class="text-amber-400 text-sm">🔴 ${e.unidades_vendidas} vendidas</strong>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-2 text-xs">
+                        <span class="text-slate-400">Montante Acumulado em Vendas:</span>
+                        <strong class="text-emerald-400 text-sm font-extrabold">R$ ${(e.valor_total_vendas || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function abrirModalObra() {
+            document.getElementById('modal-obra').classList.remove('hidden');
+        }
+
+        function fecharModalObra() {
+            document.getElementById('modal-obra').classList.add('hidden');
+        }
+
+        async function alternarStatusObra(id, statusAtual) {
+            const novoStatus = statusAtual === 'Ativa' ? 'Desativada' : 'Ativa';
+            const { error } = await supabaseClient.from('vendas_empreendimentos_obras').update({ status: novoStatus }).eq('id', id);
+            if (!error) {
+                carregarEmpreendimentos();
+            }
+        }
+
+        async function salvarObraSupabase(e) {
+            e.preventDefault();
+            const nome = document.getElementById('cad-nome').value;
+            const tipo = document.getElementById('cad-tipo').value;
+            const local = document.getElementById('cad-local').value;
+            const unidades = Number(document.getElementById('cad-unidades').value);
+            const status = document.getElementById('cad-status').value;
+
+            const novaObra = {
+                codigo: String(Math.floor(100 + Math.random() * 900)),
+                nome_obra: nome,
+                tipo_obra: tipo,
+                localizacao: local,
+                status,
+                unidades_disponiveis: unidades,
+                unidades_vendidas: 0,
+                valor_total_vendas: 0.00
+            };
+
+            const { error } = await supabaseClient.from('vendas_empreendimentos_obras').insert([novaObra]);
+
+            if (error) {
+                alert('Erro ao guardar obra: ' + error.message);
+            } else {
+                alert('Empreendimento registado com sucesso na nuvem!');
+                fecharModalObra();
+                carregarEmpreendimentos();
+            }
+        }
+    </script>
+</body>
+</html>
