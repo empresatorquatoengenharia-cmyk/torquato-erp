@@ -42,11 +42,23 @@
                 </div>
 
                 <div>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Comercial</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                        <a href="vendas_empreendimentos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
                             <span>🏢</span>
-                            <span>Matriz & Utilizadores</span>
+                            <span>Empreendimentos & Obras</span>
+                        </a>
+                        <a href="vendas_clientes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>👥</span>
+                            <span>Clientes & Compradores</span>
+                        </a>
+                        <a href="vendas_propostas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>📄</span>
+                            <span>Propostas Comerciais</span>
+                        </a>
+                        <a href="vendas_imoveis.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏡</span>
+                            <span>Vendas & Contratos</span>
                         </a>
                     </nav>
                 </div>
@@ -91,6 +103,28 @@
                         <a href="financeiro_notas.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
                             <span>📄</span>
                             <span>Notas Fiscais</span>
+                        </a>
+                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏷️</span>
+                            <span>Tributos & Impostos</span>
+                        </a>
+                        <a href="financeiro_contas_bancarias.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🏦</span>
+                            <span>Contas Bancárias</span>
+                        </a>
+                        <a href="financeiro_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>⚙️</span>
+                            <span>Indexadores & Regras</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
+                            <span>🛡️</span>
+                            <span>Matriz & Utilizadores</span>
                         </a>
                     </nav>
                 </div>
@@ -171,7 +205,7 @@
         </main>
     </div>
 
-    <!-- MODAL IMPORTAR/CADASTRAR NOTA MANUAL (Com Multi-Seleção de Itens e Anexo em PDF) -->
+    <!-- MODAL IMPORTAR/CADASTRAR NOTA MANUAL -->
     <div id="modal-nota-manual" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -238,7 +272,7 @@
                         </div>
                     </div>
 
-                    <!-- Caixa de Anexo da Fatura/Nota (PDF ou Imagem) -->
+                    <!-- Caixa de Anexo da Fatura/Nota -->
                     <div class="border border-dashed border-slate-800 bg-slate-950 p-4 rounded-xl text-center space-y-2">
                         <span class="text-xl">📄</span>
                         <p class="font-bold text-white">Anexar Fatura / Nota Fiscal Digitalizada (PDF ou Imagem)</p>
@@ -260,9 +294,7 @@
                     </div>
 
                     <!-- Lista Dinâmica de Itens -->
-                    <div id="container-itens" class="space-y-3">
-                        <!-- Linha inicial de item preenchida via script -->
-                    </div>
+                    <div id="container-itens" class="space-y-3"></div>
 
                     <div class="flex justify-end pt-2 border-t border-slate-800">
                         <span class="text-sm font-bold text-slate-300">Valor Total da Nota: <strong id="subtotal-nota" class="text-amber-400 text-base">R$ 0,00</strong></span>
@@ -332,7 +364,6 @@
             if (!error && data && data.length > 0) {
                 produtosCadastradosSupabase = data;
             } else {
-                // Lista fallback caso a tabela ainda não tenha itens salvos
                 produtosCadastradosSupabase = [
                     { nome: 'Cimento CP II 50kg', unidade: 'Saco' },
                     { nome: 'Aço CA-50 10mm', unidade: 'Barra' },
@@ -392,7 +423,7 @@
         function abrirModalNotaManual() {
             document.getElementById('modal-nota-manual').classList.remove('hidden');
             document.getElementById('container-itens').innerHTML = '';
-            adicionarLinhaItem(); // cria o primeiro item padrão
+            adicionarLinhaItem();
         }
 
         function fecharModalNotaManual() {
@@ -503,7 +534,6 @@
                 descricao
             };
 
-            // 1. Salva a Nota no Supabase
             const { error: errNota } = await supabaseClient.from('financeiro_notas').insert([novaNota]);
 
             if (errNota) {
@@ -511,7 +541,6 @@
                 return;
             }
 
-            // 2. Sincroniza automaticamente gerando o Contas a Pagar no Supabase
             const novaContaPagar = {
                 codigo: novaNota.codigo,
                 nfe: numero,
