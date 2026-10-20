@@ -1,173 +1,323 @@
-const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torquato ERP - Solicitações & Compras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
 
-window.addEventListener('DOMContentLoaded', () => {
-    verificarSessao();
-    carregarProdutosSelect();
-    carregarLocaisSelect();
-    carregarDadosSupabase();
-});
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
+                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Solicitações & Produtos ERP</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="nome-usuario" class="text-xs text-amber-400 font-semibold bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">A carregar...</span>
+            <button onclick="sair()" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">Sair</button>
+        </div>
+    </header>
 
-function verificarSessao() {
-    const u = localStorage.getItem('torquato_user');
-    if (!u) { window.location.href = 'login.html'; return; }
-    const usuario = JSON.parse(u);
-    document.getElementById('nome-usuario').innerText = usuario.nome + ' (' + usuario.perfil.toUpperCase() + ')';
-}
+    <div class="flex flex-1">
+        <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📊</span><span>Dashboard Executivo</span></a>
+                    </nav>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
+                    <nav class="space-y-1 text-xs">
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🏷️</span><span>Produtos & Insumos</span></a>
+                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📍</span><span>Locais de Estoque</span></a>
+                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🚚</span><span>Entradas & Transferências</span></a>
+                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition"><span>🛒</span><span>Solicitações & Compras</span></a>
+                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📦</span><span>Balanços de Estoque</span></a>
+                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>⚙️</span><span>Cadastros Gerais</span></a>
+                    </nav>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">Torquato ERP v1.0</div>
+        </aside>
 
-function sair() {
-    localStorage.removeItem('torquato_user');
-    window.location.href = 'login.html';
-}
+        <main class="flex-1 p-8 max-w-7xl space-y-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <div class="flex space-x-2">
+                    <button onclick="mudarAba('solicitacoes')" id="btn-aba-solicitacoes" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Solicitações de Compra</button>
+                    <button onclick="mudarAba('aprovacao')" id="btn-aba-aprovacao" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Aprovação & Integração Financeira</button>
+                </div>
+                <button onclick="abrirModalNovaSolicitacao()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-2">
+                    <span>➕</span><span>+ Solicitação</span>
+                </button>
+            </div>
 
-function mudarAba(aba) {
-    document.getElementById('secao-solicitacoes').classList.add('hidden');
-    document.getElementById('secao-aprovacao').classList.add('hidden');
-    document.getElementById('btn-aba-solicitacoes').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
-    document.getElementById('btn-aba-aprovacao').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+            <section id="secao-solicitacoes" class="space-y-4">
+                <h2 class="text-xl font-bold text-white">Minhas Solicitações e Pedidos</h2>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400">
+                                <th class="p-4">Solicitação</th>
+                                <th class="p-4">Local de Consumo</th>
+                                <th class="p-4">Produto</th>
+                                <th class="p-4">Quantidade</th>
+                                <th class="p-4">Prazo</th>
+                                <th class="p-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-solicitacoes-corpo">
+                            <tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-    if (aba === 'solicitacoes') {
-        document.getElementById('secao-solicitacoes').classList.remove('hidden');
-        document.getElementById('btn-aba-solicitacoes').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
-    } else {
-        document.getElementById('secao-aprovacao').classList.remove('hidden');
-        document.getElementById('btn-aba-aprovacao').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
-    }
-}
+            <section id="secao-aprovacao" class="hidden space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-white">Aprovação de Solicitações & Contas a Pagar</h2>
+                    <button onclick="carregarDadosSupabase()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">Atualizar Lista</button>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400">
+                                <th class="p-4">Solicitação</th>
+                                <th class="p-4">Local</th>
+                                <th class="p-4">Produto</th>
+                                <th class="p-4">Qtd.</th>
+                                <th class="p-4">Prazo</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4 text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-aprovacao-corpo">
+                            <tr><td colspan="7" class="p-6 text-center text-slate-500">A carregar...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
 
-async function carregarProdutosSelect() {
-    const selectProd = document.getElementById('sol-produto');
-    const res = await supabaseClient.from('produtos_erp').select('nome').order('nome', { ascending: true });
-    if (res.data && res.data.length > 0) {
-        let html = '<option value="">Selecione um produto...</option>';
-        res.data.forEach(p => { html += '<option value="' + p.nome + '">' + p.nome + '</option>'; });
-        selectProd.innerHTML = html;
-    } else {
-        selectProd.innerHTML = '<option value="">Nenhum produto encontrado</option>';
-    }
-}
+    <div id="modal-solicitacao" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <h3 class="text-base font-bold text-white">Nova Solicitação de Compra</h3>
+                <button type="button" onclick="fecharModalNovaSolicitacao()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+            <form onsubmit="salvarSolicitacaoSupabase(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Produto *</label>
+                    <select id="sol-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <option value="">A carregar produtos...</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Quantidade *</label>
+                        <input type="number" step="0.01" id="sol-qtd" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Prazo *</label>
+                        <input type="date" id="sol-prazo" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Local de Consumo *</label>
+                    <select id="sol-local" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <option value="">A carregar locais...</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-3 border-t border-slate-800 pt-4">
+                    <button type="button" onclick="fecharModalNovaSolicitacao()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-async function carregarLocaisSelect() {
-    let locais = [{ id: 'matriz', nome: 'Torquato Engenharia - Matriz' }];
-    const res = await supabaseClient.from('vendas_empreendimentos_obras').select('*');
-    if (res.data && res.data.length > 0) {
-        res.data.forEach(o => locais.push({ id: o.id, nome: o.nome_obra }));
-    }
-    const selectLocal = document.getElementById('sol-local');
-    let html = '<option value="">Selecione o local...</option>';
-    locais.forEach(l => { html += '<option value="' + l.nome + '">' + l.nome + '</option>'; });
-    selectLocal.innerHTML = html;
-}
+    <!-- Script integrado corretamente dentro da tag script -->
+    <script>
+        const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-async function carregarDadosSupabase() {
-    const res = await supabaseClient.from('suprimentos_solicitacoes').select('*').order('id', { ascending: false });
-    const tbodySol = document.getElementById('tabela-solicitacoes-corpo');
-    const tbodyApr = document.getElementById('tabela-aprovacao-corpo');
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarSessao();
+            carregarProdutosSelect();
+            carregarLocaisSelect();
+            carregarDadosSupabase();
+        });
 
-    if (res.error || !res.data || res.data.length === 0) {
-        tbodySol.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhuma solicitação encontrada.</td></tr>';
-        tbodyApr.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma solicitação para aprovação.</td></tr>';
-        return;
-    }
-
-    let htmlSol = '';
-    let htmlApr = '';
-
-    res.data.forEach(s => {
-        htmlSol += '<tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">' +
-            '<td class="p-4 font-bold text-amber-400">#' + s.codigo + '</td>' +
-            '<td class="p-4 text-white">' + s.obra + '</td>' +
-            '<td class="p-4 text-slate-300">' + s.produto + '</td>' +
-            '<td class="p-4 text-slate-300">' + s.qtd + ' un</td>' +
-            '<td class="p-4 text-amber-300">' + s.prazo + '</td>' +
-            '<td class="p-4"><span class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-bold">' + s.status + '</span></td>' +
-        '</tr>';
-
-        let badgeStatus = '<span class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-bold">' + s.status + '</span>';
-        let acoesHtml = '';
-
-        if (s.status === 'Aprovado / Comprar') {
-            badgeStatus = '<span class="bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full text-[10px] font-bold">Aprovado ✓</span>';
-            acoesHtml = '<span class="text-emerald-400 font-bold text-[11px]">Integrado ao Financeiro ✓</span>';
-        } else if (s.status === 'Reprovado') {
-            badgeStatus = '<span class="bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded-full text-[10px] font-bold">Reprovado ✕</span>';
-            acoesHtml = '<span class="text-rose-400 font-bold text-[11px]">Recusado</span>';
-        } else {
-            acoesHtml = '<div class="flex items-center justify-end space-x-2">' +
-                '<button type="button" onclick="window.aprovarSolicitacao(' + s.id + ')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">Aprovar</button>' +
-                '<button type="button" onclick="window.reprovarSolicitacao(' + s.id + ')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">Reprovar</button>' +
-            '</div>';
+        function verificarSessao() {
+            const u = localStorage.getItem('torquato_user');
+            if (!u) { window.location.href = 'login.html'; return; }
+            const usuario = JSON.parse(u);
+            document.getElementById('nome-usuario').innerText = usuario.nome + ' (' + usuario.perfil.toUpperCase() + ')';
         }
 
-        htmlApr += '<tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">' +
-            '<td class="p-4 font-bold text-amber-400">#' + s.codigo + '</td>' +
-            '<td class="p-4 text-white">' + s.obra + '</td>' +
-            '<td class="p-4 text-slate-300">' + s.produto + '</td>' +
-            '<td class="p-4 text-slate-300">' + s.qtd + ' un</td>' +
-            '<td class="p-4 text-slate-300">' + s.prazo + '</td>' +
-            '<td class="p-4">' + badgeStatus + '</td>' +
-            '<td class="p-4 text-right">' + acoesHtml + '</td>' +
-        '</tr>';
-    });
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
 
-    tbodySol.innerHTML = htmlSol;
-    tbodyApr.innerHTML = htmlApr;
-}
+        function mudarAba(aba) {
+            document.getElementById('secao-solicitacoes').classList.add('hidden');
+            document.getElementById('secao-aprovacao').classList.add('hidden');
+            document.getElementById('btn-aba-solicitacoes').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+            document.getElementById('btn-aba-aprovacao').className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
 
-window.aprovarSolicitacao = async function(id) {
-    const resItem = await supabaseClient.from('suprimentos_solicitacoes').select('*').eq('id', id).single();
-    if (resItem.error || !resItem.data) { alert('Erro ao carregar dados.'); return; }
-    const item = resItem.data;
+            if (aba === 'solicitacoes') {
+                document.getElementById('secao-solicitacoes').classList.remove('hidden');
+                document.getElementById('btn-aba-solicitacoes').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+            } else {
+                document.getElementById('secao-aprovacao').classList.remove('hidden');
+                document.getElementById('btn-aba-aprovacao').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+            }
+        }
 
-    if (!confirm('Deseja aprovar a compra de ' + item.qtd + ' un de "' + item.produto + '" para a obra "' + item.obra + '"?')) return;
+        async function carregarProdutosSelect() {
+            const selectProd = document.getElementById('sol-produto');
+            const res = await supabaseClient.from('produtos_erp').select('nome').order('nome', { ascending: true });
+            if (res.data && res.data.length > 0) {
+                let html = '<option value="">Selecione um produto...</option>';
+                res.data.forEach(p => { html += '<option value="' + p.nome + '">' + p.nome + '</option>'; });
+                selectProd.innerHTML = html;
+            } else {
+                selectProd.innerHTML = '<option value="">Nenhum produto encontrado</option>';
+            }
+        }
 
-    const resUpdate = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Aprovado / Comprar' }).eq('id', id);
-    if (resUpdate.error) { alert('Erro: ' + resUpdate.error.message); return; }
+        async function carregarLocaisSelect() {
+            let locais = [{ id: 'matriz', nome: 'Torquato Engenharia - Matriz' }];
+            const res = await supabaseClient.from('vendas_empreendimentos_obras').select('*');
+            if (res.data && res.data.length > 0) {
+                res.data.forEach(o => locais.push({ id: o.id, nome: o.nome_obra }));
+            }
+            const selectLocal = document.getElementById('sol-local');
+            let html = '<option value="">Selecione o local...</option>';
+            locais.forEach(l => { html += '<option value="' + l.nome + '">' + l.nome + '</option>'; });
+            selectLocal.innerHTML = html;
+        }
 
-    const novaConta = {
-        codigo: item.codigo,
-        nfe: 'Pedido #' + item.codigo,
-        beneficiario: 'Fornecedor de Materiais (' + item.produto + ')',
-        valor: Number(item.qtd) * 50.00,
-        vencimento: item.prazo,
-        status: 'Pendente',
-        obra: item.obra,
-        etiqueta: 'Compra de Insumos - Obra'
-    };
+        async function carregarDadosSupabase() {
+            const res = await supabaseClient.from('suprimentos_solicitacoes').select('*').order('id', { ascending: false });
+            const tbodySol = document.getElementById('tabela-solicitacoes-corpo');
+            const tbodyApr = document.getElementById('tabela-aprovacao-corpo');
 
-    await supabaseClient.from('financeiro_contas_pagar').insert([novaConta]);
-    alert('Aprovado e Contas a Pagar gerado com sucesso!');
-    carregarDadosSupabase();
-};
+            if (res.error || !res.data || res.data.length === 0) {
+                tbodySol.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhuma solicitação encontrada.</td></tr>';
+                tbodyApr.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma solicitação para aprovação.</td></tr>';
+                return;
+            }
 
-window.reprovarSolicitacao = async function(id) {
-    if (!confirm('Tem certeza que deseja reprovar esta solicitação?')) return;
-    const res = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Reprovado' }).eq('id', id);
-    if (res.error) { alert('Erro: ' + res.error.message); } else { alert('Reprovado com sucesso.'); carregarDadosSupabase(); }
-};
+            let htmlSol = '';
+            let htmlApr = '';
 
-function abrirModalNovaSolicitacao() {
-    carregarProdutosSelect();
-    carregarLocaisSelect();
-    document.getElementById('modal-solicitacao').classList.remove('hidden');
-}
+            res.data.forEach(s => {
+                htmlSol += '<tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">' +
+                    '<td class="p-4 font-bold text-amber-400">#' + s.codigo + '</td>' +
+                    '<td class="p-4 text-white">' + s.obra + '</td>' +
+                    '<td class="p-4 text-slate-300">' + s.produto + '</td>' +
+                    '<td class="p-4 text-slate-300">' + s.qtd + ' un</td>' +
+                    '<td class="p-4 text-amber-300">' + s.prazo + '</td>' +
+                    '<td class="p-4"><span class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-bold">' + s.status + '</span></td>' +
+                '</tr>';
 
-function fecharModalNovaSolicitacao() {
-    document.getElementById('modal-solicitacao').classList.add('hidden');
-}
+                let badgeStatus = '<span class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-bold">' + s.status + '</span>';
+                let acoesHtml = '';
 
-async function salvarSolicitacaoSupabase(e) {
-    e.preventDefault();
-    const nova = {
-        codigo: String(Math.floor(1000 + Math.random() * 9000)),
-        solicitante: 'Engenharia Torquato',
-        obra: document.getElementById('sol-local').value,
-        produto: document.getElementById('sol-produto').value,
-        qtd: Number(document.getElementById('sol-qtd').value),
-        prazo: document.getElementById('sol-prazo').value.split('-').reverse().join('/'),
-        status: 'Em análise'
-    };
-    const res = await supabaseClient.from('suprimentos_solicitacoes').insert([nova]);
-    if (res.error) { alert('Erro: ' + res.error.message); } else { alert('Criado com sucesso!'); fecharModalNovaSolicitacao(); carregarDadosSupabase(); }
-}
+                if (s.status === 'Aprovado / Comprar') {
+                    badgeStatus = '<span class="bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full text-[10px] font-bold">Aprovado ✓</span>';
+                    acoesHtml = '<span class="text-emerald-400 font-bold text-[11px]">Integrado ao Financeiro ✓</span>';
+                } else if (s.status === 'Reprovado') {
+                    badgeStatus = '<span class="bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded-full text-[10px] font-bold">Reprovado ✕</span>';
+                    acoesHtml = '<span class="text-rose-400 font-bold text-[11px]">Recusado</span>';
+                } else {
+                    acoesHtml = '<div class="flex items-center justify-end space-x-2">' +
+                        '<button type="button" onclick="window.aprovarSolicitacao(' + s.id + ')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">Aprovar</button>' +
+                        '<button type="button" onclick="window.reprovarSolicitacao(' + s.id + ')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">Reprovar</button>' +
+                    '</div>';
+                }
+
+                htmlApr += '<tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">' +
+                    '<td class="p-4 font-bold text-amber-400">#' + s.codigo + '</td>' +
+                    '<td class="p-4 text-white">' + s.obra + '</td>' +
+                    '<td class="p-4 text-slate-300">' + s.produto + '</td>' +
+                    '<td class="p-4 text-slate-300">' + s.qtd + ' un</td>' +
+                    '<td class="p-4 text-slate-300">' + s.prazo + '</td>' +
+                    '<td class="p-4">' + badgeStatus + '</td>' +
+                    '<td class="p-4 text-right">' + acoesHtml + '</td>' +
+                '</tr>';
+            });
+
+            tbodySol.innerHTML = htmlSol;
+            tbodyApr.innerHTML = htmlApr;
+        }
+
+        window.aprovarSolicitacao = async function(id) {
+            const resItem = await supabaseClient.from('suprimentos_solicitacoes').select('*').eq('id', id).single();
+            if (resItem.error || !resItem.data) { alert('Erro ao carregar dados.'); return; }
+            const item = resItem.data;
+
+            if (!confirm('Deseja aprovar a compra de ' + item.qtd + ' un de "' + item.produto + '" para a obra "' + item.obra + '"?')) return;
+
+            const resUpdate = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Aprovado / Comprar' }).eq('id', id);
+            if (resUpdate.error) { alert('Erro: ' + resUpdate.error.message); return; }
+
+            const novaConta = {
+                codigo: item.codigo,
+                nfe: 'Pedido #' + item.codigo,
+                beneficiario: 'Fornecedor de Materiais (' + item.produto + ')',
+                valor: Number(item.qtd) * 50.00,
+                vencimento: item.prazo,
+                status: 'Pendente',
+                obra: item.obra,
+                etiqueta: 'Compra de Insumos - Obra'
+            };
+
+            await supabaseClient.from('financeiro_contas_pagar').insert([novaConta]);
+            alert('Aprovado e Contas a Pagar gerado com sucesso!');
+            carregarDadosSupabase();
+        };
+
+        window.reprovarSolicitacao = async function(id) {
+            if (!confirm('Tem certeza que deseja reprovar esta solicitação?')) return;
+            const res = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Reprovado' }).eq('id', id);
+            if (res.error) { alert('Erro: ' + res.error.message); } else { alert('Reprovado com sucesso.'); carregarDadosSupabase(); }
+        };
+
+        function abrirModalNovaSolicitacao() {
+            carregarProdutosSelect();
+            carregarLocaisSelect();
+            document.getElementById('modal-solicitacao').classList.remove('hidden');
+        }
+
+        function fecharModalNovaSolicitacao() {
+            document.getElementById('modal-solicitacao').classList.add('hidden');
+        }
+
+        async function salvarSolicitacaoSupabase(e) {
+            e.preventDefault();
+            const nova = {
+                codigo: String(Math.floor(1000 + Math.random() * 9000)),
+                solicitante: 'Engenharia Torquato',
+                obra: document.getElementById('sol-local').value,
+                produto: document.getElementById('sol-produto').value,
+                qtd: Number(document.getElementById('sol-qtd').value),
+                prazo: document.getElementById('sol-prazo').value.split('-').reverse().join('/'),
+                status: 'Em análise'
+            };
+            const res = await supabaseClient.from('suprimentos_solicitacoes').insert([nova]);
+            if (res.error) { alert('Erro: ' + res.error.message); } else { alert('Criado com sucesso!'); fecharModalNovaSolicitacao(); carregarDadosSupabase(); }
+        }
+    </script>
+</body>
+</html>
