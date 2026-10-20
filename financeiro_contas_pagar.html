@@ -310,7 +310,6 @@
             const statusFiltro = document.getElementById('filtro-status').value;
             const tbody = document.getElementById('tabela-contas-corpo');
 
-            // 1. Busca todas as contas a pagar
             let query = supabaseClient.from('financeiro_contas_pagar').select('*');
             if (obraFiltro !== 'Todos') query = query.eq('obra', obraFiltro);
             if (statusFiltro !== 'Todos') query = query.eq('status', statusFiltro);
@@ -318,16 +317,18 @@
             const { data: contasData, error } = await query;
             if (error) { tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erro: ${error.message}</td></tr>`; return; }
 
-            // 2. Busca todos os tributos ativos na base para garantir que órfãos sejam filtrados caso ainda existam
+            // Busca todos os tributos válidos na base
             const { data: tributosData } = await supabaseClient.from('financeiro_tributos').select('codigo');
             const codigosTributosValidos = new Set((tributosData || []).map(t => String(t.codigo)));
 
-            // Filtra contas a pagar: se for etiqueta de tributo, o código DESEJA existir na tabela de tributos
+            // Filtro rígido: remove qualquer conta de tributo cujo código não exista na tabela de tributos
             let lista = (contasData || []).filter(c => {
-                if (c.etiqueta && c.etiqueta.startsWith('Tributo -')) {
+                const ben = (c.beneficiario || '').toLowerCase();
+                const etq = (c.etiqueta || '').toLowerCase();
+                if (ben.includes('governo') || ben.includes('receita') || etq.includes('tributo')) {
                     return codigosTributosValidos.has(String(c.codigo));
                 }
-                return true; // Contas normais continuam aparecendo
+                return true;
             });
 
             let totalGeral = 0, totalPago = 0, totalNaoPago = 0;
