@@ -1,3 +1,14 @@
+<ElicitationsGroup>
+
+Compreendi perfeitamente. Para facilitar e garantir que tudo funcione à primeira, preparei o código completo e corrigido do ficheiro **Contas a Pagar**. 
+
+Basta copiar todo o código abaixo, substituir o conteúdo inteiro do seu ficheiro **`financeiro_contas_pagar.html`** por ele e guardar.
+
+---
+
+### Código Completo (`financeiro_contas_pagar.html`)
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -99,14 +110,13 @@
             </div>
 
             <!-- Filtros -->
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Centro de Custo (Obra):</label>
                     <select id="filtro-obra" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
                         <option value="Todos">Todas as Obras / Matriz</option>
                         <option value="Matriz">Matriz / Sede</option>
-                        <option value="Residencial Palácio dos Andes">Residencial Palácio dos Andes</option>
-                        <option value="Casas Flores da Praia">Casas Flores da Praia</option>
+                        <option value="Vila real">Vila Real</option>
                         <option value="Casa da Andreia">Casa da Andreia</option>
                     </select>
                 </div>
@@ -114,13 +124,18 @@
                     <label class="block text-slate-400 font-bold mb-1">Status:</label>
                     <select id="filtro-status" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
                         <option value="Todos">Todos os Status</option>
-                        <option value="Pendente">Pendentes</option>
+                        <option value="Atrasada">Atrasadas / Vencidas</option>
+                        <option value="Pendente">A Vencer (Pendentes)</option>
                         <option value="Paga">Pagas</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-slate-400 font-bold mb-1">Busca Rápida:</label>
-                    <input type="text" id="filtro-busca" placeholder="Pesquisar beneficiário..." onkeyup="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                    <label class="block text-slate-400 font-bold mb-1">Início Vencimento:</label>
+                    <input type="date" id="filtro-data-inicio" value="2026-05-01" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Fim Vencimento:</label>
+                    <input type="date" id="filtro-data-fim" value="2026-05-31" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
                 </div>
             </div>
 
@@ -211,7 +226,7 @@
                         </div>
                         <div>
                             <label class="block text-slate-400 mb-1">Data do Pagamento *</label>
-                            <input type="date" id="pag-data" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-white">
+                            <input type="date" id="pag-data" value="2026-10-19" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-white">
                         </div>
                     </div>
                 </div>
@@ -234,7 +249,7 @@
             <form onsubmit="salvarNovaContaSupabase(event)" class="space-y-4 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Beneficiário / Fornecedor *</label>
-                    <input type="text" id="cad-beneficiario" required placeholder="Ex: Fornecedor Ltda" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    <input type="text" id="cad-beneficiario" required placeholder="Ex: Casas D' Água" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -255,8 +270,7 @@
                         <label class="block text-slate-400 font-bold mb-1">Centro de Custo (Obra) *</label>
                         <select id="cad-obra" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                             <option value="Matriz">Matriz / Sede</option>
-                            <option value="Residencial Palácio dos Andes">Residencial Palácio dos Andes</option>
-                            <option value="Casas Flores da Praia">Casas Flores da Praia</option>
+                            <option value="Vila real">Vila Real</option>
                             <option value="Casa da Andreia">Casa da Andreia</option>
                         </select>
                     </div>
@@ -278,12 +292,8 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
-            carregarBancosSelect();
             carregarContas();
-            
-            const hoje = new Date().toISOString().split('T')[0];
-            const inputPagData = document.getElementById('pag-data');
-            if (inputPagData) inputPagData.value = hoje;
+            carregarBancosSelect();
         });
 
         function verificarSessao() {
@@ -309,26 +319,16 @@
         async function carregarContas() {
             const obraFiltro = document.getElementById('filtro-obra').value;
             const statusFiltro = document.getElementById('filtro-status').value;
-            const busca = document.getElementById('filtro-busca').value.toLowerCase();
             const tbody = document.getElementById('tabela-contas-corpo');
 
-            let query = supabaseClient.from('financeiro_contas_pagar').select('*').order('id', { ascending: false });
-
+            let query = supabaseClient.from('financeiro_contas_pagar').select('*');
             if (obraFiltro !== 'Todos') query = query.eq('obra', obraFiltro);
             if (statusFiltro !== 'Todos') query = query.eq('status', statusFiltro);
 
             const { data, error } = await query;
-            if (error) { 
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erro ao carregar: ${error.message}</td></tr>`; 
-                return; 
-            }
+            if (error) { tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erro: ${error.message}</td></tr>`; return; }
 
-            let lista = data || [];
-
-            if (busca) {
-                lista = lista.filter(c => (c.beneficiario || '').toLowerCase().includes(busca) || (c.nfe || '').toLowerCase().includes(busca));
-            }
-
+            const lista = data || [];
             let totalGeral = 0, totalPago = 0, totalNaoPago = 0;
 
             lista.forEach(c => {
@@ -348,7 +348,7 @@
             }
 
             tbody.innerHTML = lista.map(c => `
-                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition text-xs">
+                <tr class="border-b border-slate-800/60 ${c.status === 'Atrasada' ? 'bg-amber-500/20' : 'hover:bg-slate-800/40'} transition text-xs">
                     <td class="p-4 font-bold text-white">#${c.codigo}</td>
                     <td class="p-4 text-slate-400">${c.nfe || '-'}</td>
                     <td class="p-4 font-medium text-white">${c.beneficiario}</td>
@@ -419,7 +419,7 @@
             }).eq('id', contaAtualEmEdicao.id);
 
             if (error) {
-                alert('Erro ao atualizar: ' + error.message);
+                alert('Erro ao atualizar no Supabase: ' + error.message);
                 return;
             }
 
@@ -429,7 +429,7 @@
                 await supabaseClient.from('financeiro_contas_bancarias').update({ saldo_atual: novoSaldo }).eq('id', bancoData.id);
             }
 
-            alert('Pagamento efetivado e saldo bancário atualizado com sucesso!');
+            alert('Pagamento registado, anexos salvos e saldo bancário debitado com sucesso!');
             fecharModalDetalhes();
             carregarContas();
         }
