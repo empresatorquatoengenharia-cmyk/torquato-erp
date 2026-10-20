@@ -17,7 +17,7 @@
             <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
-                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Solicitações, Produtos & Obras Reais</p>
+                <p class="text-[10px] text-slate-400">Módulo Suprimentos • Solicitações & Produtos ERP</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -225,7 +225,7 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-white">Nova Solicitação de Compra</h3>
-                    <p class="text-xs text-slate-400">Selecione o produto da planilha "Produtos & Insumos" e o local de consumo.</p>
+                    <p class="text-xs text-slate-400">Selecione o produto da tabela "produtos_erp" e o local de consumo.</p>
                 </div>
                 <button type="button" onclick="fecharModalNovaSolicitacao()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -234,7 +234,7 @@
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Produto / Insumo (Cadastrado) *</label>
                     <select id="sol-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                        <option value="">A carregar produtos de Insumos...</option>
+                        <option value="">A carregar produtos de produtos_erp...</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -302,13 +302,26 @@
         }
 
         async function carregarProdutosSelect() {
-            // Puxa estritamente da tabela/planilha de Produtos & Insumos (suprimentos_produtos)
-            const { data, error } = await supabaseClient.from('suprimentos_produtos').select('*');
             const selectProd = document.getElementById('sol-produto');
+            
+            // Puxa estritamente da tabela produtos_erp do Supabase
+            const { data, error } = await supabaseClient.from('produtos_erp').select('nome, unidade');
+            
+            if (error) {
+                console.error("Erro ao carregar produtos_erp:", error);
+                selectProd.innerHTML = `<option value="">Erro ao carregar produtos (${error.message})</option>`;
+                return;
+            }
+
             if (data && data.length > 0) {
-                selectProd.innerHTML = '<option value="">Selecione um produto cadastrado...</option>' + data.map(p => `<option value="${p.nome}">${p.nome} (${p.unidade || 'un'})</option>`).join('');
+                selectProd.innerHTML = '<option value="">Selecione um produto cadastrado...</option>' + 
+                    data.map(p => {
+                        const nomeProduto = p.nome || 'Produto Sem Nome';
+                        const un = p.unidade ? ` (${p.unidade})` : '';
+                        return `<option value="${nomeProduto}">${nomeProduto}${un}</option>`;
+                    }).join('');
             } else {
-                selectProd.innerHTML = '<option value="">Nenhum produto encontrado na planilha Produtos & Insumos</option>';
+                selectProd.innerHTML = '<option value="">Nenhum produto encontrado na tabela produtos_erp</option>';
             }
         }
 
