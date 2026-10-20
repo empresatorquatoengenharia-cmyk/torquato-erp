@@ -262,7 +262,7 @@
         </div>
     </div>
 
-    <!-- Script Global Garantido -->
+    <!-- Script Robusto Baseado em ID Numérico -->
     <script>
         const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
@@ -360,9 +360,10 @@
                     badgeStatus = '<span class="bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded-full text-[10px] font-bold">Reprovado ✕</span>';
                     acoesHtml = '<span class="text-rose-400 font-bold text-[11px]">Solicitação Recusada</span>';
                 } else {
+                    // Passa apenas o ID numérico para evitar erros de sintaxe com strings acentuadas
                     acoesHtml = '<div class="flex items-center justify-end space-x-2">' +
-                        '<button type="button" onclick="window.aprovarEIntegrarCompra(' + s.id + ', \'' + s.codigo + '\', \'' + s.produto + '\', ' + s.qtd + ', \'' + s.obra + '\', \'' + s.prazo + '\')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✅ Aprovar</button>' +
-                        '<button type="button" onclick="window.reprovarSolicitacao(' + s.id + ', \'' + s.codigo + '\')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">❌ Reprovar</button>' +
+                        '<button type="button" onclick="window.aprovarSolicitacao(' + s.id + ')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✅ Aprovar</button>' +
+                        '<button type="button" onclick="window.reprovarSolicitacao(' + s.id + ')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">❌ Reprovar</button>' +
                     '</div>';
                 }
 
@@ -381,10 +382,16 @@
             tbodyApr.innerHTML = htmlApr;
         }
 
-        // Fixação explícita no objeto global window para garantir funcionamento no clique dinâmico
-        window.aprovarEIntegrarCompra = async function(id, codigo, produto, qtd, obra, prazo) {
-            const valorEstimado = qtd * 50.00;
-            if (!confirm('Deseja aprovar a compra de ' + qtd + ' un de "' + produto + '" para a obra "' + obra + '"?\n\nIsso irá:\n1. Atualizar o status para Aprovado\n2. Inserir no Contas a Pagar.')) return;
+        // Função global de Aprovação baseada no ID do registo
+        window.aprovarSolicitacao = async function(id) {
+            // Busca os dados diretamente do Supabase usando o ID para garantir precisão absoluta
+            const { data: item, error: erroBusca } = await supabaseClient.from('suprimentos_solicitacoes').select('*').eq('id', id).single();
+            if (erroBusca || !item) {
+                alert('Erro ao localizar a solicitação.');
+                return;
+            }
+
+            if (!confirm('Deseja aprovar a compra de ' + item.qtd + ' un de "' + item.produto + '" para a obra "' + item.obra + '"?\n\nIsso irá atualizar o status e gerar o Contas a Pagar.')) return;
 
             const resUpdate = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Aprovado / Comprar' }).eq('id', id);
             if (resUpdate.error) {
@@ -392,14 +399,15 @@
                 return;
             }
 
+            const valorEstimado = Number(item.qtd) * 50.00;
             const novaContaPagar = {
-                codigo: codigo,
-                nfe: 'Pedido #' + codigo,
-                beneficiario: 'Fornecedor de Materiais (' + produto + ')',
+                codigo: item.codigo,
+                nfe: 'Pedido #' + item.codigo,
+                beneficiario: 'Fornecedor de Materiais (' + item.produto + ')',
                 valor: valorEstimado,
-                vencimento: prazo,
+                vencimento: item.prazo,
                 status: 'Pendente',
-                obra: obra,
+                obra: item.obra,
                 etiqueta: 'Compra de Insumos - Obra'
             };
 
@@ -412,13 +420,14 @@
             carregarDadosSupabase();
         };
 
-        window.reprovarSolicitacao = async function(id, codigo) {
-            if (!confirm('Tem certeza que deseja REPROVAR a solicitação #' + codigo + '?')) return;
+        // Função global de Reprovação baseada no ID do registo
+        window.reprovarSolicitacao = async function(id) {
+            if (!confirm('Tem certeza que deseja REPROVAR esta solicitação?')) return;
             const res = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Reprovado' }).eq('id', id);
             if (res.error) {
                 alert('Erro ao reprovar: ' + res.error.message);
             } else {
-                alert('Solicitação #' + codigo + ' reprovada.');
+                alert('Solicitação reprovada com sucesso.');
                 carregarDadosSupabase();
             }
         };
