@@ -211,7 +211,7 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-white">Adicionar Tributo / Imposto</h3>
-                    <p class="text-xs text-slate-400">Ao salvar, o imposto será inserido nos Tributos e sincronizado automaticamente no Contas a Pagar.</p>
+                    <p class="text-xs text-slate-400">Anexe a guia em PDF, adicione os valores e sincronize com o Contas a Pagar.</p>
                 </div>
                 <button type="button" onclick="fecharModalTributo()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -255,23 +255,10 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-4 gap-3 bg-slate-950 p-4 rounded-xl border border-slate-800">
-                    <div>
-                        <label class="block text-slate-500 mb-1">Desconto (R$)</label>
-                        <input type="number" step="0.01" value="0" id="cad-desconto" oninput="calcularValorTotal()" class="w-full bg-slate-900 border border-slate-800 p-2 rounded-lg text-white">
-                    </div>
-                    <div>
-                        <label class="block text-slate-500 mb-1">Juros (R$)</label>
-                        <input type="number" step="0.01" value="0" id="cad-juros" oninput="calcularValorTotal()" class="w-full bg-slate-900 border border-slate-800 p-2 rounded-lg text-white">
-                    </div>
-                    <div>
-                        <label class="block text-slate-500 mb-1">Multa (R$)</label>
-                        <input type="number" step="0.01" value="0" id="cad-multa" oninput="calcularValorTotal()" class="w-full bg-slate-900 border border-slate-800 p-2 rounded-lg text-white">
-                    </div>
-                    <div>
-                        <label class="block text-slate-500 mb-1">Outros Acréscimos</label>
-                        <input type="number" step="0.01" value="0" id="cad-acrescimos" oninput="calcularValorTotal()" class="w-full bg-slate-900 border border-slate-800 p-2 rounded-lg text-white">
-                    </div>
+                <!-- ANEXO PDF/IMAGEM -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <label class="block text-amber-400 font-bold">📎 Anexar Guia / Documento (PDF ou Imagem)</label>
+                    <input type="file" id="cad-anexo" accept=".pdf,image/*" class="w-full text-slate-400 text-[11px]">
                 </div>
 
                 <div class="flex items-center justify-between bg-slate-950 p-4 rounded-xl border border-slate-800">
@@ -298,7 +285,7 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-white">Editar Tributo / Imposto</h3>
-                    <p class="text-xs text-slate-400">Atualize os valores e sincronize automaticamente com o Contas a Pagar.</p>
+                    <p class="text-xs text-slate-400">Atualize os valores, anexe novos documentos e sincronize com o Contas a Pagar.</p>
                 </div>
                 <button type="button" onclick="fecharModalEditar()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -343,6 +330,13 @@
                         <label class="block text-slate-400 font-bold mb-1">Valor Principal (R$) *</label>
                         <input type="number" step="0.01" id="edit-valor" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white" oninput="calcularValorTotalEdicao()">
                     </div>
+                </div>
+
+                <!-- ANEXO ATUAL E NOVO -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <label class="block text-sky-400 font-bold">📎 Alterar / Anexar Novo Documento (PDF/Imagem)</label>
+                    <input type="file" id="edit-anexo" accept=".pdf,image/*" class="w-full text-slate-400 text-[11px]">
+                    <div id="link-anexo-atual"></div>
                 </div>
 
                 <div class="flex items-center justify-between bg-slate-950 p-4 rounded-xl border border-slate-800">
@@ -418,6 +412,10 @@
                 if (t.status === 'Pago') badgeClass = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
                 if (t.status === 'Não consolidado') badgeClass = "bg-amber-500/20 text-amber-400 border border-amber-500/30";
 
+                const anexoHtml = t.anexo_url 
+                    ? `<a href="${t.anexo_url}" target="_blank" class="bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-slate-950 px-2 py-1 rounded-lg font-bold text-[10px] transition" title="Ver Guia Anexada">📎 Anexo</a>` 
+                    : '<span class="text-slate-600 text-[10px]">Sem anexo</span>';
+
                 return `
                     <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition text-xs">
                         <td class="p-4 font-bold text-white">${t.tipo_tributo}</td>
@@ -427,9 +425,10 @@
                         <td class="p-4 text-slate-300">${t.vencimento}</td>
                         <td class="p-4 text-right font-bold text-amber-400">R$ ${(t.valor_total || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                         <td class="p-4 text-center"><span class="${badgeClass} px-2.5 py-1 rounded-lg text-[10px] font-semibold">${t.status}</span></td>
-                        <td class="p-4 text-center space-x-1.5 whitespace-nowrap">
-                            <button onclick="abrirModalEditar('${t.id}')" class="bg-sky-500/20 hover:bg-sky-500 text-sky-300 hover:text-white px-2.5 py-1 rounded-lg font-bold text-[10px] transition cursor-pointer" title="Editar">✏️ Editar</button>
-                            <button onclick="excluirTributo('${t.id}', '${t.codigo}')" class="bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white px-2.5 py-1 rounded-lg font-bold text-[10px] transition cursor-pointer" title="Apagar">🗑️ Apagar</button>
+                        <td class="p-4 text-center space-x-1 whitespace-nowrap">
+                            ${anexoHtml}
+                            <button onclick="abrirModalEditar('${t.id}')" class="bg-sky-500 hover:bg-sky-400 text-slate-950 px-2.5 py-1 rounded-lg font-extrabold text-[10px] transition shadow cursor-pointer" title="Editar">✏️ Editar</button>
+                            <button onclick="excluirTributo('${t.id}', '${t.codigo}')" class="bg-rose-500 hover:bg-rose-400 text-slate-950 px-2.5 py-1 rounded-lg font-extrabold text-[10px] transition shadow cursor-pointer" title="Apagar">🗑️ Apagar</button>
                         </td>
                     </tr>
                 `;
@@ -437,7 +436,10 @@
         }
 
         async function abrirModalTributo() { document.getElementById('modal-tributo').classList.remove('hidden'); }
-        function fecharModalTributo() { document.getElementById('modal-tributo').classList.add('hidden'); }
+        function fecharModalTributo() { 
+            document.getElementById('modal-tributo').classList.add('hidden'); 
+            document.getElementById('cad-anexo').value = '';
+        }
 
         async function abrirModalEditar(id) {
             const { data, error } = await supabaseClient.from('financeiro_tributos').select('*').eq('id', id).single();
@@ -451,6 +453,13 @@
             document.getElementById('edit-valor').value = data.valor || 0;
             document.getElementById('edit-obs').value = data.observacoes || '';
 
+            const linkContainer = document.getElementById('link-anexo-atual');
+            if (data.anexo_url) {
+                linkContainer.innerHTML = `<a href="${data.anexo_url}" target="_blank" class="text-amber-400 underline text-[11px] font-bold">Ver Documento Atual Anexado</a>`;
+            } else {
+                linkContainer.innerHTML = `<span class="text-slate-500 text-[11px]">Nenhum documento anexado atualmente</span>`;
+            }
+
             if (data.vencimento) {
                 const partes = data.vencimento.split('/');
                 if (partes.length === 3) {
@@ -462,7 +471,10 @@
             document.getElementById('modal-editar-tributo').classList.remove('hidden');
         }
 
-        function fecharModalEditar() { document.getElementById('modal-editar-tributo').classList.add('hidden'); }
+        function fecharModalEditar() { 
+            document.getElementById('modal-editar-tributo').classList.add('hidden');
+            document.getElementById('edit-anexo').value = '';
+        }
 
         function calcularValorTotal() {
             const val = Number(document.getElementById('cad-valor').value || 0);
@@ -482,6 +494,19 @@
             return val;
         }
 
+        async function fazerUploadAnexo(file) {
+            try {
+                const nomeFicheiro = `tributo_${Date.now()}_${file.name}`;
+                const { error } = await supabaseClient.storage.from('comprovantes').upload(nomeFicheiro, file);
+                if (error) { alert('Erro no upload do anexo: ' + error.message); return ''; }
+                const { data: urlData } = supabaseClient.storage.from('comprovantes').getPublicUrl(nomeFicheiro);
+                return urlData.publicUrl;
+            } catch (err) {
+                console.error(err);
+                return '';
+            }
+        }
+
         async function salvarTributoSupabase(e) {
             e.preventDefault();
             const tipo = document.getElementById('cad-tipo').value;
@@ -492,6 +517,12 @@
             const valor = Number(document.getElementById('cad-valor').value);
             const valorTotal = calcularValorTotal();
             const obs = document.getElementById('cad-obs').value;
+
+            let anexoUrl = '';
+            const fileInput = document.getElementById('cad-anexo').files[0];
+            if (fileInput) {
+                anexoUrl = await fazerUploadAnexo(fileInput);
+            }
 
             const codigoGerado = String(Math.floor(1000 + Math.random() * 9000));
 
@@ -506,7 +537,8 @@
                 valor,
                 valor_total: valorTotal,
                 status: 'Não consolidado',
-                observacoes: obs
+                observacoes: obs,
+                anexo_url: anexoUrl
             };
 
             const { error: errTributo } = await supabaseClient.from('financeiro_tributos').insert([novoTributo]);
@@ -520,12 +552,13 @@
                 vencimento,
                 status: 'Pendente',
                 obra: centro,
-                etiqueta: `Tributo - ${tipo}`
+                etiqueta: `Tributo - ${tipo}`,
+                cupom_fiscal: anexoUrl
             };
 
             await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
 
-            alert('Tributo cadastrado e sincronizado com o Contas a Pagar!');
+            alert('Tributo cadastrado, anexo salvo e sincronizado com o Contas a Pagar!');
             fecharModalTributo();
             carregarTributos();
         }
@@ -542,6 +575,15 @@
             const valor = Number(document.getElementById('edit-valor').value);
             const obs = document.getElementById('edit-obs').value;
 
+            // Busca o tributo atual para preservar o anexo antigo se nenhum novo for enviado
+            const { data: tributoAtual } = await supabaseClient.from('financeiro_tributos').select('anexo_url').eq('id', id).single();
+            let anexoUrl = tributoAtual ? tributoAtual.anexo_url : '';
+
+            const fileInput = document.getElementById('edit-anexo').files[0];
+            if (fileInput) {
+                anexoUrl = await fazerUploadAnexo(fileInput);
+            }
+
             const { error: err1 } = await supabaseClient.from('financeiro_tributos').update({
                 tipo_tributo: tipo,
                 centro_custo: centro,
@@ -550,7 +592,8 @@
                 periodo_apuracao: apuracao,
                 valor,
                 valor_total: valor,
-                observacoes: obs
+                observacoes: obs,
+                anexo_url: anexoUrl
             }).eq('id', id);
 
             if (err1) { alert('Erro ao atualizar tributo: ' + err1.message); return; }
@@ -561,7 +604,8 @@
                 vencimento,
                 obra: centro,
                 nfe: apuracao,
-                etiqueta: `Tributo - ${tipo}`
+                etiqueta: `Tributo - ${tipo}`,
+                cupom_fiscal: anexoUrl
             }).eq('codigo', String(codigo));
 
             alert('Tributo atualizado e sincronizado com sucesso!');
