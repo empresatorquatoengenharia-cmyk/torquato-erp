@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -34,10 +35,7 @@
                 <div>
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📊</span>
-                            <span>Dashboard Executivo</span>
-                        </a>
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📊</span><span>Dashboard Executivo</span></a>
                     </nav>
                 </div>
 
@@ -82,7 +80,6 @@
         <!-- Conteúdo Central -->
         <main class="flex-1 p-8 max-w-7xl space-y-6">
             
-            <!-- Barra de Ações & Filtros Superiores -->
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
                 <div>
                     <h2 class="text-xl font-bold text-white">Gestão de Tributos</h2>
@@ -94,7 +91,7 @@
                 </div>
             </div>
 
-            <!-- Filtros Superiores Corrigidos -->
+            <!-- Filtros Superiores -->
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
                 <div class="flex items-center space-x-3">
                     <label class="text-slate-400 font-bold">Filtrar por Vencimento (Mês/Ano):</label>
@@ -228,7 +225,7 @@
 
         async function carregarTributos() {
             const busca = document.getElementById('filtro-busca').value.toLowerCase();
-            const mesAnoFiltro = document.getElementById('filtro-mes-ano').value; // Formato yyyy-mm
+            const mesAnoFiltro = document.getElementById('filtro-mes-ano').value;
             const tbody = document.getElementById('tabela-tributos-corpo');
 
             const { data, error } = await supabaseClient.from('financeiro_tributos').select('*').order('id', { ascending: false });
@@ -245,11 +242,10 @@
             }
 
             if (mesAnoFiltro) {
-                // mesAnoFiltro vem como "YYYY-MM". Convertemos para "MM/YYYY" ou comparamos com a data de vencimento (DD/MM/YYYY)
                 const [ano, mes] = mesAnoFiltro.split('-');
                 lista = lista.filter(t => {
                     if (!t.vencimento) return false;
-                    const partes = t.vencimento.split('/'); // DD/MM/YYYY
+                    const partes = t.vencimento.split('/');
                     if (partes.length === 3) {
                         return partes[1] === mes && partes[2] === ano;
                     }
@@ -275,7 +271,7 @@
                     </td>
                     <td class="p-4 text-center space-x-1 whitespace-nowrap">
                         <button onclick="abrirEditarTributo('${t.id}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-2.5 py-1 rounded font-bold text-[10px] cursor-pointer" title="Editar Tributo">✏️</button>
-                        <button onclick="excluirTributo('${t.id}')" class="bg-red-950/40 hover:bg-red-900/60 text-red-400 px-2.5 py-1 rounded font-bold text-[10px] cursor-pointer" title="Excluir Tributo">🗑️</button>
+                        <button onclick="excluirTributo('${t.id}', '${t.codigo}')" class="bg-red-950/40 hover:bg-red-900/60 text-red-400 px-2.5 py-1 rounded font-bold text-[10px] cursor-pointer" title="Excluir Tributo">🗑️</button>
                     </td>
                 </tr>
             `).join('');
@@ -401,16 +397,25 @@
             carregarTributos();
         }
 
-        async function excluirTributo(id) {
-            if (!confirm('Tem a certeza que deseja excluir este tributo?')) return;
+        async function excluirTributo(id, codigo) {
+            if (!confirm('Tem a certeza que deseja excluir este tributo? O compromisso correspondente também será removido do Contas a Pagar.')) return;
+
+            // 1. Apaga o tributo na tabela de tributos
             const { error } = await supabaseClient.from('financeiro_tributos').delete().eq('id', id);
             if (error) {
                 alert('Erro ao excluir: ' + error.message);
-            } else {
-                alert('Tributo excluído com sucesso!');
-                carregarTributos();
+                return;
             }
+
+            // 2. Apaga automaticamente o registo correspondente no Contas a Pagar utilizando o código
+            if (codigo) {
+                await supabaseClient.from('financeiro_contas_pagar').delete().eq('codigo', codigo);
+            }
+
+            alert('Tributo e respetivo registo no Contas a Pagar excluídos com sucesso!');
+            carregarTributos();
         }
     </script>
 </body>
 </html>
+```
