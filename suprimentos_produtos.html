@@ -249,14 +249,7 @@
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Unidade de Medida</label>
                     <select id="prod-unidade" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
-                        <option value="UN">UN - Unidade</option>
-                        <option value="SC">SC - Saco</option>
-                        <option value="KG">KG - Quilograma</option>
-                        <option value="M">M - Metro</option>
-                        <option value="M2">M² - Metro Quadrado</option>
-                        <option value="M3">M³ - Metro Cúbico</option>
-                        <option value="L">L - Litro</option>
-                        <option value="BARRA">Barra</option>
+                        <option value="UN">Carregando unidades...</option>
                     </select>
                 </div>
                 <div class="md:col-span-2">
@@ -279,6 +272,7 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             verificarSessao();
+            await carregarUnidadesMedida();
             await carregarProdutos();
         });
 
@@ -295,6 +289,29 @@
         function sair() {
             localStorage.removeItem('torquato_user');
             window.location.href = 'login.html';
+        }
+
+        async function carregarUnidadesMedida() {
+            const selectUnidade = document.getElementById('prod-unidade');
+            // Tenta buscar da tabela de cadastros gerais de unidades no Supabase
+            const { data, error } = await supabaseClient.from('suprimentos_unidades').select('*');
+            
+            if (error || !data || data.length === 0) {
+                // Fallback padrão caso a tabela ainda não tenha registos criados
+                selectUnidade.innerHTML = `
+                    <option value="UN">UN - Unidade</option>
+                    <option value="SC">SC - Saco</option>
+                    <option value="KG">KG - Quilograma</option>
+                    <option value="M">M - Metro</option>
+                    <option value="M2">M² - Metro Quadrado</option>
+                    <option value="M3">M³ - Metro Cúbico</option>
+                    <option value="L">L - Litro</option>
+                    <option value="BARRA">Barra</option>
+                `;
+                return;
+            }
+
+            selectUnidade.innerHTML = data.map(u => `<option value="${u.sigla || u.nome}">${u.sigla || u.nome} - ${u.descricao || u.nome}</option>`).join('');
         }
 
         async function carregarProdutos() {
@@ -351,7 +368,8 @@
             document.getElementById('popover-filtros').classList.toggle('hidden');
         }
 
-        function abrirModalProduto() {
+        async function abrirModalProduto() {
+            await carregarUnidadesMedida();
             document.getElementById('prod-id').value = '';
             document.getElementById('prod-codigo').value = Math.floor(1000 + Math.random() * 9000);
             document.getElementById('prod-nome').value = '';
@@ -361,7 +379,8 @@
             document.getElementById('modal-produto').classList.remove('hidden');
         }
 
-        function editarProduto(id, codigo, nome, apelido, tipo, unidade, especificacoes) {
+        async function editarProduto(id, codigo, nome, apelido, tipo, unidade, especificacoes) {
+            await carregarUnidadesMedida();
             document.getElementById('prod-id').value = id;
             document.getElementById('prod-codigo').value = codigo;
             document.getElementById('prod-nome').value = nome;
