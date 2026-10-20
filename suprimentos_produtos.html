@@ -249,7 +249,7 @@
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Unidade de Medida</label>
                     <select id="prod-unidade" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
-                        <option value="UN">Carregando unidades...</option>
+                        <option value="un">A carregar unidades...</option>
                     </select>
                 </div>
                 <div class="md:col-span-2">
@@ -293,25 +293,15 @@
 
         async function carregarUnidadesMedida() {
             const selectUnidade = document.getElementById('prod-unidade');
-            // Tenta buscar da tabela de cadastros gerais de unidades no Supabase
-            const { data, error } = await supabaseClient.from('suprimentos_unidades').select('*');
+            // Puxa diretamente da tabela correta "unidades_medida" do Supabase
+            const { data, error } = await supabaseClient.from('unidades_medida').select('*');
             
             if (error || !data || data.length === 0) {
-                // Fallback padrão caso a tabela ainda não tenha registos criados
-                selectUnidade.innerHTML = `
-                    <option value="UN">UN - Unidade</option>
-                    <option value="SC">SC - Saco</option>
-                    <option value="KG">KG - Quilograma</option>
-                    <option value="M">M - Metro</option>
-                    <option value="M2">M² - Metro Quadrado</option>
-                    <option value="M3">M³ - Metro Cúbico</option>
-                    <option value="L">L - Litro</option>
-                    <option value="BARRA">Barra</option>
-                `;
+                selectUnidade.innerHTML = `<option value="un">un - Unidade</option><option value="kg">kg - Quilograma</option>`;
                 return;
             }
 
-            selectUnidade.innerHTML = data.map(u => `<option value="${u.sigla || u.nome}">${u.sigla || u.nome} - ${u.descricao || u.nome}</option>`).join('');
+            selectUnidade.innerHTML = data.map(u => `<option value="${u.sigla}">${u.sigla} - ${u.descricao || u.sigla}</option>`).join('');
         }
 
         async function carregarProdutos() {
@@ -350,14 +340,14 @@
                     <td class="p-4 font-medium text-white">${p.nome}</td>
                     <td class="p-4 text-slate-400">${p.apelido || '-'}</td>
                     <td class="p-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${p.tipo || 'Material'}</span></td>
-                    <td class="p-4 text-slate-300">${p.unidade || 'UN'}</td>
+                    <td class="p-4 text-slate-300">${p.unidade || 'un'}</td>
                     <td class="p-4">
                         <button onclick="alternarStatusProduto(${p.id}, ${p.ativo})" class="px-2 py-0.5 rounded text-[10px] font-bold ${p.ativo !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}">
                             ${p.ativo !== false ? '● Ativo' : '○ Inativo'}
                         </button>
                     </td>
                     <td class="p-4 text-right space-x-2">
-                        <button onclick="editarProduto(${p.id}, '${p.codigo || ''}', '${p.nome}', '${p.apelido || ''}', '${p.tipo || 'Material'}', '${p.unidade || 'UN'}', '${p.especificacoes || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg text-[10px] font-bold">Editar</button>
+                        <button onclick="editarProduto(${p.id}, '${p.codigo || ''}', '${p.nome}', '${p.apelido || ''}', '${p.tipo || 'Material'}', '${p.unidade || 'un'}', '${p.especificacoes || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg text-[10px] font-bold">Editar</button>
                         <button onclick="excluirProduto(${p.id})" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px]">Excluir</button>
                     </td>
                 </tr>
