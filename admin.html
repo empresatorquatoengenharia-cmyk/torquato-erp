@@ -14,7 +14,7 @@
     <!-- Header Principal -->
     <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div id="header-logo-container" class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400 overflow-hidden">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
                 <p class="text-[10px] text-slate-400">Painel Administrativo & Governança</p>
@@ -138,26 +138,27 @@
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
-                Torquato ERP v1.0 • Minas Gerais
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center flex flex-col items-center space-y-1">
+                <div id="footer-logo-preview" class="w-6 h-6 flex items-center justify-center"></div>
+                <span>Torquato ERP v1.0 • Minas Gerais</span>
             </div>
         </aside>
 
         <!-- Conteúdo Central -->
         <main class="flex-1 p-8 max-w-7xl">
             
-            <!-- SEÇÃO INTERNA DE ABAS (Matriz vs Utilizadores) -->
+            <!-- SEÇÃO INTERNA DE ABAS -->
             <div class="mb-6 flex space-x-2 bg-slate-900 border border-slate-800 p-2 rounded-2xl w-fit">
                 <button onclick="mudarSecao('matriz')" id="menu-matriz" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Dados da Matriz</button>
                 <button onclick="mudarSecao('utilizadores')" id="menu-utilizadores" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Gestão de Utilizadores</button>
             </div>
 
-            <!-- SEÇÃO 1: EMPRESA MATRIZ -->
+            <!-- SEÇÃO 1: EMPRESA MATRIZ & LOGOMARCA -->
             <section id="secao-matriz" class="space-y-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-xl font-bold text-white">Cadastro da Empresa Matriz</h2>
-                        <p class="text-xs text-slate-400">Gerencie as informações institucionais e fiscais da empresa.</p>
+                        <h2 class="text-xl font-bold text-white">Cadastro da Empresa Matriz & Logomarca</h2>
+                        <p class="text-xs text-slate-400">Gerencie as informações institucionais, fiscais e a logomarca do sistema.</p>
                     </div>
                     <button type="button" id="btn-editar" onclick="habilitarEdicao()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer">
                         <span>✏️</span>
@@ -166,6 +167,19 @@
                 </div>
 
                 <form id="form-matriz" onsubmit="salvarMatriz(event)" class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+                    
+                    <!-- UPLOAD DE LOGOMARCA -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-amber-400 font-bold text-xs">🖼️ Logomarca / Símbolo Institucional</label>
+                            <p class="text-[11px] text-slate-400">Carregue uma imagem (PNG ou JPG) para atualizar o ícone no topo e rodapé do sistema.</p>
+                            <input type="file" id="cad-logo-file" accept="image/*" disabled class="w-full text-slate-400 text-[11px] disabled:opacity-50">
+                        </div>
+                        <div id="preview-logo-atual" class="w-16 h-16 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+                            <span class="text-[10px] text-slate-500">Sem logo</span>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                         <div>
                             <label class="block text-slate-400 font-bold mb-1">Razão Social</label>
@@ -204,7 +218,7 @@
                 </form>
             </section>
 
-            <!-- SEÇÃO 2: GESTÃO DE UTILIZADORES & PERMISSÕES -->
+            <!-- SEÇÃO 2: GESTÃO DE UTILIZADORES -->
             <section id="secao-utilizadores" class="hidden space-y-6">
                 <div class="flex items-center justify-between">
                     <div>
@@ -241,62 +255,6 @@
         </main>
     </div>
 
-    <!-- MODAL: ADICIONAR / EDITAR UTILIZADOR & PERMISSÕES -->
-    <div id="modal-utilizador" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <div>
-                    <h3 id="modal-utilizador-titulo" class="text-base font-bold text-white">Adicionar Novo Utilizador</h3>
-                    <p class="text-xs text-slate-400">Defina os dados de acesso e selecione as permissões por página.</p>
-                </div>
-                <button type="button" onclick="fecharModalUtilizador()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
-            </div>
-
-            <input type="hidden" id="edit-utilizador-id">
-
-            <form onsubmit="salvarUtilizadorSupabase(event)" class="space-y-4 text-xs">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">Nome Completo *</label>
-                        <input type="text" id="novo-nome" required placeholder="Carlos Engenheiro" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">E-mail de Acesso *</label>
-                        <input type="email" id="novo-email" required placeholder="carlos@torquato.com" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">Palavra-passe *</label>
-                        <input type="password" id="novo-senha" placeholder="••••••" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
-                    </div>
-                </div>
-
-                <div class="border-t border-slate-800 pt-4 space-y-4">
-                    <h4 class="font-bold text-amber-400 text-sm">Matriz de Permissões por Página (Leitura vs Edição)</h4>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
-                                    <th class="p-3">Módulo / Página do Sistema</th>
-                                    <th class="p-3 text-center w-32">👁️ Leitura</th>
-                                    <th class="p-3 text-center w-32">✏️ Edição</th>
-                                </tr>
-                            </thead>
-                            <tbody id="matriz-permissoes-corpo">
-                                <!-- Preenchido dinamicamente com todas as páginas do sistema -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
-                    <button type="button" onclick="fecharModalUtilizador()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar Utilizador na Nuvem</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
         const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
@@ -305,34 +263,9 @@
         let dadosMatrizOriginal = {};
         let listaUtilizadoresCache = [];
 
-        // Lista completa de todas as páginas do sistema
-        const paginasSistema = [
-            { id: 'dashboard', nome: 'Dashboard Executivo' },
-            { id: 'vendas_empreendimentos', nome: 'Comercial • Empreendimentos & Obras' },
-            { id: 'vendas_clientes', nome: 'Comercial • Clientes & Compradores' },
-            { id: 'vendas_propostas', nome: 'Comercial • Propostas Comerciais' },
-            { id: 'vendas_imoveis', nome: 'Comercial • Vendas & Contratos' },
-            { id: 'suprimentos_produtos', nome: 'Suprimentos • Produtos & Insumos' },
-            { id: 'suprimentos_locais', nome: 'Suprimentos • Locais de Estoque' },
-            { id: 'suprimentos_entradas', nome: 'Suprimentos • Entradas & Transferências' },
-            { id: 'suprimentos_solicitacoes', nome: 'Suprimentos • Solicitações & Compras' },
-            { id: 'suprimentos_balancos', nome: 'Suprimentos • Balanços de Estoque' },
-            { id: 'suprimentos_cadastros', nome: 'Suprimentos • Cadastros Gerais' },
-            { id: 'financeiro_fluxo', nome: 'Financeiro • Fluxo de Caixa' },
-            { id: 'financeiro_contas_pagar', nome: 'Financeiro • Contas a Pagar' },
-            { id: 'financeiro_contas_receber', nome: 'Financeiro • Contas a Receber' },
-            { id: 'financeiro_notas', nome: 'Financeiro • Notas Fiscais (SEFAZ)' },
-            { id: 'financeiro_tributos', nome: 'Financeiro • Tributos & Impostos' },
-            { id: 'financeiro_contas_bancarias', nome: 'Financeiro • Contas Bancárias' },
-            { id: 'financeiro_cadastros', nome: 'Financeiro • Indexadores & Regras' },
-            { id: 'admin', nome: 'Governança • Matriz & Utilizadores' }
-        ];
-
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
             carregarDadosMatriz();
-            carregarUtilizadores();
-            montarMatrizPermissoesModal();
         });
 
         function verificarSessao() {
@@ -363,6 +296,7 @@
                 secUtil.classList.remove('hidden');
                 btnUtil.className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
                 btnMatriz.className = "px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+                carregarUtilizadores();
             }
         }
 
@@ -378,6 +312,12 @@
                     document.getElementById('cep').value = data.cep || '';
                     document.getElementById('estado').value = data.estado || '';
                     document.getElementById('pais').value = data.pais || '';
+
+                    if (data.logo_url) {
+                        document.getElementById('preview-logo-atual').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-contain">`;
+                        document.getElementById('header-logo-container').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-cover">`;
+                        document.getElementById('footer-logo-preview').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-contain">`;
+                    }
                 }
             } catch (err) { console.error(err); }
         }
@@ -402,8 +342,28 @@
             document.getElementById('pais').value = dadosMatrizOriginal.pais || '';
         }
 
+        async function fazerUploadLogo(file) {
+            try {
+                const nomeFicheiro = `logo_${Date.now()}_${file.name}`;
+                const { error } = await supabaseClient.storage.from('comprovantes').upload(nomeFicheiro, file);
+                if (error) { alert('Erro no upload da logomarca: ' + error.message); return ''; }
+                const { data: urlData } = supabaseClient.storage.from('comprovantes').getPublicUrl(nomeFicheiro);
+                return urlData.publicUrl;
+            } catch (err) {
+                console.error(err);
+                return '';
+            }
+        }
+
         async function salvarMatriz(e) {
             e.preventDefault();
+            let logoUrl = dadosMatrizOriginal.logo_url || '';
+
+            const fileInput = document.getElementById('cad-logo-file').files[0];
+            if (fileInput) {
+                logoUrl = await fazerUploadLogo(fileInput);
+            }
+
             const payload = {
                 id: 1,
                 razao_social: document.getElementById('razao_social').value.trim(),
@@ -413,33 +373,19 @@
                 cep: document.getElementById('cep').value.trim(),
                 estado: document.getElementById('estado').value.trim(),
                 pais: document.getElementById('pais').value.trim(),
+                logo_url: logoUrl,
                 atualizado_em: new Date().toISOString()
             };
+
             await supabaseClient.from('empresa_matriz').upsert([payload]);
             dadosMatrizOriginal = payload;
+            
             document.querySelectorAll('#form-matriz input').forEach(input => input.disabled = true);
             document.getElementById('container-botoes-salvar').classList.add('hidden');
             document.getElementById('btn-editar').classList.remove('hidden');
-            alert('Dados da Matriz salvos com sucesso!');
-        }
 
-        function montarMatrizPermissoesModal(paginasArr = []) {
-            const tbody = document.getElementById('matriz-permissoes-corpo');
-            tbody.innerHTML = paginasSistema.map(p => {
-                const temAcesso = paginasArr.includes(p.id) || paginasArr.length === 0;
-
-                return `
-                    <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                        <td class="p-3 font-medium text-white">${p.nome}</td>
-                        <td class="p-3 text-center">
-                            <input type="checkbox" value="${p.id}" class="chk-leitura rounded bg-slate-950 border-slate-800 text-amber-500 w-4 h-4 cursor-pointer" ${temAcesso ? 'checked' : ''}>
-                        </td>
-                        <td class="p-3 text-center">
-                            <input type="checkbox" value="${p.id}" class="chk-edicao rounded bg-slate-950 border-slate-800 text-amber-500 w-4 h-4 cursor-pointer" ${temAcesso ? 'checked' : ''}>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+            alert('Dados da Matriz e Logomarca atualizados com sucesso!');
+            carregarDadosMatriz();
         }
 
         async function carregarUtilizadores() {
@@ -459,81 +405,12 @@
                     <td class="p-4 font-bold text-white">${u.nome}</td>
                     <td class="p-4 text-slate-300">${u.email}</td>
                     <td class="p-4"><span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded uppercase text-[10px] font-bold">${u.perfil || 'operacional'}</span></td>
-                    <td class="p-4 text-slate-300">${(u.paginas_permitidas || paginasSistema.map(p => p.id)).length} página(s) autorizada(s)</td>
+                    <td class="p-4 text-slate-300">${(u.paginas_permitidas || []).length} página(s) autorizada(s)</td>
                     <td class="p-4 text-right space-x-2">
-                        <button type="button" onclick="abrirEditarUtilizador('${u.id}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✏️ Editar</button>
                         <button type="button" onclick="excluirUtilizador('${u.id}')" class="text-rose-400 hover:text-rose-300 bg-rose-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
                     </td>
                 </tr>
             `).join('');
-        }
-
-        function abrirModalUtilizador() {
-            document.getElementById('modal-utilizador-titulo').innerText = "Adicionar Novo Utilizador";
-            document.getElementById('edit-utilizador-id').value = "";
-            document.getElementById('novo-nome').value = "";
-            document.getElementById('novo-email').value = "";
-            document.getElementById('novo-senha').value = "";
-            document.getElementById('novo-senha').required = true;
-            montarMatrizPermissoesModal();
-            document.getElementById('modal-utilizador').classList.remove('hidden');
-        }
-
-        async function abrirEditarUtilizador(id) {
-            const u = listaUtilizadoresCache.find(item => item.id === id);
-            if (!u) return;
-
-            document.getElementById('modal-utilizador-titulo').innerText = `Editar Utilizador: ${u.nome}`;
-            document.getElementById('edit-utilizador-id').value = u.id;
-            document.getElementById('novo-nome').value = u.nome;
-            document.getElementById('novo-email').value = u.email;
-            document.getElementById('novo-senha').value = "";
-            document.getElementById('novo-senha').required = false;
-
-            montarMatrizPermissoesModal(u.paginas_permitidas || []);
-            document.getElementById('modal-utilizador').classList.remove('hidden');
-        }
-
-        function fecharModalUtilizador() {
-            document.getElementById('modal-utilizador').classList.add('hidden');
-        }
-
-        async function salvarUtilizadorSupabase(e) {
-            e.preventDefault();
-            const id = document.getElementById('edit-utilizador-id').value;
-            const nome = document.getElementById('novo-nome').value.trim();
-            const email = document.getElementById('novo-email').value.trim().toLowerCase();
-            const senha = document.getElementById('novo-senha').value.trim();
-
-            const paginasPermitidas = Array.from(document.querySelectorAll('.chk-leitura:checked, .chk-edicao:checked')).map(c => c.value);
-            const paginasUnicas = [...new Set(paginasPermitidas)];
-
-            let payload = {
-                nome,
-                email,
-                perfil: 'operacional',
-                paginas_permitidas: paginasUnicas
-            };
-
-            if (senha) {
-                payload.senha = senha;
-            }
-
-            let res;
-            if (id) {
-                res = await supabaseClient.from('usuarios_erp').update(payload).eq('id', id);
-            } else {
-                if (!senha) { alert('A palavra-passe é obrigatória para novos utilizadores.'); return; }
-                res = await supabaseClient.from('usuarios_erp').insert([payload]);
-            }
-
-            if (res.error) {
-                alert('Erro ao guardar utilizador: ' + res.error.message);
-            } else {
-                alert('Utilizador guardado com sucesso na nuvem!');
-                fecharModalUtilizador();
-                carregarUtilizadores();
-            }
         }
 
         async function excluirUtilizador(id) {
