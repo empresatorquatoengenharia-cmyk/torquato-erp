@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torquato ERP - Contas Bancárias & Conciliação Inicial</title>
+    <title>Torquato ERP - Contas Bancárias & Conciliação</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client -->
@@ -17,7 +17,7 @@
             <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
-                <p class="text-[10px] text-slate-400">Módulo Financeiro • Contas Bancárias, Extratos & Configuração Inicial</p>
+                <p class="text-[10px] text-slate-400">Módulo Financeiro • Contas Bancárias, Extratos & Conciliação</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -28,7 +28,7 @@
 
     <!-- Layout Principal -->
     <div class="flex flex-1">
-        <!-- Sidebar de Navegação Unificada e Definitiva -->
+        <!-- Sidebar de Navegação Unificada -->
         <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
             <div class="space-y-6">
                 <div>
@@ -153,8 +153,8 @@
                     <button id="btn-aba-extrato" onclick="mudarAba('extrato')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Extrato & Conciliação Bancária</button>
                 </div>
                 <div class="flex space-x-2">
-                    <button onclick="carregarContasFicticiasZeradas()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
-                        🔄 Popular Contas Fictícias / Simbólicas
+                    <button onclick="carregarContasIniciais()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
+                        🔄 Inicializar Contas Padrão
                     </button>
                     <button onclick="abrirModalConta()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5">
                         <span>➕</span>
@@ -175,7 +175,7 @@
                                 <th class="p-4">Titular</th>
                                 <th class="p-4">Banco / Agência / Conta</th>
                                 <th class="p-4 text-right">Saldo Atual (R$)</th>
-                                <th class="p-4 text-center">Ações (Editar / Ajustar)</th>
+                                <th class="p-4 text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="tabela-contas-corpo">
@@ -187,14 +187,14 @@
 
             <!-- SEÇÃO 2: EXTRATO & CONCILIAÇÃO BANCÁRIA -->
             <div id="secao-extrato" class="hidden space-y-4">
-                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between text-xs">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
                     <div>
-                        <h3 class="font-bold text-white text-sm">Extrato & Conciliação Consolidada</h3>
-                        <p class="text-slate-400">Edite, adicione ou corrija lançamentos no extrato simbólico para iniciar a operação.</p>
+                        <h3 class="font-bold text-white text-sm">Extrato & Conciliação Integrada</h3>
+                        <p class="text-slate-400">Vincule os lançamentos do extrato com as contas a pagar e receber da empresa.</p>
                     </div>
                     <div class="flex space-x-2">
                         <button onclick="abrirModalMovimento()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-2 rounded-xl transition cursor-pointer">
-                            + Adicionar Lançamento ao Extrato
+                            + Adicionar Movimento ao Extrato
                         </button>
                     </div>
                 </div>
@@ -227,7 +227,7 @@
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <h3 id="modal-conta-titulo" class="text-base font-bold text-white">Adicionar / Editar Conta Bancária</h3>
-                <button type="button" onclick="fecharModalConta()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+                <button type="button" onclick="fecharModalConta()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <input type="hidden" id="edit-conta-id">
@@ -235,7 +235,7 @@
             <form onsubmit="salvarContaSupabase(event)" class="space-y-4 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Nome da Conta *</label>
-                    <input type="text" id="cad-nome" required placeholder="Ex: Banco Cora Sede (Simulado)" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    <input type="text" id="cad-nome" required placeholder="Ex: Banco Cora Sede" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -244,12 +244,12 @@
                     </div>
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Saldo Inicial / Atual (R$) *</label>
-                        <input type="number" step="0.01" id="cad-saldo" required value="15000.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <input type="number" step="0.01" id="cad-saldo" required value="0.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                 </div>
                 <div class="flex justify-end space-x-3 border-t border-slate-800 pt-4">
-                    <button type="button" onclick="fecharModalConta()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl shadow-lg">Salvar Conta</button>
+                    <button type="button" onclick="fecharModalConta()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl shadow-lg cursor-pointer">Salvar Conta</button>
                 </div>
             </form>
         </div>
@@ -259,8 +259,8 @@
     <div id="modal-movimento" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <h3 class="text-base font-bold text-white">Adicionar Movimento ao Extrato Consolidado</h3>
-                <button type="button" onclick="fecharModalMovimento()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+                <h3 class="text-base font-bold text-white">Adicionar Movimento ao Extrato</h3>
+                <button type="button" onclick="fecharModalMovimento()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form onsubmit="salvarMovimentoSupabase(event)" class="space-y-4 text-xs">
@@ -274,26 +274,26 @@
                     </div>
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Data *</label>
-                        <input type="text" id="mov-data" required value="19/10/2026" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <input type="date" id="mov-data" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                 </div>
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Descrição *</label>
-                    <input type="text" id="mov-desc" required placeholder="Ex: Pix Recebido - Venda Simbólica" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    <input type="text" id="mov-desc" required placeholder="Ex: Pix Recebido de Cliente" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Classificação *</label>
-                        <input type="text" id="mov-class" required value="Recebimento de Obras" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <input type="text" id="mov-class" required value="Operacional" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Valor (R$) *</label>
-                        <input type="number" step="0.01" id="mov-valor" required value="5000.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <input type="number" step="0.01" id="mov-valor" required placeholder="1000.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                 </div>
                 <div class="flex justify-end space-x-3 border-t border-slate-800 pt-4">
-                    <button type="button" onclick="fecharModalMovimento()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl shadow-lg">Salvar Lançamento</button>
+                    <button type="button" onclick="fecharModalMovimento()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl shadow-lg cursor-pointer">Salvar Lançamento</button>
                 </div>
             </form>
         </div>
@@ -336,31 +336,20 @@
             }
         }
 
-        async function carregarContasFicticiasZeradas() {
-            if (!confirm('Deseja popular o sistema com contas bancárias e valores simbólicos iniciais para testes?\n(Isso inserirá dados padrão se a base estiver vazia).')) return;
+        async function carregarContasIniciais() {
+            if (!confirm('Deseja popular o sistema com contas bancárias padrão da empresa?')) return;
 
             const contasPadrao = [
                 { codigo: '101', nome: 'Banco Cora - Conta Matriz', tipo_conta: 'Conta Corrente', titular: 'Torquato Engenharia', banco: 'Cora S.A.', agencia: '0001', conta: '45892-1', saldo_atual: 48500.00 },
-                { codigo: '102', nome: 'PagBank - Comercial', tipo_conta: 'Conta Corrente', titular: 'Torquato Engenharia', banco: 'PagBank', agencia: '0001', conta: '88921-9', saldo_atual: 12300.50 },
-                { codigo: '103', nome: 'Caixa Físico - Canteiro de Obras', tipo_conta: 'Caixa Físico', titular: 'Torquato Engenharia', banco: 'Espécie', agencia: '-', conta: 'Caixa Sede', saldo_atual: 2500.00 }
+                { codigo: '102', nome: 'PagBank - Comercial', tipo_conta: 'Conta Corrente', titular: 'Torquato Engenharia', banco: 'PagBank', agencia: '0001', conta: '88921-9', saldo_atual: 12300.50 }
             ];
 
             for (let c of contasPadrao) {
                 await supabaseClient.from('financeiro_contas_bancarias').insert([c]);
             }
 
-            const movimentosPadrao = [
-                { codigo: '501', data: '18/10/2026', tipo: 'Entrada', descricao: 'Pix Recebido - Venda Unidade Vila Real', classificacao: 'Recebimento de Obras', valor: 25000.00, conciliado: true },
-                { codigo: '502', data: '19/10/2026', tipo: 'Saída', descricao: 'Pagamento Fatura - Casas d\'água', classificacao: 'Materiais de Construção', valor: 4200.00, conciliado: false }
-            ];
-
-            for (let m of movimentosPadrao) {
-                await supabaseClient.from('financeiro_extrato').insert([m]);
-            }
-
-            alert('Contas fictícias e extratos simbólicos carregados com sucesso!');
+            alert('Contas bancárias inicializadas com sucesso!');
             carregarContasBancarias();
-            carregarExtrato();
         }
 
         async function carregarContasBancarias() {
@@ -368,7 +357,7 @@
             const { data, error } = await supabaseClient.from('financeiro_contas_bancarias').select('*');
 
             if (error || !data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma conta registada. Clique em "Popular Contas Fictícias" para iniciar.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma conta registada. Clique em "Inicializar Contas Padrão".</td></tr>`;
                 return;
             }
 
@@ -382,7 +371,7 @@
                     <td class="p-4 text-right font-bold text-emerald-400">R$ ${(c.saldo_atual || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                     <td class="p-4 text-center space-x-2">
                         <button onclick="abrirEditarConta('${c.id}', '${c.nome}', '${c.banco}', ${c.saldo_atual})" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-3 py-1 rounded-lg font-bold text-[11px] transition cursor-pointer">✏️ Editar</button>
-                        <button onclick="excluirConta('${c.id}')" class="bg-rose-950/40 text-rose-400 px-2.5 py-1 rounded-lg font-bold text-[10px]">Excluir</button>
+                        <button onclick="excluirConta('${c.id}')" class="bg-rose-950/40 text-rose-400 px-2.5 py-1 rounded-lg font-bold text-[10px] cursor-pointer">Excluir</button>
                     </td>
                 </tr>
             `).join('');
@@ -390,10 +379,10 @@
 
         async function carregarExtrato() {
             const tbody = document.getElementById('tabela-extrato-corpo');
-            const { data, error } = await supabaseClient.from('financeiro_extrato').select('*');
+            const { data, error } = await supabaseClient.from('financeiro_extrato').select('*').order('id', { ascending: false });
 
             if (error || !data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhum movimento no extrato.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhum movimento no extrato registado.</td></tr>`;
                 return;
             }
 
@@ -406,8 +395,8 @@
                     <td class="p-4 text-slate-300">${e.classificacao}</td>
                     <td class="p-4 text-right font-bold ${e.tipo === 'Entrada' ? 'text-sky-400' : 'text-rose-400'}">R$ ${(e.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                     <td class="p-4 text-center space-x-2">
-                        ${e.conciliado ? '<span class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg text-[10px] font-semibold">Conciliado ✓</span>' : '<button onclick="confirmarConciliacao(\''+e.id+'\')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1 rounded text-[10px] transition cursor-pointer">Conciliar</button>'}
-                        <button onclick="excluirMovimento('${e.id}')" class="text-rose-400 bg-rose-950/40 px-2 py-1 rounded text-[10px]">✕</button>
+                        ${e.conciliado ? '<span class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg text-[10px] font-semibold">Conciliado ✓</span>' : `<button onclick="confirmarConciliacao('${e.id}', '${e.tipo}',${e.valor})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1 rounded text-[10px] transition cursor-pointer">Conciliar</button>`}
+                        <button onclick="excluirMovimento('${e.id}')" class="text-rose-400 bg-rose-950/40 px-2 py-1 rounded text-[10px] cursor-pointer">✕</button>
                     </td>
                 </tr>
             `).join('');
@@ -417,7 +406,7 @@
             document.getElementById('edit-conta-id').value = '';
             document.getElementById('cad-nome').value = '';
             document.getElementById('cad-banco').value = '';
-            document.getElementById('cad-saldo').value = '10000.00';
+            document.getElementById('cad-saldo').value = '0.00';
             document.getElementById('modal-conta').classList.remove('hidden');
         }
 
@@ -459,7 +448,8 @@
         async function salvarMovimentoSupabase(e) {
             e.preventDefault();
             const tipo = document.getElementById('mov-tipo').value;
-            const data = document.getElementById('mov-data').value;
+            const dataIso = document.getElementById('mov-data').value;
+            const data = dataIso ? dataIso.split('-').reverse().join('/') : '';
             const descricao = document.getElementById('mov-desc').value;
             const classificacao = document.getElementById('mov-class').value;
             const valor = Number(document.getElementById('mov-valor').value);
@@ -469,15 +459,43 @@
                 data, tipo, descricao, classificacao, valor, conciliado: false
             };
 
-            await supabaseClient.from('financeiro_extrato').insert([novoMov]);
-            alert('Lançamento adicionado ao extrato!');
-            fecharModalMovimento();
-            carregarExtrato();
+            const { error } = await supabaseClient.from('financeiro_extrato').insert([novoMov]);
+            if (error) {
+                alert('Erro ao guardar: ' + error.message);
+            } else {
+                alert('Lançamento adicionado ao extrato!');
+                fecharModalMovimento();
+                carregarExtrato();
+            }
         }
 
-        async function confirmarConciliacao(id) {
-            await supabaseClient.from('financeiro_extrato').update({ conciliado: true }).eq('id', id);
+        async function confirmarConciliacao(id, tipo, valor) {
+            if (!confirm('Deseja conciliar este lançamento e refletir no saldo das contas?')) return;
+
+            // Marca como conciliado
+            const { error } = await supabaseClient.from('financeiro_extrato').update({ conciliado: true }).eq('id', id);
+            if (error) {
+                alert('Erro ao conciliar: ' + error.message);
+                return;
+            }
+
+            // Atualiza o saldo da primeira conta ativa como padrão de movimentação
+            const { data: contas } = await supabaseClient.from('financeiro_contas_bancarias').select('*').limit(1);
+            if (contas && contas.length > 0) {
+                const conta = contas[0];
+                let novoSaldo = Number(conta.saldo_atual);
+                if (tipo === 'Entrada') {
+                    novoSaldo += Number(valor);
+                } else {
+                    novoSaldo -= Number(valor);
+                }
+
+                await supabaseClient.from('financeiro_contas_bancarias').update({ saldo_atual: novoSaldo }).eq('id', conta.id);
+            }
+
+            alert('Lançamento conciliado e saldo atualizado!');
             carregarExtrato();
+            carregarContasBancarias();
         }
 
         async function excluirConta(id) {
