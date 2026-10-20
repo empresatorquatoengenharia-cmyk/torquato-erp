@@ -303,16 +303,30 @@
             }
         }
 
+        // Função de Sanitização e Upload com tratamento de caracteres inválidos
         async function fazerUploadLogo(file) {
             try {
-                const nomeFicheiro = `logo_${Date.now()}_${file.name}`;
+                // Remove acentos e caracteres especiais para evitar "Invalid key" no Supabase
+                const extensao = file.name.substring(file.name.lastIndexOf('.'));
+                const nomeLimpo = file.name
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^a-zA-Z0-9_-]/g, "_");
+
+                const nomeFicheiro = `logo_${Date.now()}_${nomeLimpo}${extensao}`;
                 const { error } = await supabaseClient.storage.from('comprovantes').upload(nomeFicheiro, file);
-                if (error) { alert('Erro no upload da logomarca: ' + error.message); return ''; }
+                
+                if (error) { 
+                    alert('Erro no upload da logomarca: ' + error.message); 
+                    return null; 
+                }
+
                 const { data: urlData } = supabaseClient.storage.from('comprovantes').getPublicUrl(nomeFicheiro);
                 return urlData.publicUrl;
             } catch (err) {
                 console.error(err);
-                return '';
+                alert('Ocorreu uma falha ao enviar a imagem.');
+                return null;
             }
         }
 
@@ -322,7 +336,9 @@
 
             const fileInput = document.getElementById('cad-logo-file').files[0];
             if (fileInput) {
-                logoUrl = await fazerUploadLogo(fileInput);
+                const uploadResult = await fazerUploadLogo(fileInput);
+                if (uploadResult === null) return; // Interrompe se o upload falhar
+                logoUrl = uploadResult;
             }
 
             const payload = {
