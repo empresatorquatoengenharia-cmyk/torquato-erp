@@ -164,13 +164,20 @@
                 </div>
             </div>
 
-            <!-- Filtros Superiores -->
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
-                <div class="flex items-center space-x-3">
-                    <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-xl font-bold">Vencimento: No mês 05/2026 ✕</span>
+            <!-- Filtros Superiores Corrigidos e Dinâmicos -->
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Filtrar por Status:</label>
+                    <select id="filtro-status" onchange="carregarTributos()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                        <option value="Todos">Todos os Status</option>
+                        <option value="Não consolidado">Não consolidado</option>
+                        <option value="Pago">Pago</option>
+                        <option value="Atrasado">Atrasado</option>
+                    </select>
                 </div>
                 <div>
-                    <input type="text" id="filtro-busca" placeholder="Buscar por tributo ou obra..." onkeyup="carregarTributos()" class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white w-64 focus:outline-none focus:border-amber-500">
+                    <label class="block text-slate-400 font-bold mb-1">Busca Rápida:</label>
+                    <input type="text" id="filtro-busca" placeholder="Buscar por tributo ou obra..." onkeyup="carregarTributos()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white focus:outline-none focus:border-amber-500">
                 </div>
             </div>
 
@@ -240,7 +247,7 @@
                     </div>
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Período de Apuração</label>
-                        <input type="text" id="cad-apuracao" placeholder="Ex: 04/2026" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <input type="text" id="cad-apuracao" placeholder="Ex: 10/2026" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Valor Principal (R$) *</label>
@@ -309,9 +316,15 @@
 
         async function carregarTributos() {
             const busca = document.getElementById('filtro-busca').value.toLowerCase();
+            const statusFiltro = document.getElementById('filtro-status').value;
             const tbody = document.getElementById('tabela-tributos-corpo');
 
-            const { data, error } = await supabaseClient.from('financeiro_tributos').select('*');
+            let query = supabaseClient.from('financeiro_tributos').select('*');
+            if (statusFiltro !== 'Todos') {
+                query = query.eq('status', statusFiltro);
+            }
+
+            const { data, error } = await query;
 
             if (error) {
                 tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erro ao carregar do Supabase: ${error.message}</td></tr>`;
@@ -320,11 +333,11 @@
 
             let lista = data || [];
             if (busca) {
-                lista = lista.filter(t => t.tipo_tributo.toLowerCase().includes(busca) || t.centro_custo.toLowerCase().includes(busca));
+                lista = lista.filter(t => (t.tipo_tributo || '').toLowerCase().includes(busca) || (t.centro_custo || '').toLowerCase().includes(busca));
             }
 
             if (lista.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500">Nenhum tributo cadastrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500">Nenhum tributo cadastrado ou correspondente aos filtros.</td></tr>`;
                 return;
             }
 
@@ -394,7 +407,7 @@
             const tipo = document.getElementById('cad-tipo').value;
             const centro = document.getElementById('cad-centro').value;
             const vencimentoIso = document.getElementById('cad-vencimento').value;
-            const vencimento = vencimentoIso.split('-').reverse().join('/');
+            const vencimento = vencimentoIso ? vencimentoIso.split('-').reverse().join('/') : '';
             const apuracao = document.getElementById('cad-apuracao').value.trim() || '-';
             const valor = Number(document.getElementById('cad-valor').value);
             const valorTotal = calcularValorTotal();
