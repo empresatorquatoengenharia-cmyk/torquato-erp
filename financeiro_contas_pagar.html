@@ -1,9 +1,10 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torquato ERP - Gestão de Tributos</title>
+    <title>Torquato ERP - Contas a Pagar</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client -->
@@ -17,7 +18,7 @@
             <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
-                <p class="text-[10px] text-slate-400">Módulo Financeiro • Gestão de Tributos & Obrigações Fiscais</p>
+                <p class="text-[10px] text-slate-400">Módulo Financeiro • Contas a Pagar & Tesouraria</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -64,10 +65,10 @@
                     <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
                     <nav class="space-y-1 text-xs">
                         <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>💰</span><span>Fluxo de Caixa</span></a>
-                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📉</span><span>Contas a Pagar</span></a>
+                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition"><span>📉</span><span>Contas a Pagar</span></a>
                         <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📈</span><span>Contas a Receber</span></a>
                         <a href="financeiro_notas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📄</span><span>Notas Fiscais</span></a>
-                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition"><span>🏷️</span><span>Tributos & Impostos</span></a>
+                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🏷️</span><span>Tributos & Impostos</span></a>
                         <a href="financeiro_contas_bancarias.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🏦</span><span>Contas Bancárias</span></a>
                         <a href="financeiro_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>⚙️</span><span>Indexadores & Regras</span></a>
                     </nav>
@@ -81,44 +82,74 @@
             
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
                 <div>
-                    <h2 class="text-xl font-bold text-white">Gestão de Tributos</h2>
-                    <p class="text-xs text-slate-400">Organize impostos recorrentes, competências e anexe guias em PDF.</p>
+                    <h2 class="text-xl font-bold text-white">Contas a Pagar</h2>
+                    <p class="text-xs text-slate-400">Gerencie parcelas, boletos, anexos fiscais e pagamentos com atualização automática de saldo.</p>
                 </div>
                 <div class="flex space-x-2">
-                    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer">Exportar Relatório</button>
-                    <button onclick="abrirModalTributo()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer">+ Adicionar Tributo</button>
+                    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer"><span>📄</span><span>Relatório PDF</span></button>
+                    <button onclick="abrirModalNovaConta()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5"><span>➕</span><span>Nova Conta a Pagar</span></button>
                 </div>
             </div>
 
-            <!-- Filtros Superiores -->
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
-                <div class="flex items-center space-x-3">
-                    <label class="text-slate-400 font-bold">Filtrar por Vencimento (Mês/Ano):</label>
-                    <input type="month" id="filtro-mes-ano" onchange="carregarTributos()" class="bg-slate-950 border border-slate-800 p-2 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                    <button onclick="limparFiltroMes()" class="text-slate-400 hover:text-white bg-slate-800 px-3 py-2 rounded-xl cursor-pointer">Limpar Filtro</button>
+            <!-- Filtros -->
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Centro de Custo (Obra):</label>
+                    <select id="filtro-obra" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                        <option value="Todos">Todas as Obras / Matriz</option>
+                        <option value="Matriz">Matriz / Sede</option>
+                        <option value="Residencial Palácio dos Andes">Residencial Palácio dos Andes</option>
+                        <option value="Casas Flores da Praia">Casas Flores da Praia</option>
+                        <option value="Casa da Andreia">Casa da Andreia</option>
+                    </select>
                 </div>
                 <div>
-                    <input type="text" id="filtro-busca" placeholder="Buscar por tributo ou obra..." onkeyup="carregarTributos()" class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white w-64 focus:outline-none focus:border-amber-500">
+                    <label class="block text-slate-400 font-bold mb-1">Status:</label>
+                    <select id="filtro-status" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                        <option value="Todos">Todos os Status</option>
+                        <option value="Pendente">Pendentes</option>
+                        <option value="Paga">Pagas</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Busca Rápida:</label>
+                    <input type="text" id="filtro-busca" placeholder="Pesquisar beneficiário..." onkeyup="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
                 </div>
             </div>
 
-            <!-- TABELA DE TRIBUTOS -->
+            <!-- QUADRO RESUMO -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                    <div class="space-y-1">
+                        <div class="flex justify-between"><span class="text-slate-400">Valor Total:</span> <strong id="resumo-total" class="text-amber-400 font-extrabold text-sm">R$ 0,00</strong></div>
+                        <div class="flex justify-between"><span class="text-slate-400">Número de registros:</span> <strong id="resumo-registros" class="text-white">0</strong></div>
+                    </div>
+                    <div class="space-y-1 border-t md:border-t-0 md:border-l border-slate-800 md:pl-6 pt-2 md:pt-0">
+                        <div class="flex justify-between"><span class="text-slate-400">Valor pago:</span> <strong id="resumo-pago" class="text-sky-400 font-bold">R$ 0,00</strong></div>
+                    </div>
+                    <div class="space-y-1 border-t md:border-t-0 md:border-l border-slate-800 md:pl-6 pt-2 md:pt-0">
+                        <div class="flex justify-between"><span class="text-slate-400">Valor não pago:</span> <strong id="resumo-nao-pago" class="text-rose-400 font-bold">R$ 0,00</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABELA -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
                 <table class="w-full text-left text-xs border-collapse">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
-                            <th class="p-4">Tipo de Tributo</th>
-                            <th class="p-4">Centro de Custo</th>
-                            <th class="p-4">Apuração / Doc</th>
-                            <th class="p-4">Vencimento</th>
+                            <th class="p-4">Código</th>
+                            <th class="p-4">NFe / Recibo</th>
+                            <th class="p-4">Beneficiário</th>
                             <th class="p-4 text-right">Valor (R$)</th>
-                            <th class="p-4 text-center">Status</th>
-                            <th class="p-4 text-center">Anexo</th>
-                            <th class="p-4 text-center">Ações</th>
+                            <th class="p-4">Vencimento</th>
+                            <th class="p-4">Anexos</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4 text-right">Ação</th>
                         </tr>
                     </thead>
-                    <tbody id="tabela-tributos-corpo">
-                        <tr><td colspan="8" class="p-6 text-center text-slate-500">A carregar tributos do Supabase...</td></tr>
+                    <tbody id="tabela-contas-corpo">
+                        <tr><td colspan="8" class="p-6 text-center text-slate-500">A carregar dados do Supabase...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -126,34 +157,96 @@
         </main>
     </div>
 
-    <!-- MODAL: ADICIONAR / EDITAR TRIBUTO -->
-    <div id="modal-tributo" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+    <!-- MODAL: DETALHES, ANEXOS & LIQUIDAÇÃO -->
+    <div id="modal-detalhes" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
-                    <h3 id="modal-titulo" class="text-base font-bold text-white">Adicionar Tributo / Imposto</h3>
-                    <p class="text-xs text-slate-400">Insira as informações e anexe o documento em PDF ou imagem se necessário.</p>
+                    <h3 class="text-base font-bold text-white" id="modal-titulo-cod">Detalhes da Conta</h3>
+                    <p class="text-xs text-slate-400">Liquide o pagamento, adicione documentos e debite o saldo bancário automaticamente.</p>
                 </div>
-                <button type="button" onclick="fecharModalTributo()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" onclick="fecharModalDetalhes()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
 
-            <input type="hidden" id="edit-id">
-            <form onsubmit="salvarTributoSupabase(event)" class="space-y-4 text-xs">
+            <input type="hidden" id="modal-conta-id">
+
+            <div class="space-y-4 text-xs">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <div><span class="text-slate-400">Beneficiário:</span> <strong id="det-beneficiario" class="block text-white">---</strong></div>
+                    <div><span class="text-slate-400">Centro de Custo:</span> <strong id="det-obra" class="block text-amber-400">---</strong></div>
+                    <div><span class="text-slate-400">Vencimento:</span> <strong id="det-vencimento" class="block text-white">---</strong></div>
+                    <div><span class="text-slate-400">Valor:</span> <strong id="det-valor" class="block text-emerald-400 text-sm">R$ ---</strong></div>
+                </div>
+
+                <!-- ANEXOS -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
+                        <label class="block font-bold text-amber-400">📎 Cupom Fiscal (PDF / Imagem)</label>
+                        <input type="file" id="input-cupom" accept=".pdf,image/*" class="w-full text-slate-400 text-[11px]">
+                        <div id="link-cupom-atual"></div>
+                    </div>
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
+                        <label class="block font-bold text-sky-400">💳 Comprovante de Pagamento</label>
+                        <input type="file" id="input-comprovante" accept=".pdf,image/*" class="w-full text-slate-400 text-[11px]">
+                        <div id="link-comprovante-atual"></div>
+                    </div>
+                </div>
+
+                <!-- EFETIVAR PAGAMENTO -->
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
+                    <h4 class="font-bold text-emerald-400">Efetivar Liquidamento / Pagar Conta</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-slate-400 mb-1">Conta Bancária / Caixa de Origem *</label>
+                            <select id="pag-conta-banco" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-white">
+                                <option value="Banco Cora Sede">Banco Cora Sede</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1">Data do Pagamento *</label>
+                            <input type="date" id="pag-data" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-white">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4 text-xs">
+                <button type="button" onclick="fecharModalDetalhes()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">Cancelar</button>
+                <button type="button" onclick="efetivarPagamentoComAnexos()" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg cursor-pointer">Salvar Anexos & Efetivar Pagamento</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: NOVA CONTA -->
+    <div id="modal-nova-conta" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <h3 class="text-base font-bold text-white">Cadastrar Nova Conta a Pagar</h3>
+                <button type="button" onclick="fecharModalNovaConta()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+            </div>
+            <form onsubmit="salvarNovaContaSupabase(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Beneficiário / Fornecedor *</label>
+                    <input type="text" id="cad-beneficiario" required placeholder="Ex: Fornecedor Ltda" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-slate-400 font-bold mb-1">Tipo de Tributo *</label>
-                        <select id="cad-tipo" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
-                            <option value="INSS">INSS</option>
-                            <option value="FGTS">FGTS</option>
-                            <option value="PIS">PIS</option>
-                            <option value="COFINS">COFINS</option>
-                            <option value="DARF">DARF (IRPJ/CSLL)</option>
-                            <option value="ISS">ISS (Municipal)</option>
-                        </select>
+                        <label class="block text-slate-400 font-bold mb-1">Nº NFe / Recibo</label>
+                        <input type="text" id="cad-nfe" placeholder="Ex: 56115" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Valor (R$) *</label>
+                        <input type="number" step="0.01" id="cad-valor" required placeholder="150.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Vencimento *</label>
+                        <input type="date" id="cad-vencimento" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Centro de Custo (Obra) *</label>
-                        <select id="cad-centro" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <select id="cad-obra" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                             <option value="Matriz">Matriz / Sede</option>
                             <option value="Residencial Palácio dos Andes">Residencial Palácio dos Andes</option>
                             <option value="Casas Flores da Praia">Casas Flores da Praia</option>
@@ -161,40 +254,9 @@
                         </select>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">Vencimento *</label>
-                        <input type="date" id="cad-vencimento" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white" onchange="calcularValorTotal()">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">Período de Apuração</label>
-                        <input type="text" id="cad-apuracao" placeholder="Ex: 05/2026" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
-                    </div>
-                    <div>
-                        <label class="block text-slate-400 font-bold mb-1">Valor Principal (R$) *</label>
-                        <input type="number" step="0.01" id="cad-valor" required placeholder="500.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white" oninput="calcularValorTotal()">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-slate-400 font-bold mb-1">Anexar Guia (PDF ou Imagem)</label>
-                    <input type="file" id="cad-arquivo" accept=".pdf,image/*" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-slate-300">
-                </div>
-
-                <div class="flex items-center justify-between bg-slate-950 p-4 rounded-xl border border-slate-800">
-                    <span class="text-sm font-bold text-slate-300">Valor Total Consolidado:</span>
-                    <strong id="label-valor-total" class="text-amber-400 text-lg">R$ 0,00</strong>
-                </div>
-
-                <div>
-                    <label class="block text-slate-400 font-bold mb-1">Observações</label>
-                    <textarea id="cad-obs" rows="2" placeholder="Observações..." class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white"></textarea>
-                </div>
-
-                <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
-                    <button type="button" onclick="fecharModalTributo()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Salvar Tributo</button>
+                <div class="flex justify-end space-x-3 border-t border-slate-800 pt-4">
+                    <button type="button" onclick="fecharModalNovaConta()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg cursor-pointer">Salvar na Nuvem</button>
                 </div>
             </form>
         </div>
@@ -205,9 +267,17 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        let contaAtualEmEdicao = null;
+
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
-            carregarTributos();
+            carregarBancosSelect();
+            carregarContas();
+            
+            // Define a data atual no input de pagamento
+            const hoje = new Date().toISOString().split('T')[0];
+            const inputPagData = document.getElementById('pag-data');
+            if (inputPagData) inputPagData.value = hoje;
         });
 
         function verificarSessao() {
@@ -222,198 +292,183 @@
             window.location.href = 'login.html';
         }
 
-        async function carregarTributos() {
+        async function carregarBancosSelect() {
+            const { data } = await supabaseClient.from('financeiro_contas_bancarias').select('*');
+            const select = document.getElementById('pag-conta-banco');
+            if (select && data && data.length > 0) {
+                select.innerHTML = data.map(b => `<option value="${b.nome}">${b.nome} (Saldo: R$ ${Number(b.saldo_atual || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})})</option>`).join('');
+            }
+        }
+
+        async function carregarContas() {
+            const obraFiltro = document.getElementById('filtro-obra').value;
+            const statusFiltro = document.getElementById('filtro-status').value;
             const busca = document.getElementById('filtro-busca').value.toLowerCase();
-            const mesAnoFiltro = document.getElementById('filtro-mes-ano').value;
-            const tbody = document.getElementById('tabela-tributos-corpo');
+            const tbody = document.getElementById('tabela-contas-corpo');
 
-            const { data, error } = await supabaseClient.from('financeiro_tributos').select('*').order('id', { ascending: false });
+            let query = supabaseClient.from('financeiro_contas_pagar').select('*').order('id', { ascending: false });
 
-            if (error) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erro ao carregar do Supabase: ${error.message}</td></tr>`;
-                return;
+            if (obraFiltro !== 'Todos') query = query.eq('obra', obraFiltro);
+            if (statusFiltro !== 'Todos') query = query.eq('status', statusFiltro);
+
+            const { data, error } = await query;
+            if (error) { 
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erro ao carregar: ${error.message}</td></tr>`; 
+                return; 
             }
 
             let lista = data || [];
 
             if (busca) {
-                lista = lista.filter(t => (t.tipo_tributo || '').toLowerCase().includes(busca) || (t.centro_custo || '').toLowerCase().includes(busca));
+                lista = lista.filter(c => (c.beneficiario || '').toLowerCase().includes(busca) || (c.nfe || '').toLowerCase().includes(busca));
             }
 
-            if (mesAnoFiltro) {
-                const [ano, mes] = mesAnoFiltro.split('-');
-                lista = lista.filter(t => {
-                    if (!t.vencimento) return false;
-                    const partes = t.vencimento.split('/');
-                    if (partes.length === 3) {
-                        return partes[1] === mes && partes[2] === ano;
-                    }
-                    return false;
-                });
-            }
+            let totalGeral = 0, totalPago = 0, totalNaoPago = 0;
+
+            lista.forEach(c => {
+                totalGeral += Number(c.valor || 0);
+                if (c.status === 'Paga') totalPago += Number(c.valor || 0);
+                else totalNaoPago += Number(c.valor || 0);
+            });
+
+            document.getElementById('resumo-total').innerText = `R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('resumo-registros').innerText = lista.length;
+            document.getElementById('resumo-pago').innerText = `R$ ${totalPago.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('resumo-nao-pago').innerText = `R$ ${totalNaoPago.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
 
             if (lista.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500">Nenhum tributo encontrado para os filtros selecionados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500">Nenhuma conta a pagar encontrada.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = lista.map(t => `
+            tbody.innerHTML = lista.map(c => `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition text-xs">
-                    <td class="p-4 font-bold text-white">${t.tipo_tributo}</td>
-                    <td class="p-4 text-slate-300">${t.centro_custo}</td>
-                    <td class="p-4 text-slate-400">${t.periodo_apuracao || '-'}</td>
-                    <td class="p-4 text-slate-300">${t.vencimento}</td>
-                    <td class="p-4 text-right font-bold text-amber-400">R$ ${(t.valor_total || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                    <td class="p-4 text-center"><span class="bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-lg text-[10px] font-semibold">${t.status || 'Pendente'}</span></td>
-                    <td class="p-4 text-center">
-                        ${t.arquivo_url ? `<a href="${t.arquivo_url}" target="_blank" class="text-sky-400 underline font-bold text-[11px]">Ver Guia</a>` : `<span class="text-slate-500 text-[11px]">Sem anexo</span>`}
+                    <td class="p-4 font-bold text-white">#${c.codigo}</td>
+                    <td class="p-4 text-slate-400">${c.nfe || '-'}</td>
+                    <td class="p-4 font-medium text-white">${c.beneficiario}</td>
+                    <td class="p-4 text-right font-bold text-rose-400">R$ ${(c.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="p-4 text-slate-300">${c.vencimento}</td>
+                    <td class="p-4 space-x-1">
+                        ${c.cupom_fiscal ? `<a href="${c.cupom_fiscal}" target="_blank" class="bg-amber-500/20 text-amber-300 px-2 py-1 rounded text-[10px] font-bold">Cupom ✓</a>` : '<span class="text-slate-600 text-[10px]">Sem cupom</span>'}
+                        ${c.comprovante_pagamento ? `<a href="${c.comprovante_pagamento}" target="_blank" class="bg-sky-500/20 text-sky-300 px-2 py-1 rounded text-[10px] font-bold">Recibo ✓</a>` : '<span class="text-slate-600 text-[10px]">Sem recibo</span>'}
                     </td>
-                    <td class="p-4 text-center space-x-1 whitespace-nowrap">
-                        <button onclick="abrirEditarTributo('${t.id}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 px-2.5 py-1 rounded font-bold text-[10px] cursor-pointer" title="Editar Tributo">✏️</button>
-                        <button onclick="excluirTributo('${t.id}', '${t.codigo}')" class="bg-red-950/40 hover:bg-red-900/60 text-red-400 px-2.5 py-1 rounded font-bold text-[10px] cursor-pointer" title="Excluir Tributo">🗑️</button>
+                    <td class="p-4"><span class="${c.status === 'Paga' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'} px-2.5 py-1 rounded-full text-[10px] font-bold">${c.status}</span></td>
+                    <td class="p-4 text-right">
+                        <button onclick="abrirModalDetalhes('${c.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">
+                            ${c.status === 'Paga' ? 'Detalhes' : 'Pagar'}
+                        </button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        function limparFiltroMes() {
-            document.getElementById('filtro-mes-ano').value = '';
-            carregarTributos();
+        async function abrirModalDetalhes(id) {
+            const { data, error } = await supabaseClient.from('financeiro_contas_pagar').select('*').eq('id', id).single();
+            if (error || !data) { alert('Erro ao carregar detalhes.'); return; }
+
+            contaAtualEmEdicao = data;
+            document.getElementById('modal-titulo-cod').innerText = `Detalhes da Conta #${data.codigo}`;
+            document.getElementById('modal-conta-id').value = data.id;
+            document.getElementById('det-beneficiario').innerText = data.beneficiario;
+            document.getElementById('det-obra').innerText = data.obra;
+            document.getElementById('det-vencimento').innerText = data.vencimento;
+            document.getElementById('det-valor').innerText = `R$ ${Number(data.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+
+            document.getElementById('link-cupom-atual').innerHTML = data.cupom_fiscal ? `<a href="${data.cupom_fiscal}" target="_blank" class="text-amber-400 underline text-[11px]">Ver Cupom Atual</a>` : '<span class="text-slate-500 text-[11px]">Nenhum ficheiro anexado</span>';
+            document.getElementById('link-comprovante-atual').innerHTML = data.comprovante_pagamento ? `<a href="${data.comprovante_pagamento}" target="_blank" class="text-sky-400 underline text-[11px]">Ver Comprovante Atual</a>` : '<span class="text-slate-500 text-[11px]">Nenhum ficheiro anexado</span>';
+
+            carregarBancosSelect();
+            document.getElementById('modal-detalhes').classList.remove('hidden');
         }
 
-        function abrirModalTributo() {
-            document.getElementById('modal-titulo').innerText = "Adicionar Tributo / Imposto";
-            document.getElementById('edit-id').value = "";
-            document.getElementById('cad-tipo').value = "INSS";
-            document.getElementById('cad-centro').value = "Matriz";
-            document.getElementById('cad-vencimento').value = "";
-            document.getElementById('cad-apuracao').value = "";
-            document.getElementById('cad-valor').value = "";
-            document.getElementById('cad-arquivo').value = "";
-            document.getElementById('cad-obs').value = "";
-            document.getElementById('label-valor-total').innerText = "R$ 0,00";
-            document.getElementById('modal-tributo').classList.remove('hidden');
+        function fecharModalDetalhes() {
+            document.getElementById('modal-detalhes').classList.add('hidden');
+            document.getElementById('input-cupom').value = '';
+            document.getElementById('input-comprovante').value = '';
         }
 
-        async function abrirEditarTributo(id) {
-            const { data, error } = await supabaseClient.from('financeiro_tributos').select('*').eq('id', id).single();
-            if (error || !data) { alert('Erro ao carregar dados do tributo.'); return; }
+        async function efetivarPagamentoComAnexos() {
+            if (!contaAtualEmEdicao) return;
+            const bancoNome = document.getElementById('pag-conta-banco').value;
+            const dataPagIso = document.getElementById('pag-data').value;
+            const dataPagFormatada = dataPagIso ? dataPagIso.split('-').reverse().join('/') : '';
+            const valorPago = Number(contaAtualEmEdicao.valor || 0);
 
-            document.getElementById('modal-titulo').innerText = `Editar Tributo #${data.tipo_tributo}`;
-            document.getElementById('edit-id').value = data.id;
-            document.getElementById('cad-tipo').value = data.tipo_tributo;
-            document.getElementById('cad-centro').value = data.centro_custo;
-            
-            if (data.vencimento) {
-                const partes = data.vencimento.split('/');
-                if (partes.length === 3) {
-                    document.getElementById('cad-vencimento').value = `${partes[2]}-${partes[1]}-${partes[0]}`;
-                }
-            }
+            let cupomUrl = contaAtualEmEdicao.cupom_fiscal || '';
+            let comprovanteUrl = contaAtualEmEdicao.comprovante_pagamento || '';
 
-            document.getElementById('cad-apuracao').value = data.periodo_apuracao || '';
-            document.getElementById('cad-valor').value = data.valor || '';
-            document.getElementById('cad-obs').value = data.observacoes || '';
-            calcularValorTotal();
-            document.getElementById('modal-tributo').classList.remove('hidden');
-        }
+            const fileCupom = document.getElementById('input-cupom').files[0];
+            const fileComprovante = document.getElementById('input-comprovante').files[0];
 
-        function fecharModalTributo() {
-            document.getElementById('modal-tributo').classList.add('hidden');
-        }
+            if (fileCupom) cupomUrl = await fazerUploadSupabase(fileCupom, 'cupom');
+            if (fileComprovante) comprovanteUrl = await fazerUploadSupabase(fileComprovante, 'comprovante');
 
-        function calcularValorTotal() {
-            const val = Number(document.getElementById('cad-valor').value || 0);
-            document.getElementById('label-valor-total').innerText = `R$ ${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            return val;
-        }
+            const { error } = await supabaseClient.from('financeiro_contas_pagar').update({
+                status: 'Paga',
+                pago_em: dataPagFormatada,
+                caixa: bancoNome,
+                etiqueta: 'Paga',
+                cupom_fiscal: cupomUrl,
+                comprovante_pagamento: comprovanteUrl
+            }).eq('id', contaAtualEmEdicao.id);
 
-        async function salvarTributoSupabase(e) {
-            e.preventDefault();
-            const editId = document.getElementById('edit-id').value;
-            const tipo = document.getElementById('cad-tipo').value;
-            const centro = document.getElementById('cad-centro').value;
-            const vencimentoIso = document.getElementById('cad-vencimento').value;
-            const vencimento = vencimentoIso.split('-').reverse().join('/');
-            const apuracao = document.getElementById('cad-apuracao').value.trim() || '-';
-            const valor = Number(document.getElementById('cad-valor').value);
-            const obs = document.getElementById('cad-obs').value;
-            const inputArquivo = document.getElementById('cad-arquivo');
-
-            let arquivoUrl = null;
-            if (inputArquivo.files && inputArquivo.files[0]) {
-                const file = inputArquivo.files[0];
-                const fileName = `tributo_${Date.now()}_${file.name}`;
-                const { error: uploadError } = await supabaseClient.storage.from('propostas_anexos').upload(fileName, file);
-                
-                if (!uploadError) {
-                    const { data: urlData } = supabaseClient.storage.from('propostas_anexos').getPublicUrl(fileName);
-                    arquivoUrl = urlData.publicUrl;
-                }
-            }
-
-            const payload = {
-                tipo_tributo: tipo,
-                centro_custo: centro,
-                numero_documento: apuracao,
-                vencimento,
-                periodo_apuracao: apuracao,
-                valor,
-                valor_total: valor,
-                observacoes: obs
-            };
-
-            if (arquivoUrl) payload.arquivo_url = arquivoUrl;
-
-            if (editId) {
-                const { error } = await supabaseClient.from('financeiro_tributos').update(payload).eq('id', editId);
-                if (error) { alert('Erro ao atualizar: ' + error.message); return; }
-                alert('Tributo atualizado com sucesso!');
-            } else {
-                payload.codigo = String(Math.floor(1000 + Math.random() * 9000));
-                payload.emissao = new Date().toLocaleDateString('pt-BR');
-                payload.status = 'Não consolidado';
-
-                const { error } = await supabaseClient.from('financeiro_tributos').insert([payload]);
-                if (error) { alert('Erro ao guardar: ' + error.message); return; }
-
-                // Sincroniza com Contas a Pagar
-                await supabaseClient.from('financeiro_contas_pagar').insert([{
-                    codigo: payload.codigo,
-                    nfe: apuracao,
-                    beneficiario: `Governo / Receita (${tipo})`,
-                    valor,
-                    vencimento,
-                    status: 'Pendente',
-                    obra: centro,
-                    etiqueta: `Tributo - ${tipo}`
-                }]);
-
-                alert('Tributo cadastrado e sincronizado com o Contas a Pagar!');
-            }
-
-            fecharModalTributo();
-            carregarTributos();
-        }
-
-        async function excluirTributo(id, codigo) {
-            if (!confirm('Tem a certeza que deseja excluir este tributo? O compromisso correspondente também será removido do Contas a Pagar.')) return;
-
-            // 1. Apaga o tributo na tabela de tributos
-            const { error } = await supabaseClient.from('financeiro_tributos').delete().eq('id', id);
             if (error) {
-                alert('Erro ao excluir tributo: ' + error.message);
+                alert('Erro ao atualizar: ' + error.message);
                 return;
             }
 
-            // 2. Apaga automaticamente o registo correspondente no Contas a Pagar utilizando o código
-            if (codigo) {
-                await supabaseClient.from('financeiro_contas_pagar').delete().eq('codigo', codigo);
+            const { data: bancoData } = await supabaseClient.from('financeiro_contas_bancarias').select('*').eq('nome', bancoNome).single();
+            if (bancoData) {
+                const novoSaldo = Number(bancoData.saldo_atual || 0) - valorPago;
+                await supabaseClient.from('financeiro_contas_bancarias').update({ saldo_atual: novoSaldo }).eq('id', bancoData.id);
             }
 
-            alert('Tributo e respetivo registo no Contas a Pagar excluídos com sucesso!');
-            carregarTributos();
+            alert('Pagamento efetivado e saldo bancário atualizado com sucesso!');
+            fecharModalDetalhes();
+            carregarContas();
+        }
+
+        async function fazerUploadSupabase(file, tipo) {
+            try {
+                const nomeFicheiro = `${tipo}_${Date.now()}_${file.name}`;
+                const { error } = await supabaseClient.storage.from('comprovantes').upload(nomeFicheiro, file);
+                if (error) { alert(`Erro no upload (${tipo}): ` + error.message); return ''; }
+                const { data: urlData } = supabaseClient.storage.from('comprovantes').getPublicUrl(nomeFicheiro);
+                return urlData.publicUrl;
+            } catch (err) {
+                console.error(err);
+                return '';
+            }
+        }
+
+        function abrirModalNovaConta() { document.getElementById('modal-nova-conta').classList.remove('hidden'); }
+        function fecharModalNovaConta() { document.getElementById('modal-nova-conta').classList.add('hidden'); }
+
+        async function salvarNovaContaSupabase(e) {
+            e.preventDefault();
+            const beneficiario = document.getElementById('cad-beneficiario').value.trim();
+            const nfe = document.getElementById('cad-nfe').value.trim() || '-';
+            const valor = Number(document.getElementById('cad-valor').value);
+            const vencimentoIso = document.getElementById('cad-vencimento').value;
+            const vencimento = vencimentoIso ? vencimentoIso.split('-').reverse().join('/') : '';
+            const obra = document.getElementById('cad-obra').value;
+
+            const nova = {
+                codigo: String(Math.floor(10000 + Math.random() * 90000)),
+                nfe, beneficiario, valor, vencimento, pago_em: null, caixa: '-', etiqueta: 'Pendente', status: 'Pendente', obra,
+                cupom_fiscal: '', comprovante_pagamento: ''
+            };
+
+            const { error } = await supabaseClient.from('financeiro_contas_pagar').insert([nova]);
+            if (error) {
+                alert('Erro ao guardar: ' + error.message);
+            } else {
+                alert('Nova conta a pagar cadastrada com sucesso!');
+                fecharModalNovaConta();
+                carregarContas();
+            }
         }
     </script>
 </body>
 </html>
+```
