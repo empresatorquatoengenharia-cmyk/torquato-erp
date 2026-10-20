@@ -343,12 +343,30 @@
                         <td class="p-4 text-slate-300">${t.vencimento}</td>
                         <td class="p-4 text-right font-bold text-amber-400">R$ ${(t.valor_total || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                         <td class="p-4 text-center"><span class="${badgeClass} px-2.5 py-1 rounded-lg text-[10px] font-semibold">${t.status}</span></td>
-                        <td class="p-4 text-center">
+                        <td class="p-4 text-center space-x-2">
                             <span class="text-slate-400 hover:text-amber-400 cursor-pointer text-sm" title="Anexo disponível">📎</span>
+                            <button onclick="excluirTributo('${t.id}', '${t.codigo}')" class="bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white px-2.5 py-1 rounded-lg font-bold text-[10px] transition cursor-pointer">🗑️ Apagar</button>
                         </td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        async function excluirTributo(id, codigo) {
+            if (!confirm('Tem certeza de que deseja excluir este tributo? Ele também será removido do Contas a Pagar.')) return;
+
+            // 1. Apaga da tabela de tributos
+            const { error: err1 } = await supabaseClient.from('financeiro_tributos').delete().eq('id', id);
+            if (err1) {
+                alert('Erro ao excluir tributo: ' + err1.message);
+                return;
+            }
+
+            // 2. Apaga automaticamente da tabela de contas a pagar usando o código correspondente
+            await supabaseClient.from('financeiro_contas_pagar').delete().eq('codigo', String(codigo));
+
+            alert('Tributo excluído com sucesso!');
+            carregarTributos();
         }
 
         function abrirModalTributo() {
