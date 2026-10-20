@@ -206,7 +206,7 @@
                                 <th class="p-4">Qtd.</th>
                                 <th class="p-4">Prazo</th>
                                 <th class="p-4">Status</th>
-                                <th class="p-4 text-right">Ações (Aprovar / Enviar ao Financeiro)</th>
+                                <th class="p-4 text-right">Ações (Aprovar / Reprovar)</th>
                             </tr>
                         </thead>
                         <tbody id="tabela-aprovacao-corpo">
@@ -304,8 +304,6 @@
 
         async function carregarProdutosSelect() {
             const selectProd = document.getElementById('sol-produto');
-            
-            // Puxa unicamente a coluna 'nome' da tabela 'produtos_erp'
             const { data, error } = await supabaseClient.from('produtos_erp').select('nome').order('nome', { ascending: true });
             
             if (error) {
@@ -334,7 +332,7 @@
         }
 
         async function carregarDadosSupabase() {
-            const { data, error } = await supabaseClient.from('suprimentos_solicitacoes').select('*');
+            const { data, error } = await supabaseClient.from('suprimentos_solicitacoes').select('*').order('id', { ascending: false });
             const tbodySol = document.getElementById('tabela-solicitacoes-corpo');
             const tbodyApr = document.getElementById('tabela-aprovacao-corpo');
 
@@ -355,19 +353,37 @@
                 </tr>
             `).join('');
 
-            tbodyApr.innerHTML = data.map(s => `
-                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                    <td class="p-4 font-bold text-amber-400">#${s.codigo}</td>
-                    <td class="p-4 text-white">${s.obra}</td>
-                    <td class="p-4 text-slate-300">${s.produto}</td>
-                    <td class="p-4 text-slate-300">${s.qtd} un</td>
-                    <td class="p-4 text-slate-300">${s.prazo}</td>
-                    <td class="p-4"><span class="bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded text-[10px] font-bold">${s.status}</span></td>
-                    <td class="p-4 text-right">
-                        ${s.status !== 'Aprovado / Comprar' ? `<button onclick="aprovarEIntegrarCompra(${s.id}, '${s.codigo}', '${s.produto}',${s.qtd}, '${s.obra}', '${s.prazo}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✅ Aprovar & Gerar Contas a Pagar</button>` : `<span class="text-emerald-400 font-bold text-[11px]">Integrado ao Financeiro ✓</span>`}
-                    </td>
-                </tr>
-            `).join('');
+            tbodyApr.innerHTML = data.map(s => {
+                let badgeStatus = `<span class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-bold">${s.status}</span>`;
+                let acoesHtml = '';
+
+                if (s.status === 'Aprovado / Comprar') {
+                    badgeStatus = `<span class="bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full text-[10px] font-bold">Aprovado ✓</span>`;
+                    acoesHtml = `<span class="text-emerald-400 font-bold text-[11px]">Integrado ao Financeiro ✓</span>`;
+                } else if (s.status === 'Reprovado') {
+                    badgeStatus = `<span class="bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded-full text-[10px] font-bold">Reprovado ✕</span>`;
+                    acoesHtml = `<span class="text-rose-400 font-bold text-[11px]">Solicitação Recusada</span>`;
+                } else {
+                    acoesHtml = `
+                        <div class="flex items-center justify-end space-x-2">
+                            <button onclick="aprovarEIntegrarCompra(${s.id}, '${s.codigo}', '${s.produto}', ${s.qtd}, '${s.obra}', '${s.prazo}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✅ Aprovar</button>
+                            <button onclick="reprovarSolicitacao(${s.id}, '${s.codigo}')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">❌ Reprovar</button>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                        <td class="p-4 font-bold text-amber-400">#${s.codigo}</td>
+                        <td class="p-4 text-white">${s.obra}</td>
+                        <td class="p-4 text-slate-300">${s.produto}</td>
+                        <td class="p-4 text-slate-300">${s.qtd} un</td>
+                        <td class="p-4 text-slate-300">${s.prazo}</td>
+                        <td class="p-4">${badgeStatus}</td>
+                        <td class="p-4 text-right">${acoesHtml}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         async function aprovarEIntegrarCompra(id, codigo, produto, qtd, obra, prazo) {
@@ -375,7 +391,12 @@
 
             if (!confirm(`Deseja aprovar a compra de ${qtd} un de "${produto}" para a obra "${obra}"?\n\nIsso irá:\n1. Atualizar o status da solicitação para Aprovado\n2. Inserir o compromisso no Contas a Pagar automaticamente.`)) return;
 
-            await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Aprovado / Comprar' }).eq('id', id);
+            const { error: erroUpdate } = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Aprovado / Comprar' }).eq('id', id);
+
+            if (erroUpdate) {
+                alert('Erro ao atualizar solicitação: ' + erroUpdate.message);
+                return;
+            }
 
             const novaContaPagar = {
                 codigo,
@@ -388,10 +409,28 @@
                 etiqueta: 'Compra de Insumos - Obra'
             };
 
-            await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
+            const { error: erroFinanceiro } = await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
 
-            alert('Solicitação aprovada e Contas a Pagar gerado com sucesso na nuvem!');
+            if (erroFinanceiro) {
+                alert('Aviso: Solicitação aprovada, mas houve erro ao gerar Contas a Pagar: ' + erroFinanceiro.message);
+            } else {
+                alert('Solicitação aprovada e Contas a Pagar gerado com sucesso na nuvem!');
+            }
+
             carregarDadosSupabase();
+        }
+
+        async function reprovarSolicitacao(id, codigo) {
+            if (!confirm(`Tem certeza que deseja REPROVAR a solicitação #${codigo}?`)) return;
+
+            const { error } = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Reprovado' }).eq('id', id);
+
+            if (error) {
+                alert('Erro ao reprovar solicitação: ' + error.message);
+            } else {
+                alert(`Solicitação #${codigo} reprovada com sucesso.`);
+                carregarDadosSupabase();
+            }
         }
 
         function abrirModalNovaSolicitacao() {
