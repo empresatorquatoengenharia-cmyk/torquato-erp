@@ -221,17 +221,16 @@
                         <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
                             <th class="p-4">Código</th>
                             <th class="p-4">NFe / Recibo</th>
-                            <th class="p-4">Beneficiário / Fornecedor</th>
+                            <th class="p-4">Beneficiário</th>
                             <th class="p-4 text-right">Valor (R$)</th>
                             <th class="p-4">Vencimento</th>
-                            <th class="p-4">Pago Em</th>
-                            <th class="p-4">Conta / Caixa</th>
-                            <th class="p-4">Etiquetas</th>
+                            <th class="p-4">Anexos</th>
+                            <th class="p-4">Status</th>
                             <th class="p-4 text-right">Ação</th>
                         </tr>
                     </thead>
                     <tbody id="tabela-contas-corpo">
-                        <tr><td colspan="9" class="p-6 text-center text-slate-500">A carregar dados do Supabase...</td></tr>
+                        <tr><td colspan="8" class="p-6 text-center text-slate-500">A carregar dados do Supabase...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -239,13 +238,13 @@
         </main>
     </div>
 
-    <!-- MODAL: DETALHES DA CONTA, ANEXOS & LIQUIDAÇÃO -->
+    <!-- MODAL: DETALHES, ANEXOS & LIQUIDAÇÃO -->
     <div id="modal-detalhes" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-white" id="modal-titulo-cod">Detalhes da Conta</h3>
-                    <p class="text-xs text-slate-400">Liquide o pagamento e atualize o fluxo de caixa na nuvem.</p>
+                    <p class="text-xs text-slate-400">Liquide o pagamento, adicione documentos fiscais e comprovantes.</p>
                 </div>
                 <button type="button" onclick="fecharModalDetalhes()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -260,8 +259,23 @@
                     <div><span class="text-slate-400">Valor:</span> <strong id="det-valor" class="block text-emerald-400 text-sm">R$ ---</strong></div>
                 </div>
 
+                <!-- SEÇÃO DE ANEXOS (CUPOM FISCAL & COMPROVANTE) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
+                        <label class="block font-bold text-amber-400">📎 Cupom Fiscal (PDF / Imagem)</label>
+                        <input type="file" id="input-cupom" accept=".pdf,image/*" class="w-full text-slate-400 text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-amber-400 hover:file:bg-slate-700 cursor-pointer">
+                        <div id="link-cupom-atual"></div>
+                    </div>
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
+                        <label class="block font-bold text-sky-400">💳 Comprovante de Pagamento (PDF / Imagem)</label>
+                        <input type="file" id="input-comprovante" accept=".pdf,image/*" class="w-full text-slate-400 text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-sky-400 hover:file:bg-slate-700 cursor-pointer">
+                        <div id="link-comprovante-atual"></div>
+                    </div>
+                </div>
+
+                <!-- EFETIVAR PAGAMENTO -->
                 <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
-                    <h4 class="font-bold text-amber-400">Efetivar Liquidamento / Pagar Conta</h4>
+                    <h4 class="font-bold text-emerald-400">Efetivar Liquidamento / Pagar Conta</h4>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-slate-400 mb-1">Conta Bancária / Caixa *</label>
@@ -281,7 +295,7 @@
 
             <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4 text-xs">
                 <button type="button" onclick="fecharModalDetalhes()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
-                <button type="button" onclick="efetivarPagamentoReal()" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Confirmar Pagamento & Dar Baixa</button>
+                <button type="button" onclick="efetivarPagamentoComAnexos()" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar Anexos & Efetivar Pagamento</button>
             </div>
         </div>
     </div>
@@ -372,7 +386,7 @@
             const { data, error } = await query;
 
             if (error) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-red-400">Erro ao carregar do Supabase: ${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erro ao carregar do Supabase: ${error.message}</td></tr>`;
                 return;
             }
 
@@ -391,7 +405,7 @@
             document.getElementById('resumo-nao-pago').innerText = `R$ ${totalNaoPago.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
 
             if (lista.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-500">Nenhuma conta a pagar encontrada.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500">Nenhuma conta a pagar encontrada.</td></tr>`;
                 return;
             }
 
@@ -402,12 +416,14 @@
                     <td class="p-4 font-medium text-white">${c.beneficiario}</td>
                     <td class="p-4 text-right font-bold text-rose-400">R$ ${(c.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                     <td class="p-4 text-slate-300">${c.vencimento}</td>
-                    <td class="p-4 text-slate-400">${c.pago_em || '-'}</td>
-                    <td class="p-4 text-slate-400">${c.caixa || '-'}</td>
-                    <td class="p-4"><span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px]">${c.etiqueta || 'Pendente'}</span></td>
+                    <td class="p-4 space-x-1">
+                        ${c.cupom_fiscal ? `<a href="${c.cupom_fiscal}" target="_blank" class="bg-amber-500/20 text-amber-300 px-2 py-1 rounded text-[10px] font-bold hover:bg-amber-500/30">Cupom ✓</a>` : '<span class="text-slate-600 text-[10px]">Sem cupom</span>'}
+                        ${c.comprovante_pagamento ? `<a href="${c.comprovante_pagamento}" target="_blank" class="bg-sky-500/20 text-sky-300 px-2 py-1 rounded text-[10px] font-bold hover:bg-sky-500/30">Recibo ✓</a>` : '<span class="text-slate-600 text-[10px]">Sem recibo</span>'}
+                    </td>
+                    <td class="p-4"><span class="${c.status === 'Paga' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'} px-2.5 py-1 rounded-full text-[10px] font-bold">${c.status}</span></td>
                     <td class="p-4 text-right">
                         <button onclick="abrirModalDetalhes('${c.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">
-                            ${c.status === 'Paga' ? 'Detalhes' : 'Pagar'}
+                            Gerir / Pagar
                         </button>
                     </td>
                 </tr>
@@ -426,29 +442,70 @@
             document.getElementById('det-vencimento').innerText = data.vencimento;
             document.getElementById('det-valor').innerText = `R$ ${Number(data.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
 
+            document.getElementById('link-cupom-atual').innerHTML = data.cupom_fiscal ? `<a href="${data.cupom_fiscal}" target="_blank" class="text-amber-400 underline text-[11px]">Ver Cupom Atual</a>` : '<span class="text-slate-500 text-[11px]">Nenhum ficheiro anexado</span>';
+            document.getElementById('link-comprovante-atual').innerHTML = data.comprovante_pagamento ? `<a href="${data.comprovante_pagamento}" target="_blank" class="text-sky-400 underline text-[11px]">Ver Comprovante Atual</a>` : '<span class="text-slate-500 text-[11px]">Nenhum ficheiro anexado</span>';
+
             document.getElementById('modal-detalhes').classList.remove('hidden');
         }
 
         function fecharModalDetalhes() {
             document.getElementById('modal-detalhes').classList.add('hidden');
+            document.getElementById('input-cupom').value = '';
+            document.getElementById('input-comprovante').value = '';
         }
 
-        async function efetivarPagamentoReal() {
+        async function efetivarPagamentoComAnexos() {
             if (!contaAtualEmEdicao) return;
             const banco = document.getElementById('pag-conta-banco').value;
             const dataPagIso = document.getElementById('pag-data').value;
             const dataPagFormatada = dataPagIso.split('-').reverse().join('/');
 
+            let cupomUrl = contaAtualEmEdicao.cupom_fiscal || '';
+            let comprovanteUrl = contaAtualEmEdicao.comprovante_pagamento || '';
+
+            const fileCupom = document.getElementById('input-cupom').files[0];
+            const fileComprovante = document.getElementById('input-comprovante').files[0];
+
+            if (fileCupom) {
+                cupomUrl = await fazerUploadSupabase(fileCupom, 'cupom');
+            }
+            if (fileComprovante) {
+                comprovanteUrl = await fazerUploadSupabase(fileComprovante, 'comprovante');
+            }
+
             const { error } = await supabaseClient.from('financeiro_contas_pagar').update({
-                status: 'Paga', pago_em: dataPagFormatada, caixa: banco, etiqueta: 'Paga'
+                status: 'Paga',
+                pago_em: dataPagFormatada,
+                caixa: banco,
+                etiqueta: 'Paga',
+                cupom_fiscal: cupomUrl,
+                comprovante_pagamento: comprovanteUrl
             }).eq('id', contaAtualEmEdicao.id);
 
             if (error) {
                 alert('Erro ao atualizar no Supabase: ' + error.message);
             } else {
-                alert('Pagamento efetuado e gravado com sucesso na nuvem!');
+                alert('Pagamento registado e anexos gravados com sucesso na nuvem!');
                 fecharModalDetalhes();
                 carregarContas();
+            }
+        }
+
+        async function fazerUploadSupabase(file, tipo) {
+            try {
+                const nomeFicheiro = `${tipo}_${Date.now()}_${file.name}`;
+                const { data, error } = await supabaseClient.storage.from('comprovantes').upload(nomeFicheiro, file);
+                
+                if (error) {
+                    alert(`Erro no upload (${tipo}): ` + error.message);
+                    return '';
+                }
+
+                const { data: urlData } = supabaseClient.storage.from('comprovantes').getPublicUrl(nomeFicheiro);
+                return urlData.publicUrl;
+            } catch (err) {
+                console.error(err);
+                return '';
             }
         }
 
@@ -466,7 +523,8 @@
 
             const nova = {
                 codigo: String(Math.floor(10000 + Math.random() * 90000)),
-                nfe, beneficiario, valor, vencimento, pago_em: null, caixa: '-', etiqueta: 'Pendente', status: 'Pendente', obra
+                nfe, beneficiario, valor, vencimento, pago_em: null, caixa: '-', etiqueta: 'Pendente', status: 'Pendente', obra,
+                cupom_fiscal: '', comprovante_pagamento: ''
             };
 
             const { error } = await supabaseClient.from('financeiro_contas_pagar').insert([nova]);
