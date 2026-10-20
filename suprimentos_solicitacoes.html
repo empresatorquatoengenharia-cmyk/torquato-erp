@@ -234,7 +234,7 @@
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Produto / Insumo (Cadastrado) *</label>
                     <select id="sol-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                        <option value="">A carregar produtos de produtos_erp...</option>
+                        <option value="">A carregar produtos...</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -250,7 +250,7 @@
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Local de Consumo (Obra / Matriz) *</label>
                     <select id="sol-local" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                        <option value="">A carregar locais de consumo...</option>
+                        <option value="">A carregar locais...</option>
                     </select>
                 </div>
 
@@ -262,7 +262,7 @@
         </div>
     </div>
 
-    <!-- Script JavaScript principal -->
+    <!-- Script Global Garantido -->
     <script>
         const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
@@ -305,17 +305,9 @@
         async function carregarProdutosSelect() {
             const selectProd = document.getElementById('sol-produto');
             const res = await supabaseClient.from('produtos_erp').select('nome').order('nome', { ascending: true });
-            
-            if (res.error) {
-                selectProd.innerHTML = '<option value="">Erro ao carregar produtos</option>';
-                return;
-            }
-
             if (res.data && res.data.length > 0) {
                 let html = '<option value="">Selecione um produto cadastrado...</option>';
-                res.data.forEach(p => {
-                    html += '<option value="' + p.nome + '">' + p.nome + '</option>';
-                });
+                res.data.forEach(p => { html += '<option value="' + p.nome + '">' + p.nome + '</option>'; });
                 selectProd.innerHTML = html;
             } else {
                 selectProd.innerHTML = '<option value="">Nenhum produto encontrado</option>';
@@ -328,12 +320,9 @@
             if (res.data && res.data.length > 0) {
                 res.data.forEach(o => locais.push({ id: o.id, nome: o.nome_obra }));
             }
-
             const selectLocal = document.getElementById('sol-local');
             let html = '<option value="">Selecione o local de consumo...</option>';
-            locais.forEach(l => {
-                html += '<option value="' + l.nome + '">' + l.nome + '</option>';
-            });
+            locais.forEach(l => { html += '<option value="' + l.nome + '">' + l.nome + '</option>'; });
             selectLocal.innerHTML = html;
         }
 
@@ -372,8 +361,8 @@
                     acoesHtml = '<span class="text-rose-400 font-bold text-[11px]">Solicitação Recusada</span>';
                 } else {
                     acoesHtml = '<div class="flex items-center justify-end space-x-2">' +
-                        '<button onclick="aprovarEIntegrarCompra(' + s.id + ', \'' + s.codigo + '\', \'' + s.produto + '\', ' + s.qtd + ', \'' + s.obra + '\', \'' + s.prazo + '\')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✅ Aprovar</button>' +
-                        '<button onclick="reprovarSolicitacao(' + s.id + ', \'' + s.codigo + '\')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">❌ Reprovar</button>' +
+                        '<button type="button" onclick="window.aprovarEIntegrarCompra(' + s.id + ', \'' + s.codigo + '\', \'' + s.produto + '\', ' + s.qtd + ', \'' + s.obra + '\', \'' + s.prazo + '\')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✅ Aprovar</button>' +
+                        '<button type="button" onclick="window.reprovarSolicitacao(' + s.id + ', \'' + s.codigo + '\')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">❌ Reprovar</button>' +
                     '</div>';
                 }
 
@@ -392,15 +381,14 @@
             tbodyApr.innerHTML = htmlApr;
         }
 
-        async function aprovarEIntegrarCompra(id, codigo, produto, qtd, obra, prazo) {
+        // Fixação explícita no objeto global window para garantir funcionamento no clique dinâmico
+        window.aprovarEIntegrarCompra = async function(id, codigo, produto, qtd, obra, prazo) {
             const valorEstimado = qtd * 50.00;
-
             if (!confirm('Deseja aprovar a compra de ' + qtd + ' un de "' + produto + '" para a obra "' + obra + '"?\n\nIsso irá:\n1. Atualizar o status para Aprovado\n2. Inserir no Contas a Pagar.')) return;
 
             const resUpdate = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Aprovado / Comprar' }).eq('id', id);
-
             if (resUpdate.error) {
-                alert('Erro ao atualizar solicitação: ' + resUpdate.error.message);
+                alert('Erro ao atualizar: ' + resUpdate.error.message);
                 return;
             }
 
@@ -416,28 +404,24 @@
             };
 
             const resFinanceiro = await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
-
             if (resFinanceiro.error) {
-                alert('Aviso: Solicitação aprovada, mas erro no Contas a Pagar: ' + resFinanceiro.error.message);
+                alert('Aviso: Aprovado, mas erro ao gerar Contas a Pagar: ' + resFinanceiro.error.message);
             } else {
                 alert('Solicitação aprovada e Contas a Pagar gerado com sucesso!');
             }
-
             carregarDadosSupabase();
-        }
+        };
 
-        async function reprovarSolicitacao(id, codigo) {
+        window.reprovarSolicitacao = async function(id, codigo) {
             if (!confirm('Tem certeza que deseja REPROVAR a solicitação #' + codigo + '?')) return;
-
             const res = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Reprovado' }).eq('id', id);
-
             if (res.error) {
                 alert('Erro ao reprovar: ' + res.error.message);
             } else {
-                alert('Solicitação #' + codigo + ' reprovada com sucesso.');
+                alert('Solicitação #' + codigo + ' reprovada.');
                 carregarDadosSupabase();
             }
-        }
+        };
 
         function abrirModalNovaSolicitacao() {
             carregarProdutosSelect();
@@ -468,7 +452,6 @@
             };
 
             const res = await supabaseClient.from('suprimentos_solicitacoes').insert([novaSolicitacao]);
-
             if (res.error) {
                 alert('Erro ao guardar: ' + res.error.message);
             } else {
