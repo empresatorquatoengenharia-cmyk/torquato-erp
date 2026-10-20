@@ -215,7 +215,7 @@
                         <div>
                             <label class="block text-slate-400 font-bold mb-1">Produto / Insumo *</label>
                             <select id="transf-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                                <option value="">A carregar produtos...</option>
+                                <option value="">A carregar produtos de produtos_erp...</option>
                             </select>
                         </div>
                         <div>
@@ -285,7 +285,7 @@
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Produto / Insumo *</label>
                     <select id="nova-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                        <option value="">A carregar produtos...</option>
+                        <option value="">A carregar produtos de produtos_erp...</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -358,7 +358,7 @@
         let cacheProdutos = [];
         let cacheFornecedores = [];
         let listaEntradasPendentes = [
-            { id: 1, codigo: '8491', origem: 'Torquato Engenharia (Matriz)', destino: 'Torquato Engenharia - Matriz', produto: 'Cimento CP-1 50kg', previsto: 50, nfe: '#4921', status: 'Pendente' }
+            { id: 1, codigo: '8491', origem: 'Torquato Engenharia (Matriz)', destino: 'Torquato Engenharia - Matriz', produto: 'Areia Fina', previsto: 50, nfe: '#4921', status: 'Pendente' }
         ];
         let listaEntradasFinalizadas = [];
         let entradaEmConferencia = null;
@@ -421,25 +421,35 @@
         }
 
         async function carregarProdutos() {
-            // Puxa produtos reais cadastrados na tabela suprimentos_produtos
-            const { data } = await supabaseClient.from('suprimentos_produtos').select('*');
-            cacheProdutos = data || [];
-
             const selectProd = document.getElementById('nova-produto');
             const selectTransf = document.getElementById('transf-produto');
 
+            // Puxa estritamente a coluna 'nome' da tabela 'produtos_erp'
+            const { data, error } = await supabaseClient.from('produtos_erp').select('nome').order('nome', { ascending: true });
+
+            if (error) {
+                console.error("Erro ao carregar produtos_erp:", error);
+                const errOpt = `<option value="">Erro ao carregar produtos</option>`;
+                selectProd.innerHTML = errOpt;
+                selectTransf.innerHTML = errOpt;
+                return;
+            }
+
+            cacheProdutos = data || [];
+
             if (cacheProdutos.length > 0) {
-                const opts = cacheProdutos.map(p => `<option value="${p.nome}">${p.nome} (${p.unidade || 'un'})</option>`).join('');
-                selectProd.innerHTML = '<option value="">Selecione um produto cadastrado...</option>' + opts;
-                selectTransf.innerHTML = '<option value="">Selecione um produto cadastrado...</option>' + opts;
+                const opts = '<option value="">Selecione um produto cadastrado...</option>' + 
+                    cacheProdutos.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
+                selectProd.innerHTML = opts;
+                selectTransf.innerHTML = opts;
             } else {
-                selectProd.innerHTML = '<option value="">Nenhum produto encontrado na planilha de Produtos & Insumos</option>';
-                selectTransf.innerHTML = '<option value="">Nenhum produto encontrado</option>';
+                const vazioOpt = '<option value="">Nenhum produto encontrado na tabela produtos_erp</option>';
+                selectProd.innerHTML = vazioOpt;
+                selectTransf.innerHTML = vazioOpt;
             }
         }
 
         async function carregarFornecedores() {
-            // Puxa fornecedores reais cadastrados nas contas a pagar / financeiro ou outras tabelas do ERP
             let fornecedoresSet = new Set(['Torquato Engenharia (Matriz)']);
             
             const { data } = await supabaseClient.from('financeiro_contas_pagar').select('beneficiario');
