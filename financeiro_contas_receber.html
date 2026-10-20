@@ -34,9 +34,7 @@
                 <div>
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📊</span><span>Dashboard Executivo</span>
-                        </a>
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📊</span><span>Dashboard Executivo</span></a>
                     </nav>
                 </div>
 
@@ -218,14 +216,15 @@
         </div>
     </div>
 
-    <!-- MODAL: NOVA CONTA -->
+    <!-- MODAL: NOVA / EDITAR CONTA A RECEBER -->
     <div id="modal-nova-conta" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <h3 class="text-base font-bold text-white">Lançar Nova Conta a Receber</h3>
+                <h3 id="modal-titulo-cadastro" class="text-base font-bold text-white">Lançar Nova Conta a Receber</h3>
                 <button type="button" onclick="fecharModalNovaConta()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
             </div>
-            <form onsubmit="salvarNovaContaReceber(event)" class="space-y-4 text-xs">
+            <form onsubmit="salvarOuAtualizarContaReceber(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="edit-id-receber">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Cliente / Comprador *</label>
                     <input type="text" id="cad-cliente" required placeholder="Ex: Stefany Pereira" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
@@ -336,10 +335,12 @@
                     <td class="p-4 text-slate-300">${c.vencimento}</td>
                     <td class="p-4 text-slate-400">${c.recebido_em || '-'}</td>
                     <td class="p-4 text-slate-400">${c.caixa || '-'}</td>
-                    <td class="p-4 text-right">
-                        <button onclick="abrirModalDetalhes('${c.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">
+                    <td class="p-4 text-right space-x-1 whitespace-nowrap">
+                        <button onclick="abrirModalDetalhes('${c.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-2.5 py-1 rounded-lg font-bold text-[10px] transition cursor-pointer" title="Gerenciar Recebimento">
                             ${c.status === 'Recebida' ? 'Detalhes' : 'Receber'}
                         </button>
+                        <button onclick="abrirEditarConta('${c.id}')" class="bg-sky-500 hover:bg-sky-400 text-slate-950 px-2.5 py-1 rounded-lg font-extrabold text-[10px] transition shadow cursor-pointer" title="Editar">✏️</button>
+                        <button onclick="excluirConta('${c.id}', '${c.cliente}', '${c.status}', ${c.valor || 0}, '${c.caixa}')" class="bg-rose-500 hover:bg-rose-400 text-slate-950 px-2.5 py-1 rounded-lg font-extrabold text-[10px] transition shadow cursor-pointer" title="Excluir">🗑️</button>
                     </td>
                 </tr>
             `).join('');
@@ -370,7 +371,6 @@
             const dataFormatada = dataIso ? dataIso.split('-').reverse().join('/') : '';
             const valorRecebido = Number(contaAtualEmEdicao.valor || 0);
 
-            // 1. Atualiza o status da conta a receber
             const { error } = await supabaseClient.from('financeiro_contas_receber').update({
                 status: 'Recebida',
                 recebido_em: dataFormatada,
@@ -383,7 +383,6 @@
                 return;
             }
 
-            // 2. Busca a conta bancária correspondente para creditar o saldo atual
             const { data: bancoData } = await supabaseClient.from('financeiro_contas_bancarias').select('*').eq('nome', bancoNome).single();
             if (bancoData) {
                 const novoSaldo = Number(bancoData.saldo_atual || 0) + valorRecebido;
@@ -395,11 +394,43 @@
             carregarContas();
         }
 
-        function abrirModalNovaConta() { document.getElementById('modal-nova-conta').classList.remove('hidden'); }
+        function abrirModalNovaConta() {
+            document.getElementById('modal-titulo-cadastro').innerText = "Lançar Nova Conta a Receber";
+            document.getElementById('edit-id-receber').value = "";
+            document.getElementById('cad-cliente').value = "";
+            document.getElementById('cad-obra').value = "";
+            document.getElementById('cad-seq').value = "";
+            document.getElementById('cad-valor').value = "";
+            document.getElementById('cad-vencimento').value = "";
+            document.getElementById('modal-nova-conta').classList.remove('hidden');
+        }
+
+        async function abrirEditarConta(id) {
+            const { data, error } = await supabaseClient.from('financeiro_contas_receber').select('*').eq('id', id).single();
+            if (error || !data) { alert('Erro ao carregar dados para edição.'); return; }
+
+            document.getElementById('modal-titulo-cadastro').innerText = `Editar Conta a Receber #${data.codigo}`;
+            document.getElementById('edit-id-receber').value = data.id;
+            document.getElementById('cad-cliente').value = data.cliente || '';
+            document.getElementById('cad-obra').value = data.obra || '';
+            document.getElementById('cad-seq').value = data.sequencia || '';
+            document.getElementById('cad-valor').value = data.valor || 0;
+
+            if (data.vencimento) {
+                const partes = data.vencimento.split('/');
+                if (partes.length === 3) {
+                    document.getElementById('cad-vencimento').value = `${partes[2]}-${partes[1]}-${partes[0]}`;
+                }
+            }
+
+            document.getElementById('modal-nova-conta').classList.remove('hidden');
+        }
+
         function fecharModalNovaConta() { document.getElementById('modal-nova-conta').classList.add('hidden'); }
 
-        async function salvarNovaContaReceber(e) {
+        async function salvarOuAtualizarContaReceber(e) {
             e.preventDefault();
+            const editId = document.getElementById('edit-id-receber').value;
             const cliente = document.getElementById('cad-cliente').value.trim();
             const obra = document.getElementById('cad-obra').value.trim();
             const sequencia = document.getElementById('cad-seq').value.trim() || '1 / 1';
@@ -407,20 +438,49 @@
             const vencimentoIso = document.getElementById('cad-vencimento').value;
             const vencimento = vencimentoIso.split('-').reverse().join('/');
 
-            const nova = {
-                codigo: String(Math.floor(1000 + Math.random() * 9000)),
-                cliente, obra, sequencia, valor, vencimento,
-                recebido_em: null, caixa: '-', etiqueta: 'Pendente', status: 'Pendente', boleto_emitido: false
-            };
+            if (editId) {
+                const { error } = await supabaseClient.from('financeiro_contas_receber').update({
+                    cliente, obra, sequencia, valor, vencimento
+                }).eq('id', editId);
 
-            const { error } = await supabaseClient.from('financeiro_contas_receber').insert([nova]);
-            if (error) {
-                alert('Erro ao salvar: ' + error.message);
+                if (error) { alert('Erro ao atualizar: ' + error.message); return; }
+                alert('Conta a receber atualizada com sucesso!');
             } else {
+                const nova = {
+                    codigo: String(Math.floor(1000 + Math.random() * 9000)),
+                    cliente, obra, sequencia, valor, vencimento,
+                    recebido_em: null, caixa: '-', etiqueta: 'Pendente', status: 'Pendente', boleto_emitido: false
+                };
+
+                const { error } = await supabaseClient.from('financeiro_contas_receber').insert([nova]);
+                if (error) { alert('Erro ao salvar: ' + error.message); return; }
                 alert('Nova conta a receber cadastrada com sucesso!');
-                fecharModalNovaConta();
-                carregarContas();
             }
+
+            fecharModalNovaConta();
+            carregarContas();
+        }
+
+        async function excluirConta(id, cliente, status, valor, caixa) {
+            if (!confirm(`Tem certeza de que deseja excluir a conta a receber de "${cliente}"?`)) return;
+
+            // Se a conta já estava recebida, estorna o valor da conta bancária para manter a lógica do saldo exata
+            if (status === 'Recebida' && caixa && caixa !== '-') {
+                const { data: bancoData } = await supabaseClient.from('financeiro_contas_bancarias').select('*').eq('nome', caixa).single();
+                if (bancoData) {
+                    const novoSaldo = Number(bancoData.saldo_atual || 0) - Number(valor || 0);
+                    await supabaseClient.from('financeiro_contas_bancarias').update({ saldo_atual: novoSaldo }).eq('id', bancoData.id);
+                }
+            }
+
+            const { error } = await supabaseClient.from('financeiro_contas_receber').delete().eq('id', id);
+            if (error) {
+                alert('Erro ao excluir: ' + error.message);
+                return;
+            }
+
+            alert('Conta a receber excluída com sucesso!');
+            carregarContas();
         }
     </script>
 </body>
