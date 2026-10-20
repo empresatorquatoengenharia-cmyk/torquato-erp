@@ -277,7 +277,10 @@
                             <h3 class="text-base font-bold text-white mt-1">${e.nome_obra}</h3>
                             <p class="text-xs text-slate-400">📍 ${e.localizacao} | 👤 Cliente: <strong class="text-amber-300">${e.cliente_vinculado || 'Não vinculado'}</strong></p>
                         </div>
-                        <button onclick="abrirEditarObra('${e.id}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 p-2 rounded-xl text-xs font-bold transition cursor-pointer" title="Editar Obra / Serviço">✏️</button>
+                        <div class="flex space-x-1.5">
+                            <button onclick="abrirEditarObra('${e.id}')" class="bg-slate-800 hover:bg-slate-700 text-sky-400 p-2 rounded-xl text-xs font-bold transition cursor-pointer" title="Editar Obra">✏️</button>
+                            <button onclick="excluirObra('${e.id}', '${e.nome_obra}')" class="bg-slate-800 hover:bg-rose-500 text-rose-400 hover:text-slate-950 p-2 rounded-xl text-xs font-bold transition cursor-pointer" title="Apagar Obra">🗑️</button>
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4 text-xs pt-2">
                         <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
@@ -317,6 +320,19 @@
         }
 
         function fecharModalObra() { document.getElementById('modal-obra').classList.add('hidden'); }
+
+        async function excluirObra(id, nomeObra) {
+            if (!confirm(`Tem certeza de que deseja apagar permanentemente o empreendimento "${nomeObra}"?`)) return;
+
+            const { error } = await supabaseClient.from('vendas_empreendimentos_obras').delete().eq('id', id);
+            if (error) {
+                alert('Erro ao excluir empreendimento: ' + error.message);
+                return;
+            }
+
+            alert('Empreendimento excluído com sucesso!');
+            carregarEmpreendimentos();
+        }
 
         async function salvarObraSupabase(e) {
             e.preventDefault();
