@@ -262,7 +262,7 @@
         </div>
     </div>
 
-    <!-- Script JavaScript unificado dentro da tag <script> -->
+    <!-- Script JavaScript principal -->
     <script>
         const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
@@ -279,7 +279,7 @@
             const usuarioJSON = localStorage.getItem('torquato_user');
             if (!usuarioJSON) { window.location.href = 'login.html'; return; }
             const usuario = JSON.parse(usuarioJSON);
-            document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
+            document.getElementById('nome-usuario').innerText = usuario.nome + ' (' + usuario.perfil.toUpperCase() + ')';
         }
 
         function sair() {
@@ -304,131 +304,137 @@
 
         async function carregarProdutosSelect() {
             const selectProd = document.getElementById('sol-produto');
-            const { data, error } = await supabaseClient.from('produtos_erp').select('nome').order('nome', { ascending: true });
+            const res = await supabaseClient.from('produtos_erp').select('nome').order('nome', { ascending: true });
             
-            if (error) {
-                console.error("Erro ao carregar produtos_erp:", error);
-                selectProd.innerHTML = `<option value="">Erro ao carregar produtos (${error.message})</option>`;
+            if (res.error) {
+                selectProd.innerHTML = '<option value="">Erro ao carregar produtos</option>';
                 return;
             }
 
-            if (data && data.length > 0) {
-                selectProd.innerHTML = '<option value="">Selecione um produto cadastrado...</option>' + 
-                    data.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
+            if (res.data && res.data.length > 0) {
+                let html = '<option value="">Selecione um produto cadastrado...</option>';
+                res.data.forEach(p => {
+                    html += '<option value="' + p.nome + '">' + p.nome + '</option>';
+                });
+                selectProd.innerHTML = html;
             } else {
-                selectProd.innerHTML = '<option value="">Nenhum produto encontrado na tabela produtos_erp</option>';
+                selectProd.innerHTML = '<option value="">Nenhum produto encontrado</option>';
             }
         }
 
         async function carregarLocaisSelect() {
             let locais = [{ id: 'matriz', nome: 'Torquato Engenharia - Matriz' }];
-            const { data } = await supabaseClient.from('vendas_empreendimentos_obras').select('*');
-            if (data && data.length > 0) {
-                data.forEach(o => locais.push({ id: o.id, nome: o.nome_obra }));
+            const res = await supabaseClient.from('vendas_empreendimentos_obras').select('*');
+            if (res.data && res.data.length > 0) {
+                res.data.forEach(o => locais.push({ id: o.id, nome: o.nome_obra }));
             }
 
             const selectLocal = document.getElementById('sol-local');
-            selectLocal.innerHTML = '<option value="">Selecione o local de consumo...</option>' + locais.map(l => `<option value="${l.nome}">${l.nome}</option>`).join('');
+            let html = '<option value="">Selecione o local de consumo...</option>';
+            locais.forEach(l => {
+                html += '<option value="' + l.nome + '">' + l.nome + '</option>';
+            });
+            selectLocal.innerHTML = html;
         }
 
         async function carregarDadosSupabase() {
-            const { data, error } = await supabaseClient.from('suprimentos_solicitacoes').select('*').order('id', { ascending: false });
+            const res = await supabaseClient.from('suprimentos_solicitacoes').select('*').order('id', { ascending: false });
             const tbodySol = document.getElementById('tabela-solicitacoes-corpo');
             const tbodyApr = document.getElementById('tabela-aprovacao-corpo');
 
-            if (error || !data || data.length === 0) {
-                tbodySol.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhuma solicitação encontrada na nuvem.</td></tr>`;
-                tbodyApr.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma solicitação para aprovação.</td></tr>`;
+            if (res.error || !res.data || res.data.length === 0) {
+                tbodySol.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhuma solicitação encontrada.</td></tr>';
+                tbodyApr.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma solicitação para aprovação.</td></tr>';
                 return;
             }
 
-            tbodySol.innerHTML = data.map(s => `
-                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                    <td class="p-4 font-bold text-amber-400">#${s.codigo}</td>
-                    <td class="p-4 text-white">${s.obra}</td>
-                    <td class="p-4 text-slate-300">${s.produto}</td>
-                    <td class="p-4 text-slate-300">${s.qtd} un</td>
-                    <td class="p-4 text-amber-300">${s.prazo}</td>
-                    <td class="p-4"><span class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-bold">${s.status}</span></td>
-                </tr>
-            `).join('');
+            let htmlSol = '';
+            let htmlApr = '';
 
-            tbodyApr.innerHTML = data.map(s => {
-                let badgeStatus = `<span class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-bold">${s.status}</span>`;
+            res.data.forEach(s => {
+                htmlSol += '<tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">' +
+                    '<td class="p-4 font-bold text-amber-400">#' + s.codigo + '</td>' +
+                    '<td class="p-4 text-white">' + s.obra + '</td>' +
+                    '<td class="p-4 text-slate-300">' + s.produto + '</td>' +
+                    '<td class="p-4 text-slate-300">' + s.qtd + ' un</td>' +
+                    '<td class="p-4 text-amber-300">' + s.prazo + '</td>' +
+                    '<td class="p-4"><span class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-bold">' + s.status + '</span></td>' +
+                '</tr>';
+
+                let badgeStatus = '<span class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-bold">' + s.status + '</span>';
                 let acoesHtml = '';
 
                 if (s.status === 'Aprovado / Comprar') {
-                    badgeStatus = `<span class="bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full text-[10px] font-bold">Aprovado ✓</span>`;
-                    acoesHtml = `<span class="text-emerald-400 font-bold text-[11px]">Integrado ao Financeiro ✓</span>`;
+                    badgeStatus = '<span class="bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full text-[10px] font-bold">Aprovado ✓</span>';
+                    acoesHtml = '<span class="text-emerald-400 font-bold text-[11px]">Integrado ao Financeiro ✓</span>';
                 } else if (s.status === 'Reprovado') {
-                    badgeStatus = `<span class="bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded-full text-[10px] font-bold">Reprovado ✕</span>`;
-                    acoesHtml = `<span class="text-rose-400 font-bold text-[11px]">Solicitação Recusada</span>`;
+                    badgeStatus = '<span class="bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded-full text-[10px] font-bold">Reprovado ✕</span>';
+                    acoesHtml = '<span class="text-rose-400 font-bold text-[11px]">Solicitação Recusada</span>';
                 } else {
-                    acoesHtml = `
-                        <div class="flex items-center justify-end space-x-2">
-                            <button onclick="aprovarEIntegrarCompra(${s.id}, '${s.codigo}', '${s.produto}', ${s.qtd}, '${s.obra}', '${s.prazo}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✅ Aprovar</button>
-                            <button onclick="reprovarSolicitacao(${s.id}, '${s.codigo}')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">❌ Reprovar</button>
-                        </div>
-                    `;
+                    acoesHtml = '<div class="flex items-center justify-end space-x-2">' +
+                        '<button onclick="aprovarEIntegrarCompra(' + s.id + ', \'' + s.codigo + '\', \'' + s.produto + '\', ' + s.qtd + ', \'' + s.obra + '\', \'' + s.prazo + '\')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✅ Aprovar</button>' +
+                        '<button onclick="reprovarSolicitacao(' + s.id + ', \'' + s.codigo + '\')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">❌ Reprovar</button>' +
+                    '</div>';
                 }
 
-                return `
-                    <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                        <td class="p-4 font-bold text-amber-400">#${s.codigo}</td>
-                        <td class="p-4 text-white">${s.obra}</td>
-                        <td class="p-4 text-slate-300">${s.produto}</td>
-                        <td class="p-4 text-slate-300">${s.qtd} un</td>
-                        <td class="p-4 text-slate-300">${s.prazo}</td>
-                        <td class="p-4">${badgeStatus}</td>
-                        <td class="p-4 text-right">${acoesHtml}</td>
-                    </tr>
-                `;
-            }).join('');
+                htmlApr += '<tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">' +
+                    '<td class="p-4 font-bold text-amber-400">#' + s.codigo + '</td>' +
+                    '<td class="p-4 text-white">' + s.obra + '</td>' +
+                    '<td class="p-4 text-slate-300">' + s.produto + '</td>' +
+                    '<td class="p-4 text-slate-300">' + s.qtd + ' un</td>' +
+                    '<td class="p-4 text-slate-300">' + s.prazo + '</td>' +
+                    '<td class="p-4">' + badgeStatus + '</td>' +
+                    '<td class="p-4 text-right">' + acoesHtml + '</td>' +
+                '</tr>';
+            });
+
+            tbodySol.innerHTML = htmlSol;
+            tbodyApr.innerHTML = htmlApr;
         }
 
         async function aprovarEIntegrarCompra(id, codigo, produto, qtd, obra, prazo) {
             const valorEstimado = qtd * 50.00;
 
-            if (!confirm(`Deseja aprovar a compra de ${qtd} un de "${produto}" para a obra "${obra}"?\n\nIsso irá:\n1. Atualizar o status da solicitação para Aprovado\n2. Inserir o compromisso no Contas a Pagar automaticamente.`)) return;
+            if (!confirm('Deseja aprovar a compra de ' + qtd + ' un de "' + produto + '" para a obra "' + obra + '"?\n\nIsso irá:\n1. Atualizar o status para Aprovado\n2. Inserir no Contas a Pagar.')) return;
 
-            const { error: erroUpdate } = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Aprovado / Comprar' }).eq('id', id);
+            const resUpdate = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Aprovado / Comprar' }).eq('id', id);
 
-            if (erroUpdate) {
-                alert('Erro ao atualizar solicitação: ' + erroUpdate.message);
+            if (resUpdate.error) {
+                alert('Erro ao atualizar solicitação: ' + resUpdate.error.message);
                 return;
             }
 
             const novaContaPagar = {
-                codigo,
+                codigo: codigo,
                 nfe: 'Pedido #' + codigo,
                 beneficiario: 'Fornecedor de Materiais (' + produto + ')',
                 valor: valorEstimado,
                 vencimento: prazo,
                 status: 'Pendente',
-                obra,
+                obra: obra,
                 etiqueta: 'Compra de Insumos - Obra'
             };
 
-            const { error: erroFinanceiro } = await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
+            const resFinanceiro = await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
 
-            if (erroFinanceiro) {
-                alert('Aviso: Solicitação aprovada, mas houve erro ao gerar Contas a Pagar: ' + erroFinanceiro.message);
+            if (resFinanceiro.error) {
+                alert('Aviso: Solicitação aprovada, mas erro no Contas a Pagar: ' + resFinanceiro.error.message);
             } else {
-                alert('Solicitação aprovada e Contas a Pagar gerado com sucesso na nuvem!');
+                alert('Solicitação aprovada e Contas a Pagar gerado com sucesso!');
             }
 
             carregarDadosSupabase();
         }
 
         async function reprovarSolicitacao(id, codigo) {
-            if (!confirm(`Tem certeza que deseja REPROVAR a solicitação #${codigo}?`)) return;
+            if (!confirm('Tem certeza que deseja REPROVAR a solicitação #' + codigo + '?')) return;
 
-            const { error } = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Reprovado' }).eq('id', id);
+            const res = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Reprovado' }).eq('id', id);
 
-            if (error) {
-                alert('Erro ao reprovar solicitação: ' + error.message);
+            if (res.error) {
+                alert('Erro ao reprovar: ' + res.error.message);
             } else {
-                alert(`Solicitação #${codigo} reprovada com sucesso.`);
+                alert('Solicitação #' + codigo + ' reprovada com sucesso.');
                 carregarDadosSupabase();
             }
         }
@@ -454,18 +460,17 @@
             const novaSolicitacao = {
                 codigo: String(Math.floor(1000 + Math.random() * 9000)),
                 solicitante: 'Engenharia Torquato',
-                obra,
-                produto,
-                qtd,
-                data: new Date().toLocaleDateString('pt-BR'),
-                prazo,
+                obra: obra,
+                produto: produto,
+                qtd: qtd,
+                prazo: prazo,
                 status: 'Em análise'
             };
 
-            const { error } = await supabaseClient.from('suprimentos_solicitacoes').insert([novaSolicitacao]);
+            const res = await supabaseClient.from('suprimentos_solicitacoes').insert([novaSolicitacao]);
 
-            if (error) {
-                alert('Erro ao guardar: ' + error.message);
+            if (res.error) {
+                alert('Erro ao guardar: ' + res.error.message);
             } else {
                 alert('Solicitação criada com sucesso!');
                 fecharModalNovaSolicitacao();
