@@ -152,59 +152,52 @@
             <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
                 <div>
                     <h2 class="text-xl font-bold text-white">Painel de Controlo Financeiro & Obras</h2>
-                    <p class="text-xs text-slate-400">Análise integrada de custos, DRE, dívidas e saldos de contas.</p>
+                    <p class="text-xs text-slate-400">Análise integrada de custos, DRE, dívidas e saldos de contas em tempo real.</p>
                 </div>
                 <div class="flex items-center space-x-2 text-xs">
-                    <select id="filtro-periodo" onchange="atualizarFiltroPeriodo()" class="bg-slate-950 border border-slate-800 text-white px-3 py-2 rounded-xl focus:outline-none focus:border-amber-500 transition cursor-pointer">
-                        <option value="mes_atual">Mês Atual</option>
+                    <select id="filtro-periodo" onchange="carregarDadosDashboard()" class="bg-slate-950 border border-slate-800 text-white px-3 py-2 rounded-xl focus:outline-none focus:border-amber-500 transition cursor-pointer">
                         <option value="ano_atual" selected>Ano Atual (2026)</option>
-                        <option value="personalizado">Período Personalizado</option>
+                        <option value="todos">Todos os Registos</option>
                     </select>
-                    <div id="container-datas-personalizadas" class="hidden flex items-center space-x-2">
-                        <input type="date" id="data-inicio" class="bg-slate-950 border border-slate-800 text-white px-2 py-1.5 rounded-xl">
-                        <span class="text-slate-500">até</span>
-                        <input type="date" id="data-fim" class="bg-slate-950 border border-slate-800 text-white px-2 py-1.5 rounded-xl">
-                        <button onclick="aplicarFiltroData()" class="bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl cursor-pointer">Filtrar</button>
-                    </div>
                 </div>
             </div>
 
-            <!-- Cards Resumo (KPIs) -->
+            <!-- Cards Resumo (KPIs Reais do Supabase) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-1">
                     <span class="text-[11px] font-bold text-slate-400 uppercase">Saldo de Contas</span>
-                    <div class="text-2xl font-black text-emerald-400" id="kpi-saldo">R$ 145.820,00</div>
-                    <span class="text-[10px] text-slate-500">Cora & PagBank integrados</span>
+                    <div class="text-2xl font-black text-emerald-400" id="kpi-saldo">R$ 0,00</div>
+                    <span class="text-[10px] text-slate-500">Contas bancárias integradas</span>
                 </div>
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-1">
-                    <span class="text-[11px] font-bold text-slate-400 uppercase">Contas a Pagar (Período)</span>
-                    <div class="text-2xl font-black text-red-400" id="kpi-pagar">R$ 38.450,00</div>
-                    <span class="text-[10px] text-slate-500">Vencimentos próximos</span>
+                    <span class="text-[11px] font-bold text-slate-400 uppercase">Contas a Pagar</span>
+                    <div class="text-2xl font-black text-red-400" id="kpi-pagar">R$ 0,00</div>
+                    <span class="text-[10px] text-slate-500">Pendentes na nuvem</span>
                 </div>
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-1">
                     <span class="text-[11px] font-bold text-slate-400 uppercase">Contas a Receber</span>
-                    <div class="text-2xl font-black text-blue-400" id="kpi-receber">R$ 92.100,00</div>
-                    <span class="text-[10px] text-slate-500">Medições & Faturamento</span>
+                    <div class="text-2xl font-black text-blue-400" id="kpi-receber">R$ 0,00</div>
+                    <span class="text-[10px] text-slate-500">A receber e faturadas</span>
                 </div>
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-1">
-                    <span class="text-[11px] font-bold text-slate-400 uppercase">Dívidas / Passivo Total</span>
-                    <div class="text-2xl font-black text-amber-400" id="kpi-dividas">R$ 12.300,00</div>
-                    <span class="text-[10px] text-slate-500">Encargos & Fornecedores</span>
+                    <span class="text-[11px] font-bold text-slate-400 uppercase">Tributos Registados</span>
+                    <div class="text-2xl font-black text-amber-400" id="kpi-tributos">R$ 0,00</div>
+                    <span class="text-[10px] text-slate-500">Obrigações fiscais</span>
                 </div>
             </div>
 
-            <!-- Gráficos Principais (Pagar vs Receber) -->
+            <!-- Gráficos Principais (Pagar vs Receber Reais) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-bold text-amber-400">Contas a Pagar por Período</h3>
+                        <h3 class="text-sm font-bold text-amber-400">Contas a Pagar por Mês (Real)</h3>
                         <span class="text-[10px] bg-red-500/10 text-red-400 px-2.5 py-1 rounded-lg border border-red-500/20 font-bold">Saídas</span>
                     </div>
                     <div class="h-64 relative"><canvas id="graficoPagar"></canvas></div>
                 </div>
                 <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-bold text-amber-400">Contas a Receber por Período</h3>
+                        <h3 class="text-sm font-bold text-amber-400">Contas a Receber por Mês (Real)</h3>
                         <span class="text-[10px] bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-lg border border-blue-500/20 font-bold">Entradas</span>
                     </div>
                     <div class="h-64 relative"><canvas id="graficoReceber"></canvas></div>
@@ -219,12 +212,15 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        let chartPagarInstance = null;
+        let chartReceberInstance = null;
+
         window.addEventListener('DOMContentLoaded', () => {
             const usuarioJSON = localStorage.getItem('torquato_user');
             if (!usuarioJSON) { window.location.href = 'login.html'; return; }
             const usuario = JSON.parse(usuarioJSON);
             document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
-            inicializarGraficos();
+            carregarDadosDashboard();
         });
 
         function sair() {
@@ -232,44 +228,107 @@
             window.location.href = 'login.html';
         }
 
-        function atualizarFiltroPeriodo() {
-            const periodo = document.getElementById('filtro-periodo').value;
-            const containerDatas = document.getElementById('container-datas-personalizadas');
-            if (periodo === 'personalizado') containerDatas.classList.remove('hidden');
-            else containerDatas.classList.add('hidden');
+        async function carregarDadosDashboard() {
+            // 1. Buscar Saldo das Contas Bancárias
+            const { data: bancos } = await supabaseClient.from('financeiro_contas_bancarias').select('saldo_atual');
+            let saldoTotal = 0;
+            if (bancos) {
+                bancos.forEach(b => saldoTotal += Number(b.saldo_atual || 0));
+            }
+            document.getElementById('kpi-saldo').innerText = `R$ ${saldoTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+
+            // 2. Buscar Contas a Pagar
+            const { data: pagar } = await supabaseClient.from('financeiro_contas_pagar').select('*');
+            let totalPagar = 0;
+            const totaisPagarMeses = Array(12).fill(0);
+            if (pagar) {
+                pagar.forEach(p => {
+                    if (p.status !== 'Pago') {
+                        totalPagar += Number(p.valor || 0);
+                    }
+                    // Agrupa por mês baseado no vencimento (ex: DD/MM/YYYY ou YYYY-MM-DD)
+                    if (p.vencimento) {
+                        let mes = extrairMes(p.vencimento);
+                        if (mes >= 0 && mes < 12) {
+                            totaisPagarMeses[mes] += Number(p.valor || 0);
+                        }
+                    }
+                });
+            }
+            document.getElementById('kpi-pagar').innerText = `R$ ${totalPagar.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+
+            // 3. Buscar Contas a Receber
+            const { data: receber } = await supabaseClient.from('financeiro_contas_receber').select('*');
+            let totalReceber = 0;
+            const totaisReceberMeses = Array(12).fill(0);
+            if (receber) {
+                receber.forEach(r => {
+                    if (r.status !== 'Recebida') {
+                        totalReceber += Number(r.valor || 0);
+                    }
+                    if (r.vencimento) {
+                        let mes = extrairMes(r.vencimento);
+                        if (mes >= 0 && mes < 12) {
+                            totaisReceberMeses[mes] += Number(r.valor || 0);
+                        }
+                    }
+                });
+            }
+            document.getElementById('kpi-receber').innerText = `R$ ${totalReceber.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+
+            // 4. Buscar Tributos
+            const { data: tributos } = await supabaseClient.from('financeiro_tributos').select('valor_total');
+            let totalTributos = 0;
+            if (tributos) {
+                tributos.forEach(t => totalTributos += Number(t.valor_total || 0));
+            }
+            document.getElementById('kpi-tributos').innerText = `R$ ${totalTributos.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+
+            // Atualiza os Gráficos com os dados reais do Supabase
+            atualizarGraficos(totaisPagarMeses, totaisReceberMeses);
         }
 
-        function aplicarFiltroData() {
-            const inicio = document.getElementById('data-inicio').value;
-            const fim = document.getElementById('data-fim').value;
-            if(!inicio || !fim) { alert('Selecione ambas as datas para o filtro personalizado.'); return; }
-            alert(`Filtrando dados de ${inicio} até ${fim}`);
+        function extrairMes(dataStr) {
+            // Suporta formatos DD/MM/YYYY ou YYYY-MM-DD
+            if (dataStr.includes('/')) {
+                const partes = dataStr.split('/');
+                if (partes.length === 3) return parseInt(partes[1], 10) - 1;
+            } else if (dataStr.includes('-')) {
+                const partes = dataStr.split('-');
+                if (partes.length === 3) return parseInt(partes[1], 10) - 1;
+            }
+            return -1;
         }
 
-        function inicializarGraficos() {
+        function atualizarGraficos(dadosPagar, dadosReceber) {
             const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            
+            // Gráfico Contas a Pagar
             const ctxPagar = document.getElementById('graficoPagar').getContext('2d');
-            new Chart(ctxPagar, {
+            if (chartPagarInstance) chartPagarInstance.destroy();
+            chartPagarInstance = new Chart(ctxPagar, {
                 type: 'bar',
                 data: {
                     labels: meses,
                     datasets: [{
                         label: 'Contas a Pagar (R$)',
-                        data: [12000, 19000, 15000, 22000, 18000, 25000, 31000, 28000, 24000, 38450, 0, 0],
+                        data: dadosPagar,
                         backgroundColor: 'rgba(239, 68, 68, 0.7)', borderRadius: 6
                     }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
 
+            // Gráfico Contas a Receber
             const ctxReceber = document.getElementById('graficoReceber').getContext('2d');
-            new Chart(ctxReceber, {
+            if (chartReceberInstance) chartReceberInstance.destroy();
+            chartReceberInstance = new Chart(ctxReceber, {
                 type: 'line',
                 data: {
                     labels: meses,
                     datasets: [{
                         label: 'Contas a Receber (R$)',
-                        data: [45000, 52000, 48000, 61000, 55000, 70000, 85000, 78000, 82000, 92100, 0, 0],
+                        data: dadosReceber,
                         borderColor: 'rgb(59, 130, 246)', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.3
                     }]
                 },
