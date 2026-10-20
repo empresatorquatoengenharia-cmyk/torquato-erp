@@ -166,7 +166,7 @@
                         <h2 class="text-xl font-bold text-white">Entradas Pendentes de Conferência</h2>
                         <p class="text-xs text-slate-400">Verifique os materiais entregues nas obras reais cadastradas.</p>
                     </div>
-                    <select id="filtro-local-entrada" onchange="carregarEntradas()" class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500">
+                    <select id="filtro-local-entrada" onchange="carregarEntradasSupabase()" class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500">
                         <option value="Todos">Todos os Locais</option>
                     </select>
                 </div>
@@ -198,7 +198,7 @@
                     <p class="text-xs text-slate-400">Transfira insumos entre a Matriz e as obras ativas no sistema.</p>
                 </div>
 
-                <form onsubmit="executarTransferencia(event)" class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-6 max-w-3xl">
+                <form onsubmit="executarTransferenciaSupabase(event)" class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-6 max-w-3xl">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                         <div>
                             <label class="block text-slate-400 font-bold mb-1">Local Origem *</label>
@@ -215,7 +215,7 @@
                         <div>
                             <label class="block text-slate-400 font-bold mb-1">Produto / Insumo *</label>
                             <select id="transf-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                                <option value="">A carregar produtos de produtos_erp...</option>
+                                <option value="">A carregar produtos...</option>
                             </select>
                         </div>
                         <div>
@@ -269,7 +269,7 @@
                 <button type="button" onclick="fecharModalNovaEntrada()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
 
-            <form onsubmit="salvarNovaEntrada(event)" class="space-y-4 text-xs">
+            <form onsubmit="salvarNovaEntradaSupabase(event)" class="space-y-4 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Fornecedor / Origem *</label>
                     <select id="nova-origem" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
@@ -285,7 +285,7 @@
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Produto / Insumo *</label>
                     <select id="nova-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
-                        <option value="">A carregar produtos de produtos_erp...</option>
+                        <option value="">A carregar produtos...</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -313,7 +313,7 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
                     <h3 class="text-base font-bold text-white">Conferir Entrada de Material</h3>
-                    <p class="text-xs text-slate-400">Confirme a quantidade recebida para atualizar o stock da obra.</p>
+                    <p class="text-xs text-slate-400">Confirme a quantidade recebida para atualizar o stock e integrar o Balanço.</p>
                 </div>
                 <button type="button" onclick="fecharModalConferir()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -344,7 +344,7 @@
 
             <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4 text-xs">
                 <button type="button" onclick="fecharModalConferir()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
-                <button type="button" onclick="finalizarConferencia()" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Aprovar & Atualizar Estoque</button>
+                <button type="button" onclick="finalizarConferenciaSupabase()" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Aprovar & Atualizar Estoque</button>
             </div>
         </div>
     </div>
@@ -357,10 +357,6 @@
         let cacheLocais = [];
         let cacheProdutos = [];
         let cacheFornecedores = [];
-        let listaEntradasPendentes = [
-            { id: 1, codigo: '8491', origem: 'Torquato Engenharia (Matriz)', destino: 'Torquato Engenharia - Matriz', produto: 'Areia Fina', previsto: 50, nfe: '#4921', status: 'Pendente' }
-        ];
-        let listaEntradasFinalizadas = [];
         let entradaEmConferencia = null;
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -368,8 +364,7 @@
             carregarLocaisEObras();
             carregarProdutos();
             carregarFornecedores();
-            carregarEntradas();
-            carregarFinalizadas();
+            carregarEntradasSupabase();
         });
 
         function verificarSessao() {
@@ -395,12 +390,14 @@
             if (aba === 'pendentes') {
                 document.getElementById('secao-pendentes').classList.remove('hidden');
                 document.getElementById('btn-aba-pendentes').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+                carregarEntradasSupabase();
             } else if (aba === 'transferencia') {
                 document.getElementById('secao-transferencia').classList.remove('hidden');
                 document.getElementById('btn-aba-transferencia').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
             } else {
                 document.getElementById('secao-finalizadas').classList.remove('hidden');
                 document.getElementById('btn-aba-finalizadas').className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+                carregarFinalizadasSupabase();
             }
         }
 
@@ -424,54 +421,49 @@
             const selectProd = document.getElementById('nova-produto');
             const selectTransf = document.getElementById('transf-produto');
 
-            // Puxa estritamente a coluna 'nome' da tabela 'produtos_erp'
             const { data, error } = await supabaseClient.from('produtos_erp').select('nome').order('nome', { ascending: true });
 
             if (error) {
                 console.error("Erro ao carregar produtos_erp:", error);
-                const errOpt = `<option value="">Erro ao carregar produtos</option>`;
-                selectProd.innerHTML = errOpt;
-                selectTransf.innerHTML = errOpt;
                 return;
             }
 
             cacheProdutos = data || [];
-
             if (cacheProdutos.length > 0) {
                 const opts = '<option value="">Selecione um produto cadastrado...</option>' + 
                     cacheProdutos.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
                 selectProd.innerHTML = opts;
                 selectTransf.innerHTML = opts;
-            } else {
-                const vazioOpt = '<option value="">Nenhum produto encontrado na tabela produtos_erp</option>';
-                selectProd.innerHTML = vazioOpt;
-                selectTransf.innerHTML = vazioOpt;
             }
         }
 
         async function carregarFornecedores() {
             let fornecedoresSet = new Set(['Torquato Engenharia (Matriz)']);
-            
-            const { data } = await supabaseClient.from('financeiro_contas_pagar').select('beneficiario');
+            const { data } = await supabaseClient.from('fornecedores').select('nome');
             if (data && data.length > 0) {
-                data.forEach(item => {
-                    if (item.beneficiario) fornecedoresSet.add(item.beneficiario);
-                });
+                data.forEach(f => fornecedoresSet.add(f.nome));
             }
 
             cacheFornecedores = Array.from(fornecedoresSet);
             const selectOrigem = document.getElementById('nova-origem');
-            selectOrigem.innerHTML = '<option value="">Selecione um fornecedor cadastrado...</option>' + cacheFornecedores.map(f => `<option value="${f}">${f}</option>`).join('');
+            selectOrigem.innerHTML = '<option value="">Selecione um fornecedor...</option>' + cacheFornecedores.map(f => `<option value="${f}">${f}</option>`).join('');
         }
 
-        function carregarEntradas() {
+        async function carregarEntradasSupabase() {
             const filtro = document.getElementById('filtro-local-entrada').value;
             const tbody = document.getElementById('tabela-pendentes-corpo');
 
-            const filtradas = filtro === 'Todos' ? listaEntradasPendentes : listaEntradasPendentes.filter(e => e.destino === filtro);
+            const { data, error } = await supabaseClient.from('suprimentos_entradas_estoque').select('*').eq('status', 'Pendente').order('id', { ascending: false });
+
+            if (error || !data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma entrada pendente encontrada.</td></tr>`;
+                return;
+            }
+
+            const filtradas = filtro === 'Todos' ? data : data.filter(e => e.destino === filtro);
 
             if (filtradas.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma entrada pendente.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma entrada pendente para este local.</td></tr>`;
                 return;
             }
 
@@ -484,7 +476,7 @@
                     <td class="p-4 text-center font-bold text-white">${e.previsto}</td>
                     <td class="p-4 text-slate-400">${e.nfe}</td>
                     <td class="p-4 text-right">
-                        <button onclick="abrirModalConferir(${e.id})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">
+                        <button onclick='abrirModalConferir(${JSON.stringify(e)})' class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">
                             Conferir & Dar Entrada
                         </button>
                     </td>
@@ -492,20 +484,22 @@
             `).join('');
         }
 
-        function carregarFinalizadas() {
+        async function carregarFinalizadasSupabase() {
             const tbody = document.getElementById('tabela-finalizadas-corpo');
-            if (listaEntradasFinalizadas.length === 0) {
+            const { data, error } = await supabaseClient.from('suprimentos_entradas_estoque').select('*').eq('status', 'Concluído').order('id', { ascending: false });
+
+            if (error || !data || data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Nenhuma entrada finalizada registada.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = listaEntradasFinalizadas.map(e => `
+            tbody.innerHTML = data.map(e => `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
                     <td class="p-4 font-bold text-amber-400">#${e.codigo}</td>
                     <td class="p-4 text-slate-300">${e.origem}</td>
                     <td class="p-4 font-medium text-white">${e.destino}</td>
                     <td class="p-4 text-amber-300">${e.produto}</td>
-                    <td class="p-4 text-center font-bold text-emerald-400">${e.recebido}</td>
+                    <td class="p-4 text-center font-bold text-emerald-400">${e.recebido || e.previsto}</td>
                     <td class="p-4 text-slate-400">${e.nfe}</td>
                     <td class="p-4 text-center"><span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded text-[10px] font-bold">Concluído ✓</span></td>
                 </tr>
@@ -522,7 +516,7 @@
             document.getElementById('modal-nova-entrada').classList.add('hidden');
         }
 
-        function salvarNovaEntrada(e) {
+        async function salvarNovaEntradaSupabase(e) {
             e.preventDefault();
             const origem = document.getElementById('nova-origem').value;
             const destino = document.getElementById('nova-destino').value;
@@ -531,33 +525,35 @@
             const nfe = document.getElementById('nova-nfe').value.trim() || '-';
 
             const nova = {
-                id: Date.now(),
                 codigo: String(Math.floor(1000 + Math.random() * 9000)),
                 origem,
                 destino,
                 produto,
                 previsto,
+                recebido: 0,
                 nfe,
                 status: 'Pendente'
             };
 
-            listaEntradasPendentes.unshift(nova);
-            carregarEntradas();
-            fecharModalNovaEntrada();
-            alert('Nova entrada lançada com sucesso!');
+            const { error } = await supabaseClient.from('suprimentos_entradas_estoque').insert([nova]);
+
+            if (error) {
+                alert('Erro ao guardar entrada: ' + error.message);
+            } else {
+                alert('Nova entrada lançada com sucesso!');
+                fecharModalNovaEntrada();
+                carregarEntradasSupabase();
+            }
         }
 
-        function abrirModalConferir(id) {
-            entradaEmConferencia = listaEntradasPendentes.find(e => e.id === id);
-            if (!entradaEmConferencia) return;
-
-            document.getElementById('conf-origem').innerText = entradaEmConferencia.origem;
-            document.getElementById('conf-destino').innerText = entradaEmConferencia.destino;
-            document.getElementById('conf-nfe').innerText = entradaEmConferencia.nfe;
-            document.getElementById('conf-produto').value = entradaEmConferencia.produto;
-            document.getElementById('conf-previsto').value = entradaEmConferencia.previsto;
-            document.getElementById('conf-recebido').value = entradaEmConferencia.previsto;
-
+        function abrirModalConferir(item) {
+            entradaEmConferencia = item;
+            document.getElementById('conf-origem').innerText = item.origem;
+            document.getElementById('conf-destino').innerText = item.destino;
+            document.getElementById('conf-nfe').innerText = item.nfe;
+            document.getElementById('conf-produto').value = item.produto;
+            document.getElementById('conf-previsto').value = item.previsto;
+            document.getElementById('conf-recebido').value = item.previsto;
             document.getElementById('modal-conferir').classList.remove('hidden');
         }
 
@@ -565,34 +561,58 @@
             document.getElementById('modal-conferir').classList.add('hidden');
         }
 
-        async function finalizarConferencia() {
+        async function finalizarConferenciaSupabase() {
+            if (!entradaEmConferencia) return;
             const recebido = Number(document.getElementById('conf-recebido').value);
-            
-            listaEntradasPendentes = listaEntradasPendentes.filter(e => e.id !== entradaEmConferencia.id);
-            entradaEmConferencia.recebido = recebido;
-            listaEntradasFinalizadas.unshift(entradaEmConferencia);
 
-            alert(`Entrada nº ${entradaEmConferencia.codigo} aprovada com sucesso!\nEstoque atualizado na obra: ${entradaEmConferencia.destino}.`);
-            fecharModalConferir();
-            carregarEntradas();
-            carregarFinalizadas();
+            // Atualiza o status para Concluído na tabela do Supabase (integrando automaticamente com o Balanço de Estoque)
+            const { error } = await supabaseClient
+                .from('suprimentos_entradas_estoque')
+                .update({ recebido: recebido, status: 'Concluído' })
+                .eq('id', entradaEmConferencia.id);
+
+            if (error) {
+                alert('Erro ao atualizar conferência: ' + error.message);
+            } else {
+                alert(`Entrada nº ${entradaEmConferencia.codigo} aprovada com sucesso!\nEstoque atualizado na obra: ${entradaEmConferencia.destino} e integrado ao Balanço.`);
+                fecharModalConferir();
+                carregarEntradasSupabase();
+            }
         }
 
-        async function executarTransferencia(e) {
+        async function executarTransferenciaSupabase(e) {
             e.preventDefault();
             const origem = document.getElementById('transf-origem').value;
             const destino = document.getElementById('transf-destino').value;
             const produto = document.getElementById('transf-produto').value;
-            const qtd = document.getElementById('transf-qtd').value;
+            const qtd = Number(document.getElementById('transf-qtd').value);
 
             if (origem === destino) {
                 alert('O local de origem e destino não podem ser iguais.');
                 return;
             }
 
-            alert(`Transferência efetuada com sucesso!\n${qtd} un de "${produto}" transferidos de ${origem} para ${destino}.`);
-            document.getElementById('transf-qtd').value = '';
-            mudarAba('pendentes');
+            // Regista a transferência como concluída no estoque para movimentar as obras reais e alimentar o balanço
+            const transferencia = {
+                codigo: String(Math.floor(1000 + Math.random() * 9000)),
+                origem: origem,
+                destino: destino,
+                produto: produto,
+                previsto: qtd,
+                recebido: qtd,
+                nfe: 'Transferência Interna',
+                status: 'Concluído'
+            };
+
+            const { error } = await supabaseClient.from('suprimentos_entradas_estoque').insert([transferencia]);
+
+            if (error) {
+                alert('Erro ao efetuar transferência: ' + error.message);
+            } else {
+                alert(`Transferência efetuada com sucesso!\n${qtd} un de "${produto}" transferidos de ${origem} para ${destino}.`);
+                document.getElementById('transf-qtd').value = '';
+                mudarAba('finalizadas');
+            }
         }
     </script>
 </body>
