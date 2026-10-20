@@ -150,18 +150,15 @@
             <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
                 <div>
                     <h2 class="text-xl font-bold text-white">Catálogo Geral de Produtos e Insumos</h2>
-                    <p class="text-xs text-slate-400">Central de cadastro de materiais, equipamentos e insumos de obra.</p>
+                    <p class="text-xs text-slate-400">Central de cadastro de materiais, equipamentos e insumos de obra integrados à nuvem.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <button onclick="alternarPopoverFiltros()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer">
                         <span>🔍</span>
-                        <span>Adicionar filtro</span>
+                        <span>Filtros</span>
                     </button>
                     <button onclick="abrirModalProduto()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer shadow-lg">
                         + Novo Produto
-                    </button>
-                    <button onclick="abrirModalAjustar()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
-                        Ajustar Produtos
                     </button>
                 </div>
             </div>
@@ -204,14 +201,13 @@
                                 <th class="p-4">Produto / Material</th>
                                 <th class="p-4">Apelido</th>
                                 <th class="p-4">Tipo</th>
-                                <th class="p-4">Categoria</th>
-                                <th class="p-4">Subcategoria</th>
+                                <th class="p-4">Unidade</th>
                                 <th class="p-4">Status</th>
                                 <th class="p-4 text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="tabela-produtos-corpo" class="divide-y divide-slate-800/60">
-                            <tr><td colspan="8" class="p-4 text-center text-slate-500">A carregar produtos do Supabase...</td></tr>
+                            <tr><td colspan="7" class="p-4 text-center text-slate-500">A carregar produtos do Supabase...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -243,28 +239,29 @@
                     </select>
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-slate-400 font-bold mb-1">Nome do Produto</label>
-                    <input type="text" id="prod-nome" required placeholder="Ex: Adaptador roscável para caixa d'água" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                    <label class="block text-slate-400 font-bold mb-1">Nome do Produto *</label>
+                    <input type="text" id="prod-nome" required placeholder="Ex: Cimento CP II 50kg" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
                 </div>
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Apelido / Nome Comercial</label>
-                    <input type="text" id="prod-apelido" placeholder="Ex: Adaptador 3/4" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                    <input type="text" id="prod-apelido" placeholder="Ex: Cimento" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
                 </div>
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Unidade de Medida</label>
-                    <select id="prod-unidade" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></select>
-                </div>
-                <div>
-                    <label class="block text-slate-400 font-bold mb-1">Categoria</label>
-                    <select id="prod-categoria" onchange="carregarSubcategoriasSelect()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></select>
-                </div>
-                <div>
-                    <label class="block text-slate-400 font-bold mb-1">Subcategoria</label>
-                    <select id="prod-subcategoria" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></select>
+                    <select id="prod-unidade" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                        <option value="UN">UN - Unidade</option>
+                        <option value="SC">SC - Saco</option>
+                        <option value="KG">KG - Quilograma</option>
+                        <option value="M">M - Metro</option>
+                        <option value="M2">M² - Metro Quadrado</option>
+                        <option value="M3">M³ - Metro Cúbico</option>
+                        <option value="L">L - Litro</option>
+                        <option value="BARRA">Barra</option>
+                    </select>
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-slate-400 font-bold mb-1">Especificações Técnicas / Embalagem</label>
-                    <textarea id="prod-especificacoes" rows="2" placeholder="Descreva especificações técnicas e embalagens personalizadas..." class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></textarea>
+                    <label class="block text-slate-400 font-bold mb-1">Especificações Técnicas / Observações</label>
+                    <textarea id="prod-especificacoes" rows="2" placeholder="Especificações técnicas..." class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white"></textarea>
                 </div>
 
                 <div class="md:col-span-2 flex justify-end space-x-3 pt-3 border-t border-slate-800">
@@ -275,36 +272,13 @@
         </div>
     </div>
 
-    <!-- MODAL DE AJUSTAR PRODUTOS -->
-    <div id="modal-ajustar" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
-            <h3 class="text-base font-bold text-amber-400">Ajustar Produtos</h3>
-            <div class="space-y-3 text-xs">
-                <button onclick="alert('Opção de associar produtos equivalentes ativada!')" class="w-full text-left p-3 bg-slate-950 border border-slate-800 hover:border-amber-500/50 rounded-xl transition font-bold text-white">
-                    🔗 Associar produtos equivalentes
-                </button>
-                <button onclick="alert('Selecione os produtos para mover de subcategoria!')" class="w-full text-left p-3 bg-slate-950 border border-slate-800 hover:border-amber-500/50 rounded-xl transition font-bold text-white">
-                    📂 Mover produtos para outra subcategoria
-                </button>
-            </div>
-            <div class="flex justify-end pt-2">
-                <button onclick="fecharModalAjustar()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Fechar</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let listaUnidades = [];
-        let listaCategorias = [];
-        let listaSubcategorias = [];
-
         window.addEventListener('DOMContentLoaded', async () => {
             verificarSessao();
-            await carregarAuxiliares();
             await carregarProdutos();
         });
 
@@ -323,72 +297,50 @@
             window.location.href = 'login.html';
         }
 
-        async function carregarAuxiliares() {
-            const { data: u } = await supabaseClient.from('unidades_medida').select('*');
-            const { data: c } = await supabaseClient.from('categorias_produtos').select('*');
-            const { data: s } = await supabaseClient.from('subcategorias_produtos').select('*');
-
-            listaUnidades = u || [];
-            listaCategorias = c || [];
-            listaSubcategorias = s || [];
-
-            document.getElementById('prod-unidade').innerHTML = listaUnidades.map(un => `<option value="${un.id}">${un.sigla} - ${un.descricao}</option>`).join('');
-            document.getElementById('prod-categoria').innerHTML = listaCategorias.map(cat => `<option value="${cat.id}">${cat.nome}</option>`).join('');
-            carregarSubcategoriasSelect();
-        }
-
-        function carregarSubcategoriasSelect() {
-            const catId = document.getElementById('prod-categoria').value;
-            const subsFiltradas = listaSubcategorias.filter(sub => String(sub.categoria_id) === String(catId));
-            document.getElementById('prod-subcategoria').innerHTML = subsFiltradas.length > 0
-                ? subsFiltradas.map(s => `<option value="${s.id}">${s.nome}</option>`).join('')
-                : '<option value="">Sem subcategoria</option>';
-        }
-
         async function carregarProdutos() {
             const corpo = document.getElementById('tabela-produtos-corpo');
             const busca = document.getElementById('filtro-busca').value.toLowerCase();
             const tipo = document.getElementById('filtro-tipo').value;
             const status = document.getElementById('filtro-status').value;
 
-            let query = supabaseClient.from('produtos_erp').select('*, categorias_produtos(nome), subcategorias_produtos(nome)');
+            let query = supabaseClient.from('produtos_erp').select('*');
 
             if (status === 'ativo') query = query.eq('ativo', true);
             else if (status === 'inativo') query = query.eq('ativo', false);
 
             if (tipo !== 'todos') query = query.eq('tipo', tipo);
 
-            const { data, error } = await query.order('id', { ascending: true });
+            const { data, error } = await query.order('id', { ascending: false });
 
             if (error) {
-                corpo.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-red-400">Erro: ${error.message}</td></tr>`;
+                corpo.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-400">Erro ao carregar: ${error.message}</td></tr>`;
                 return;
             }
 
             let filtrados = data || [];
             if (busca) {
-                filtrados = filtrados.filter(p => p.nome.toLowerCase().includes(busca) || (p.codigo && p.codigo.toLowerCase().includes(busca)));
+                filtrados = filtrados.filter(p => (p.nome || '').toLowerCase().includes(busca) || (p.codigo || '').toLowerCase().includes(busca));
             }
 
             if (filtrados.length === 0) {
-                corpo.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-500">Nenhum produto cadastrado.</td></tr>`;
+                corpo.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">Nenhum produto cadastrado. Clique em "+ Novo Produto".</td></tr>`;
                 return;
             }
 
             corpo.innerHTML = filtrados.map(p => `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                    <td class="p-4 font-bold text-amber-400">${p.codigo || p.id}</td>
+                    <td class="p-4 font-bold text-amber-400">#${p.codigo || p.id}</td>
                     <td class="p-4 font-medium text-white">${p.nome}</td>
                     <td class="p-4 text-slate-400">${p.apelido || '-'}</td>
-                    <td class="p-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${p.tipo === 'Equipamento' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}">${p.tipo}</span></td>
-                    <td class="p-4 text-slate-300">${p.categorias_produtos?.nome || '-'}</td>
-                    <td class="p-4 text-slate-400">${p.subcategorias_produtos?.nome || '-'}</td>
+                    <td class="p-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${p.tipo || 'Material'}</span></td>
+                    <td class="p-4 text-slate-300">${p.unidade || 'UN'}</td>
                     <td class="p-4">
-                        <button onclick="alternarStatusProduto(${p.id}, ${p.ativo})" class="px-2 py-0.5 rounded text-[10px] font-bold ${p.ativo ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}">
-                            ${p.ativo ? '● Ativo' : '○ Inativo'}
+                        <button onclick="alternarStatusProduto(${p.id}, ${p.ativo})" class="px-2 py-0.5 rounded text-[10px] font-bold ${p.ativo !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}">
+                            ${p.ativo !== false ? '● Ativo' : '○ Inativo'}
                         </button>
                     </td>
-                    <td class="p-4 text-right">
+                    <td class="p-4 text-right space-x-2">
+                        <button onclick="editarProduto(${p.id}, '${p.codigo || ''}', '${p.nome}', '${p.apelido || ''}', '${p.tipo || 'Material'}', '${p.unidade || 'UN'}', '${p.especificacoes || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg text-[10px] font-bold">Editar</button>
                         <button onclick="excluirProduto(${p.id})" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px]">Excluir</button>
                     </td>
                 </tr>
@@ -401,7 +353,7 @@
 
         function abrirModalProduto() {
             document.getElementById('prod-id').value = '';
-            document.getElementById('prod-codigo').value = '[ Gerado Automático ]';
+            document.getElementById('prod-codigo').value = Math.floor(1000 + Math.random() * 9000);
             document.getElementById('prod-nome').value = '';
             document.getElementById('prod-apelido').value = '';
             document.getElementById('prod-especificacoes').value = '';
@@ -409,53 +361,33 @@
             document.getElementById('modal-produto').classList.remove('hidden');
         }
 
+        function editarProduto(id, codigo, nome, apelido, tipo, unidade, especificacoes) {
+            document.getElementById('prod-id').value = id;
+            document.getElementById('prod-codigo').value = codigo;
+            document.getElementById('prod-nome').value = nome;
+            document.getElementById('prod-apelido').value = apelido;
+            document.getElementById('prod-tipo').value = tipo;
+            document.getElementById('prod-unidade').value = unidade;
+            document.getElementById('prod-especificacoes').value = especificacoes;
+            document.getElementById('modal-produto-titulo').innerText = 'Editar Produto / Insumo';
+            document.getElementById('modal-produto').classList.remove('hidden');
+        }
+
         function fecharModalProduto() {
             document.getElementById('modal-produto').classList.add('hidden');
-        }
-
-        function abrirModalAjustar() {
-            document.getElementById('modal-ajustar').classList.remove('hidden');
-        }
-
-        function fecharModalAjustar() {
-            document.getElementById('modal-ajustar').classList.add('hidden');
-        }
-
-        async function gerarProximoCodigo() {
-            const { data } = await supabaseClient.from('produtos_erp').select('codigo');
-            let maiorCodigo = 0;
-
-            if (data && data.length > 0) {
-                data.forEach(item => {
-                    const num = parseInt(item.codigo, 10);
-                    if (!isNaN(num) && num > maiorCodigo) {
-                        maiorCodigo = num;
-                    }
-                });
-            }
-            return String(maiorCodigo + 1);
         }
 
         async function salvarProduto(e) {
             e.preventDefault();
             const prodId = document.getElementById('prod-id').value;
-            let codigoFinal = document.getElementById('prod-codigo').value;
+            const codigo = document.getElementById('prod-codigo').value;
+            const nome = document.getElementById('prod-nome').value.trim();
+            const apelido = document.getElementById('prod-apelido').value.trim();
+            const tipo = document.getElementById('prod-tipo').value;
+            const unidade = document.getElementById('prod-unidade').value;
+            const especificacoes = document.getElementById('prod-especificacoes').value.trim();
 
-            if (!prodId || codigoFinal === '[ Gerado Automático ]') {
-                codigoFinal = await gerarProximoCodigo();
-            }
-
-            const payload = {
-                codigo: codigoFinal,
-                nome: document.getElementById('prod-nome').value.trim(),
-                apelido: document.getElementById('prod-apelido').value.trim(),
-                tipo: document.getElementById('prod-tipo').value,
-                unidade_medida_id: document.getElementById('prod-unidade').value || null,
-                categoria_id: document.getElementById('prod-categoria').value || null,
-                subcategoria_id: document.getElementById('prod-subcategoria').value || null,
-                especificacoes: document.getElementById('prod-especificacoes').value.trim(),
-                ativo: true
-            };
+            const payload = { codigo, nome, apelido, tipo, unidade, especificacoes, ativo: true };
 
             let res;
             if (prodId) {
@@ -467,14 +399,15 @@
             if (res.error) {
                 alert('Erro ao guardar produto: ' + res.error.message);
             } else {
-                alert(`Produto cadastrado com sucesso! Código atribuído: ${codigoFinal}`);
+                alert('Produto guardado com sucesso na nuvem!');
                 fecharModalProduto();
                 carregarProdutos();
             }
         }
 
         async function alternarStatusProduto(id, statusAtual) {
-            await supabaseClient.from('produtos_erp').update({ ativo: !statusAtual }).eq('id', id);
+            const novoStatus = statusAtual === false ? true : false;
+            await supabaseClient.from('produtos_erp').update({ ativo: novoStatus }).eq('id', id);
             carregarProdutos();
         }
 
