@@ -265,8 +265,8 @@
                     </div>
                 </div>
                 <div class="flex justify-end space-x-3 border-t border-slate-800 pt-4">
-                    <button type="button" onclick="fecharModalNovaConta()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl shadow-lg">Salvar na Nuvem</button>
+                    <button type="button" onclick="fecharModalNovaConta()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg cursor-pointer">Salvar na Nuvem</button>
                 </div>
             </form>
         </div>
@@ -300,7 +300,7 @@
         async function carregarBancosSelect() {
             const { data } = await supabaseClient.from('financeiro_contas_bancarias').select('*');
             const select = document.getElementById('pag-conta-banco');
-            if (data && data.length > 0) {
+            if (select && data && data.length > 0) {
                 select.innerHTML = data.map(b => `<option value="${b.nome}">${b.nome} (Saldo: R$ ${Number(b.saldo_atual || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})})</option>`).join('');
             }
         }
@@ -310,14 +310,26 @@
             const statusFiltro = document.getElementById('filtro-status').value;
             const tbody = document.getElementById('tabela-contas-corpo');
 
+            // 1. Busca todas as contas a pagar
             let query = supabaseClient.from('financeiro_contas_pagar').select('*');
             if (obraFiltro !== 'Todos') query = query.eq('obra', obraFiltro);
             if (statusFiltro !== 'Todos') query = query.eq('status', statusFiltro);
 
-            const { data, error } = await query;
+            const { data: contasData, error } = await query;
             if (error) { tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-400">Erro: ${error.message}</td></tr>`; return; }
 
-            const lista = data || [];
+            // 2. Busca todos os tributos ativos na base para garantir que órfãos sejam filtrados caso ainda existam
+            const { data: tributosData } = await supabaseClient.from('financeiro_tributos').select('codigo');
+            const codigosTributosValidos = new Set((tributosData || []).map(t => String(t.codigo)));
+
+            // Filtra contas a pagar: se for etiqueta de tributo, o código DESEJA existir na tabela de tributos
+            let lista = (contasData || []).filter(c => {
+                if (c.etiqueta && c.etiqueta.startsWith('Tributo -')) {
+                    return codigosTributosValidos.has(String(c.codigo));
+                }
+                return true; // Contas normais continuam aparecendo
+            });
+
             let totalGeral = 0, totalPago = 0, totalNaoPago = 0;
 
             lista.forEach(c => {
@@ -398,7 +410,6 @@
             if (fileCupom) cupomUrl = await fazerUploadSupabase(fileCupom, 'cupom');
             if (fileComprovante) comprovanteUrl = await fazerUploadSupabase(fileComprovante, 'comprovante');
 
-            // 1. Atualiza a conta a pagar para Paga
             const { error } = await supabaseClient.from('financeiro_contas_pagar').update({
                 status: 'Paga',
                 pago_em: dataPagFormatada,
@@ -413,7 +424,6 @@
                 return;
             }
 
-            // 2. Debita o valor do saldo da conta bancária selecionada
             const { data: bancoData } = await supabaseClient.from('financeiro_contas_bancarias').select('*').eq('nome', bancoNome).single();
             if (bancoData) {
                 const novoSaldo = Number(bancoData.saldo_atual || 0) - valorPago;
