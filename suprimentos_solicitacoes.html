@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Torquato ERP - Solicitações & Compras</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col m-0">
 
-    <!-- Header Principal -->
     <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center space-x-3">
             <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
@@ -26,176 +23,69 @@
         </div>
     </header>
 
-    <!-- Layout Principal -->
     <div class="flex flex-1">
-        <!-- Sidebar de Navegação Unificada -->
         <aside class="w-64 bg-slate-900/50 border-r border-slate-800/80 p-4 space-y-6 flex flex-col justify-between min-h-[calc(100vh-73px)]">
             <div class="space-y-6">
                 <div>
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
                     <nav class="space-y-1 text-xs">
                         <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📊</span>
-                            <span>Dashboard Executivo</span>
+                            <span>📊</span><span>Dashboard Executivo</span>
                         </a>
                     </nav>
                 </div>
-
-                <div>
-                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Comercial</p>
-                    <nav class="space-y-1 text-xs">
-                        <a href="vendas_empreendimentos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏢</span>
-                            <span>Empreendimentos & Obras</span>
-                        </a>
-                        <a href="vendas_clientes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>👥</span>
-                            <span>Clientes & Compradores</span>
-                        </a>
-                        <a href="vendas_propostas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📄</span>
-                            <span>Propostas Comerciais</span>
-                        </a>
-                        <a href="vendas_imoveis.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏡</span>
-                            <span>Vendas & Contratos</span>
-                        </a>
-                    </nav>
-                </div>
-
                 <div>
                     <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏷️</span>
-                            <span>Produtos & Insumos</span>
-                        </a>
-                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📍</span>
-                            <span>Locais de Estoque</span>
-                        </a>
-                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🚚</span>
-                            <span>Entradas & Transferências</span>
-                        </a>
-                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
-                            <span>🛒</span>
-                            <span>Solicitações & Compras</span>
-                        </a>
-                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📦</span>
-                            <span>Balanços de Estoque</span>
-                        </a>
-                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>⚙️</span>
-                            <span>Cadastros Gerais</span>
-                        </a>
-                    </nav>
-                </div>
-
-                <div>
-                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
-                    <nav class="space-y-1 text-xs">
-                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>💰</span>
-                            <span>Fluxo de Caixa</span>
-                        </a>
-                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📉</span>
-                            <span>Contas a Pagar</span>
-                        </a>
-                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📈</span>
-                            <span>Contas a Receber</span>
-                        </a>
-                        <a href="financeiro_notas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📄</span>
-                            <span>Notas Fiscais</span>
-                        </a>
-                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏷️</span>
-                            <span>Tributos & Impostos</span>
-                        </a>
-                        <a href="financeiro_contas_bancarias.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏦</span>
-                            <span>Contas Bancárias</span>
-                        </a>
-                        <a href="financeiro_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>⚙️</span>
-                            <span>Indexadores & Regras</span>
-                        </a>
-                    </nav>
-                </div>
-
-                <div>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
-                    <nav class="space-y-1 text-xs">
-                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🛡️</span>
-                            <span>Matriz & Utilizadores</span>
-                        </a>
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🏷️</span><span>Produtos & Insumos</span></a>
+                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📍</span><span>Locais de Estoque</span></a>
+                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🚚</span><span>Entradas & Transferências</span></a>
+                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition"><span>🛒</span><span>Solicitações & Compras</span></a>
+                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📦</span><span>Balanços de Estoque</span></a>
+                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>⚙️</span><span>Cadastros Gerais</span></a>
                     </nav>
                 </div>
             </div>
-
-            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
-                Torquato ERP v1.0 • Minas Gerais
-            </div>
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">Torquato ERP v1.0</div>
         </aside>
 
-        <!-- Conteúdo Central -->
         <main class="flex-1 p-8 max-w-7xl space-y-6">
-            
-            <!-- Barra Superior com Abas e Ações -->
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
                 <div class="flex space-x-2">
                     <button onclick="mudarAba('solicitacoes')" id="btn-aba-solicitacoes" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">Solicitações de Compra</button>
                     <button onclick="mudarAba('aprovacao')" id="btn-aba-aprovacao" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">Aprovação & Integração Financeira</button>
                 </div>
                 <button onclick="abrirModalNovaSolicitacao()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-2">
-                    <span>➕</span>
-                    <span>+ Solicitação</span>
+                    <span>➕</span><span>+ Solicitação</span>
                 </button>
             </div>
 
-            <!-- SEÇÃO 1: SOLICITAÇÕES -->
             <section id="secao-solicitacoes" class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold text-white">Minhas Solicitações e Pedidos</h2>
-                        <p class="text-xs text-slate-400">Acompanhe o status de aprovação em tempo real e prazos de entrega vinculados às obras.</p>
-                    </div>
-                </div>
-
+                <h2 class="text-xl font-bold text-white">Minhas Solicitações e Pedidos</h2>
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr class="border-b border-slate-800 text-slate-400">
                                 <th class="p-4">Solicitação</th>
-                                <th class="p-4">Local de Consumo (Obra / Matriz)</th>
-                                <th class="p-4">Produto (Insumo)</th>
+                                <th class="p-4">Local de Consumo</th>
+                                <th class="p-4">Produto</th>
                                 <th class="p-4">Quantidade</th>
-                                <th class="p-4">Prazo de Entrega</th>
+                                <th class="p-4">Prazo</th>
                                 <th class="p-4">Status</th>
                             </tr>
                         </thead>
                         <tbody id="tabela-solicitacoes-corpo">
-                            <tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar solicitações...</td></tr>
+                            <tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- SEÇÃO 2: APROVAÇÃO E INTEGRAÇÃO COM CONTAS A PAGAR -->
             <section id="secao-aprovacao" class="hidden space-y-4">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold text-white">Aprovação de Solicitações & Envio ao Contas a Pagar</h2>
-                        <p class="text-xs text-slate-400">Ao aprovar o pedido, o sistema gera o compromisso financeiro correspondente automaticamente.</p>
-                    </div>
+                    <h2 class="text-xl font-bold text-white">Aprovação de Solicitações & Contas a Pagar</h2>
                     <button onclick="carregarDadosSupabase()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">Atualizar Lista</button>
                 </div>
-
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
@@ -206,63 +96,55 @@
                                 <th class="p-4">Qtd.</th>
                                 <th class="p-4">Prazo</th>
                                 <th class="p-4">Status</th>
-                                <th class="p-4 text-right">Ações (Aprovar / Reprovar)</th>
+                                <th class="p-4 text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="tabela-aprovacao-corpo">
-                            <tr><td colspan="7" class="p-6 text-center text-slate-500">A carregar painel...</td></tr>
+                            <tr><td colspan="7" class="p-6 text-center text-slate-500">A carregar...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
-
         </main>
     </div>
 
-    <!-- MODAL: NOVA SOLICITAÇÃO -->
     <div id="modal-solicitacao" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <div>
-                    <h3 class="text-base font-bold text-white">Nova Solicitação de Compra</h3>
-                    <p class="text-xs text-slate-400">Selecione o produto da tabela "produtos_erp" e o local de consumo.</p>
-                </div>
+                <h3 class="text-base font-bold text-white">Nova Solicitação de Compra</h3>
                 <button type="button" onclick="fecharModalNovaSolicitacao()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
-
             <form onsubmit="salvarSolicitacaoSupabase(event)" class="space-y-4 text-xs">
                 <div>
-                    <label class="block text-slate-400 font-bold mb-1">Produto / Insumo (Cadastrado) *</label>
-                    <select id="sol-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                    <label class="block text-slate-400 font-bold mb-1">Produto *</label>
+                    <select id="sol-produto" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                         <option value="">A carregar produtos...</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Quantidade *</label>
-                        <input type="number" step="0.01" id="sol-qtd" required placeholder="50" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <input type="number" step="0.01" id="sol-qtd" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                     <div>
-                        <label class="block text-slate-400 font-bold mb-1">Prazo de Entrega *</label>
+                        <label class="block text-slate-400 font-bold mb-1">Prazo *</label>
                         <input type="date" id="sol-prazo" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-slate-400 font-bold mb-1">Local de Consumo (Obra / Matriz) *</label>
-                    <select id="sol-local" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                    <label class="block text-slate-400 font-bold mb-1">Local de Consumo *</label>
+                    <select id="sol-local" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
                         <option value="">A carregar locais...</option>
                     </select>
                 </div>
-
-                <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+                <div class="flex justify-end space-x-3 border-t border-slate-800 pt-4">
                     <button type="button" onclick="fecharModalNovaSolicitacao()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Enviar para Análise</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Enviar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Script Robusto Baseado em ID Numérico -->
     <script>
         const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
@@ -276,9 +158,9 @@
         });
 
         function verificarSessao() {
-            const usuarioJSON = localStorage.getItem('torquato_user');
-            if (!usuarioJSON) { window.location.href = 'login.html'; return; }
-            const usuario = JSON.parse(usuarioJSON);
+            const u = localStorage.getItem('torquato_user');
+            if (!u) { window.location.href = 'login.html'; return; }
+            const usuario = JSON.parse(u);
             document.getElementById('nome-usuario').innerText = usuario.nome + ' (' + usuario.perfil.toUpperCase() + ')';
         }
 
@@ -306,7 +188,7 @@
             const selectProd = document.getElementById('sol-produto');
             const res = await supabaseClient.from('produtos_erp').select('nome').order('nome', { ascending: true });
             if (res.data && res.data.length > 0) {
-                let html = '<option value="">Selecione um produto cadastrado...</option>';
+                let html = '<option value="">Selecione um produto...</option>';
                 res.data.forEach(p => { html += '<option value="' + p.nome + '">' + p.nome + '</option>'; });
                 selectProd.innerHTML = html;
             } else {
@@ -321,7 +203,7 @@
                 res.data.forEach(o => locais.push({ id: o.id, nome: o.nome_obra }));
             }
             const selectLocal = document.getElementById('sol-local');
-            let html = '<option value="">Selecione o local de consumo...</option>';
+            let html = '<option value="">Selecione o local...</option>';
             locais.forEach(l => { html += '<option value="' + l.nome + '">' + l.nome + '</option>'; });
             selectLocal.innerHTML = html;
         }
@@ -358,12 +240,11 @@
                     acoesHtml = '<span class="text-emerald-400 font-bold text-[11px]">Integrado ao Financeiro ✓</span>';
                 } else if (s.status === 'Reprovado') {
                     badgeStatus = '<span class="bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded-full text-[10px] font-bold">Reprovado ✕</span>';
-                    acoesHtml = '<span class="text-rose-400 font-bold text-[11px]">Solicitação Recusada</span>';
+                    acoesHtml = '<span class="text-rose-400 font-bold text-[11px]">Recusado</span>';
                 } else {
-                    // Passa apenas o ID numérico para evitar erros de sintaxe com strings acentuadas
                     acoesHtml = '<div class="flex items-center justify-end space-x-2">' +
-                        '<button type="button" onclick="window.aprovarSolicitacao(' + s.id + ')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">✅ Aprovar</button>' +
-                        '<button type="button" onclick="window.reprovarSolicitacao(' + s.id + ')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">❌ Reprovar</button>' +
+                        '<button type="button" onclick="window.aprovarSolicitacao(' + s.id + ')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">Aprovar</button>' +
+                        '<button type="button" onclick="window.reprovarSolicitacao(' + s.id + ')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg font-bold text-[11px] transition cursor-pointer">Reprovar</button>' +
                     '</div>';
                 }
 
@@ -382,54 +263,36 @@
             tbodyApr.innerHTML = htmlApr;
         }
 
-        // Função global de Aprovação baseada no ID do registo
         window.aprovarSolicitacao = async function(id) {
-            // Busca os dados diretamente do Supabase usando o ID para garantir precisão absoluta
-            const { data: item, error: erroBusca } = await supabaseClient.from('suprimentos_solicitacoes').select('*').eq('id', id).single();
-            if (erroBusca || !item) {
-                alert('Erro ao localizar a solicitação.');
-                return;
-            }
+            const resItem = await supabaseClient.from('suprimentos_solicitacoes').select('*').eq('id', id).single();
+            if (resItem.error || !resItem.data) { alert('Erro ao carregar dados.'); return; }
+            const item = resItem.data;
 
-            if (!confirm('Deseja aprovar a compra de ' + item.qtd + ' un de "' + item.produto + '" para a obra "' + item.obra + '"?\n\nIsso irá atualizar o status e gerar o Contas a Pagar.')) return;
+            if (!confirm('Deseja aprovar a compra de ' + item.qtd + ' un de "' + item.produto + '" para a obra "' + item.obra + '"?')) return;
 
             const resUpdate = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Aprovado / Comprar' }).eq('id', id);
-            if (resUpdate.error) {
-                alert('Erro ao atualizar: ' + resUpdate.error.message);
-                return;
-            }
+            if (resUpdate.error) { alert('Erro: ' + resUpdate.error.message); return; }
 
-            const valorEstimado = Number(item.qtd) * 50.00;
-            const novaContaPagar = {
+            const novaConta = {
                 codigo: item.codigo,
                 nfe: 'Pedido #' + item.codigo,
                 beneficiario: 'Fornecedor de Materiais (' + item.produto + ')',
-                valor: valorEstimado,
+                valor: Number(item.qtd) * 50.00,
                 vencimento: item.prazo,
                 status: 'Pendente',
                 obra: item.obra,
                 etiqueta: 'Compra de Insumos - Obra'
             };
 
-            const resFinanceiro = await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
-            if (resFinanceiro.error) {
-                alert('Aviso: Aprovado, mas erro ao gerar Contas a Pagar: ' + resFinanceiro.error.message);
-            } else {
-                alert('Solicitação aprovada e Contas a Pagar gerado com sucesso!');
-            }
+            await supabaseClient.from('financeiro_contas_pagar').insert([novaConta]);
+            alert('Aprovado e Contas a Pagar gerado com sucesso!');
             carregarDadosSupabase();
         };
 
-        // Função global de Reprovação baseada no ID do registo
         window.reprovarSolicitacao = async function(id) {
-            if (!confirm('Tem certeza que deseja REPROVAR esta solicitação?')) return;
+            if (!confirm('Tem certeza que deseja reprovar esta solicitação?')) return;
             const res = await supabaseClient.from('suprimentos_solicitacoes').update({ status: 'Reprovado' }).eq('id', id);
-            if (res.error) {
-                alert('Erro ao reprovar: ' + res.error.message);
-            } else {
-                alert('Solicitação reprovada com sucesso.');
-                carregarDadosSupabase();
-            }
+            if (res.error) { alert('Erro: ' + res.error.message); } else { alert('Reprovado com sucesso.'); carregarDadosSupabase(); }
         };
 
         function abrirModalNovaSolicitacao() {
@@ -444,30 +307,17 @@
 
         async function salvarSolicitacaoSupabase(e) {
             e.preventDefault();
-            const produto = document.getElementById('sol-produto').value;
-            const qtd = Number(document.getElementById('sol-qtd').value);
-            const prazoIso = document.getElementById('sol-prazo').value;
-            const prazo = prazoIso.split('-').reverse().join('/');
-            const obra = document.getElementById('sol-local').value;
-
-            const novaSolicitacao = {
+            const nova = {
                 codigo: String(Math.floor(1000 + Math.random() * 9000)),
                 solicitante: 'Engenharia Torquato',
-                obra: obra,
-                produto: produto,
-                qtd: qtd,
-                prazo: prazo,
+                obra: document.getElementById('sol-local').value,
+                produto: document.getElementById('sol-produto').value,
+                qtd: Number(document.getElementById('sol-qtd').value),
+                prazo: document.getElementById('sol-prazo').value.split('-').reverse().join('/'),
                 status: 'Em análise'
             };
-
-            const res = await supabaseClient.from('suprimentos_solicitacoes').insert([novaSolicitacao]);
-            if (res.error) {
-                alert('Erro ao guardar: ' + res.error.message);
-            } else {
-                alert('Solicitação criada com sucesso!');
-                fecharModalNovaSolicitacao();
-                carregarDadosSupabase();
-            }
+            const res = await supabaseClient.from('suprimentos_solicitacoes').insert([nova]);
+            if (res.error) { alert('Erro: ' + res.error.message); } else { alert('Criado com sucesso!'); fecharModalNovaSolicitacao(); carregarDadosSupabase(); }
         }
     </script>
 </body>
