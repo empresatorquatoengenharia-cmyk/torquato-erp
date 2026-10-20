@@ -164,7 +164,7 @@
                 </div>
             </div>
 
-            <!-- Filtros Superiores Corrigidos e Dinâmicos -->
+            <!-- Filtros Superiores -->
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Filtrar por Status:</label>
@@ -292,6 +292,77 @@
         </div>
     </div>
 
+    <!-- MODAL: EDITAR TRIBUTO -->
+    <div id="modal-editar-tributo" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-white">Editar Tributo / Imposto</h3>
+                    <p class="text-xs text-slate-400">Atualize os valores e sincronize automaticamente com o Contas a Pagar.</p>
+                </div>
+                <button type="button" onclick="fecharModalEditar()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form onsubmit="atualizarTributoSupabase(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="edit-id">
+                <input type="hidden" id="edit-codigo">
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Tipo de Tributo *</label>
+                        <select id="edit-tipo" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                            <option value="INSS">INSS</option>
+                            <option value="FGTS">FGTS</option>
+                            <option value="PIS">PIS</option>
+                            <option value="COFINS">COFINS</option>
+                            <option value="DARF">DARF (IRPJ/CSLL)</option>
+                            <option value="ISS">ISS (Municipal)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Centro de Custo (Obra) *</label>
+                        <select id="edit-centro" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                            <option value="Matriz">Matriz / Sede</option>
+                            <option value="Residencial Palácio dos Andes">Residencial Palácio dos Andes</option>
+                            <option value="Casas Flores da Praia">Casas Flores da Praia</option>
+                            <option value="Casa da Andreia">Casa da Andreia</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Vencimento *</label>
+                        <input type="date" id="edit-vencimento" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white" onchange="calcularValorTotalEdicao()">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Período de Apuração</label>
+                        <input type="text" id="edit-apuracao" placeholder="Ex: 10/2026" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Valor Principal (R$) *</label>
+                        <input type="number" step="0.01" id="edit-valor" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white" oninput="calcularValorTotalEdicao()">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <span class="text-sm font-bold text-slate-300">Valor Total Consolidado:</span>
+                    <strong id="label-valor-total-edit" class="text-amber-400 text-lg">R$ 0,00</strong>
+                </div>
+
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Observações</label>
+                    <textarea id="edit-obs" rows="2" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+                    <button type="button" onclick="fecharModalEditar()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Atualizar & Sincronizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://otsrxvqypfpflbpaobhl.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
@@ -356,39 +427,42 @@
                         <td class="p-4 text-slate-300">${t.vencimento}</td>
                         <td class="p-4 text-right font-bold text-amber-400">R$ ${(t.valor_total || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                         <td class="p-4 text-center"><span class="${badgeClass} px-2.5 py-1 rounded-lg text-[10px] font-semibold">${t.status}</span></td>
-                        <td class="p-4 text-center space-x-2">
-                            <span class="text-slate-400 hover:text-amber-400 cursor-pointer text-sm" title="Anexo disponível">📎</span>
-                            <button onclick="excluirTributo('${t.id}', '${t.codigo}')" class="bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white px-2.5 py-1 rounded-lg font-bold text-[10px] transition cursor-pointer">🗑️ Apagar</button>
+                        <td class="p-4 text-center space-x-1.5">
+                            <button onclick="abrirModalEditar('${t.id}')" class="bg-sky-500/20 hover:bg-sky-500 text-sky-300 hover:text-white px-2 py-1 rounded-lg font-bold text-[10px] transition cursor-pointer" title="Editar">✏️ Editar</button>
+                            <button onclick="excluirTributo('${t.id}', '${t.codigo}')" class="bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white px-2 py-1 rounded-lg font-bold text-[10px] transition cursor-pointer" title="Apagar">🗑️ Apagar</button>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
 
-        async function excluirTributo(id, codigo) {
-            if (!confirm('Tem certeza de que deseja excluir este tributo? Ele também será removido do Contas a Pagar.')) return;
+        async function abrirModalTributo() { document.getElementById('modal-tributo').classList.remove('hidden'); }
+        function fecharModalTributo() { document.getElementById('modal-tributo').classList.add('hidden'); }
 
-            // 1. Apaga da tabela de tributos
-            const { error: err1 } = await supabaseClient.from('financeiro_tributos').delete().eq('id', id);
-            if (err1) {
-                alert('Erro ao excluir tributo: ' + err1.message);
-                return;
+        async function abrirModalEditar(id) {
+            const { data, error } = await supabaseClient.from('financeiro_tributos').select('*').eq('id', id).single();
+            if (error || !data) { alert('Erro ao carregar dados do tributo.'); return; }
+
+            document.getElementById('edit-id').value = data.id;
+            document.getElementById('edit-codigo').value = data.codigo;
+            document.getElementById('edit-tipo').value = data.tipo_tributo;
+            document.getElementById('edit-centro').value = data.centro_custo;
+            document.getElementById('edit-apuracao').value = data.periodo_apuracao || '';
+            document.getElementById('edit-valor').value = data.valor || 0;
+            document.getElementById('edit-obs').value = data.observacoes || '';
+
+            if (data.vencimento) {
+                const partes = data.vencimento.split('/');
+                if (partes.length === 3) {
+                    document.getElementById('edit-vencimento').value = `${partes[2]}-${partes[1]}-${partes[0]}`;
+                }
             }
 
-            // 2. Apaga automaticamente da tabela de contas a pagar usando o código correspondente
-            await supabaseClient.from('financeiro_contas_pagar').delete().eq('codigo', String(codigo));
-
-            alert('Tributo excluído com sucesso!');
-            carregarTributos();
+            calcularValorTotalEdicao();
+            document.getElementById('modal-editar-tributo').classList.remove('hidden');
         }
 
-        function abrirModalTributo() {
-            document.getElementById('modal-tributo').classList.remove('hidden');
-        }
-
-        function fecharModalTributo() {
-            document.getElementById('modal-tributo').classList.add('hidden');
-        }
+        function fecharModalEditar() { document.getElementById('modal-editar-tributo').classList.add('hidden'); }
 
         function calcularValorTotal() {
             const val = Number(document.getElementById('cad-valor').value || 0);
@@ -402,6 +476,12 @@
             return total;
         }
 
+        function calcularValorTotalEdicao() {
+            const val = Number(document.getElementById('edit-valor').value || 0);
+            document.getElementById('label-valor-total-edit').innerText = `R$ ${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            return val;
+        }
+
         async function salvarTributoSupabase(e) {
             e.preventDefault();
             const tipo = document.getElementById('cad-tipo').value;
@@ -413,8 +493,10 @@
             const valorTotal = calcularValorTotal();
             const obs = document.getElementById('cad-obs').value;
 
+            const codigoGerado = String(Math.floor(1000 + Math.random() * 9000));
+
             const novoTributo = {
-                codigo: String(Math.floor(1000 + Math.random() * 9000)),
+                codigo: codigoGerado,
                 tipo_tributo: tipo,
                 centro_custo: centro,
                 numero_documento: apuracao,
@@ -428,13 +510,10 @@
             };
 
             const { error: errTributo } = await supabaseClient.from('financeiro_tributos').insert([novoTributo]);
-            if (errTributo) {
-                alert('Erro ao guardar tributo: ' + errTributo.message);
-                return;
-            }
+            if (errTributo) { alert('Erro ao guardar tributo: ' + errTributo.message); return; }
 
             const novaContaPagar = {
-                codigo: novoTributo.codigo,
+                codigo: codigoGerado,
                 nfe: apuracao,
                 beneficiario: `Governo / Receita (${tipo})`,
                 valor: valorTotal,
@@ -446,8 +525,59 @@
 
             await supabaseClient.from('financeiro_contas_pagar').insert([novaContaPagar]);
 
-            alert('Tributo cadastrado e sincronizado automaticamente com o Contas a Pagar na nuvem!');
+            alert('Tributo cadastrado e sincronizado com o Contas a Pagar!');
             fecharModalTributo();
+            carregarTributos();
+        }
+
+        async function atualizarTributoSupabase(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const codigo = document.getElementById('edit-codigo').value;
+            const tipo = document.getElementById('edit-tipo').value;
+            const centro = document.getElementById('edit-centro').value;
+            const vencimentoIso = document.getElementById('edit-vencimento').value;
+            const vencimento = vencimentoIso ? vencimentoIso.split('-').reverse().join('/') : '';
+            const apuracao = document.getElementById('edit-apuracao').value.trim() || '-';
+            const valor = Number(document.getElementById('edit-valor').value);
+            const obs = document.getElementById('edit-obs').value;
+
+            const { error: err1 } = await supabaseClient.from('financeiro_tributos').update({
+                tipo_tributo: tipo,
+                centro_custo: centro,
+                numero_documento: apuracao,
+                vencimento,
+                periodo_apuracao: apuracao,
+                valor,
+                valor_total: valor,
+                observacoes: obs
+            }).eq('id', id);
+
+            if (err1) { alert('Erro ao atualizar tributo: ' + err1.message); return; }
+
+            await supabaseClient.from('financeiro_contas_pagar').update({
+                beneficiario: `Governo / Receita (${tipo})`,
+                valor: valor,
+                vencimento,
+                obra: centro,
+                nfe: apuracao,
+                etiqueta: `Tributo - ${tipo}`
+            }).eq('codigo', String(codigo));
+
+            alert('Tributo atualizado e sincronizado com sucesso!');
+            fecharModalEditar();
+            carregarTributos();
+        }
+
+        async function excluirTributo(id, codigo) {
+            if (!confirm('Tem certeza de que deseja excluir este tributo? Ele também será removido do Contas a Pagar.')) return;
+
+            const { error: err1 } = await supabaseClient.from('financeiro_tributos').delete().eq('id', id);
+            if (err1) { alert('Erro ao excluir tributo: ' + err1.message); return; }
+
+            await supabaseClient.from('financeiro_contas_pagar').delete().eq('codigo', String(codigo));
+
+            alert('Tributo excluído com sucesso!');
             carregarTributos();
         }
     </script>
