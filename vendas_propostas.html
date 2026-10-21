@@ -14,7 +14,7 @@
     <!-- Header Principal -->
     <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div id="header-logo-container" class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400 overflow-hidden">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
                 <p class="text-[10px] text-slate-400">Módulo Comercial • Propostas, Anexos em PDF/Imagem & Integrações</p>
@@ -66,80 +66,39 @@
                 <div>
                     <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏷️</span>
-                            <span>Produtos & Insumos</span>
-                        </a>
-                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📍</span>
-                            <span>Locais de Estoque</span>
-                        </a>
-                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🚚</span>
-                            <span>Entradas & Transferências</span>
-                        </a>
-                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🛒</span>
-                            <span>Solicitações & Compras</span>
-                        </a>
-                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📦</span>
-                            <span>Balanços de Estoque</span>
-                        </a>
-                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>⚙️</span>
-                            <span>Cadastros Gerais</span>
-                        </a>
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🏷️</span><span>Produtos & Insumos</span></a>
+                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📍</span><span>Locais de Estoque</span></a>
+                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🚚</span><span>Entradas & Transferências</span></a>
+                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🛒</span><span>Solicitações & Compras</span></a>
+                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📦</span><span>Balanços de Estoque</span></a>
+                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>⚙️</span><span>Cadastros Gerais</span></a>
                     </nav>
                 </div>
 
                 <div>
                     <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>💰</span>
-                            <span>Fluxo de Caixa</span>
-                        </a>
-                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📉</span>
-                            <span>Contas a Pagar</span>
-                        </a>
-                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📈</span>
-                            <span>Contas a Receber</span>
-                        </a>
-                        <a href="financeiro_notas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📄</span>
-                            <span>Notas Fiscais</span>
-                        </a>
-                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏷️</span>
-                            <span>Tributos & Impostos</span>
-                        </a>
-                        <a href="financeiro_contas_bancarias.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏦</span>
-                            <span>Contas Bancárias</span>
-                        </a>
-                        <a href="financeiro_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>⚙️</span>
-                            <span>Indexadores & Regras</span>
-                        </a>
+                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>💰</span><span>Fluxo de Caixa</span></a>
+                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📉</span><span>Contas a Pagar</span></a>
+                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📈</span><span>Contas a Receber</span></a>
+                        <a href="financeiro_notas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📄</span><span>Notas Fiscais</span></a>
+                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🏷️</span><span>Tributos & Impostos</span></a>
+                        <a href="financeiro_contas_bancarias.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🏦</span><span>Contas Bancárias</span></a>
+                        <a href="financeiro_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>⚙️</span><span>Indexadores & Regras</span></a>
                     </nav>
                 </div>
 
                 <div>
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🛡️</span>
-                            <span>Matriz & Utilizadores</span>
-                        </a>
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🛡️</span><span>Matriz & Utilizadores</span></a>
                     </nav>
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
-                Torquato ERP v1.0 • Minas Gerais
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center flex flex-col items-center space-y-1">
+                <div id="footer-logo-preview" class="w-6 h-6 flex items-center justify-center"></div>
+                <span>Torquato ERP v1.0 • Minas Gerais</span>
             </div>
         </aside>
 
@@ -190,7 +149,7 @@
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <h3 id="modal-titulo" class="text-base font-bold text-white">Registar Nova Proposta Comercial</h3>
-                <button type="button" onclick="fecharModalProposta()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+                <button type="button" onclick="fecharModalProposta()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
             <input type="hidden" id="edit-id">
             <form onsubmit="salvarPropostaSupabase(event)" class="space-y-4 text-xs">
@@ -236,6 +195,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
+            carregarLogoMatriz();
             carregarSelectsDinamicos();
             carregarPropostas();
         });
@@ -249,11 +209,21 @@
 
         function sair() { localStorage.removeItem('torquato_user'); window.location.href = 'login.html'; }
 
+        async function carregarLogoMatriz() {
+            const { data } = await supabaseClient.from('empresa_matriz').select('logo_url').eq('id', 1).single();
+            if (data && data.logo_url) {
+                document.getElementById('header-logo-container').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-cover">`;
+                document.getElementById('footer-logo-preview').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-contain">`;
+            }
+        }
+
         async function carregarSelectsDinamicos() {
-            const { data: clientes } = await supabaseClient.from('vendas_clientes').select('nome');
+            // Puxa clientes da tabela unificada clientes_erp (suporta PF e PJ)
+            const { data: clientes } = await supabaseClient.from('clientes_erp').select('nome, tipo_pessoa, documento').order('nome');
             const selectCliente = document.getElementById('cad-cliente');
             if (clientes) {
-                selectCliente.innerHTML = `<option value="">Selecione o cliente...</option>` + clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+                selectCliente.innerHTML = `<option value="">Selecione o cliente...</option>` + 
+                    clientes.map(c => `<option value="${c.nome}">[${(c.tipo_pessoa || 'PJ').toUpperCase()}] ${c.nome} (${c.documento || 'Sem doc'})</option>`).join('');
             }
 
             const { data: obras } = await supabaseClient.from('vendas_empreendimentos_obras').select('nome_obra');
@@ -265,6 +235,8 @@
 
         async function carregarPropostas() {
             const tbody = document.getElementById('tabela-propostas-corpo');
+            const termoBusca = document.getElementById('filtro-busca').value.toLowerCase();
+            
             const { data, error } = await supabaseClient.from('vendas_propostas').select('*');
 
             if (error || !data || data.length === 0) {
@@ -272,7 +244,18 @@
                 return;
             }
 
-            tbody.innerHTML = data.map(p => `
+            const filtrados = data.filter(p => 
+                (p.cliente && p.cliente.toLowerCase().includes(termoBusca)) || 
+                (p.codigo && String(p.codigo).toLowerCase().includes(termoBusca)) ||
+                (p.obra && p.obra.toLowerCase().includes(termoBusca))
+            );
+
+            if (filtrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500">Nenhuma proposta encontrada para a busca.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtrados.map(p => `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
                     <td class="p-4 font-bold text-white">#${p.codigo}</td>
                     <td class="p-4 font-medium text-white">${p.cliente}</td>
