@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torquato ERP - Gestão de Clientes & Compradores</title>
+    <title>Torquato ERP - Clientes & Compradores</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client -->
@@ -14,10 +14,10 @@
     <!-- Header Principal -->
     <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div id="header-logo-container" class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400 overflow-hidden">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
-                <p class="text-[10px] text-slate-400">Módulo Comercial • Cadastro de Clientes & Compradores</p>
+                <p class="text-[10px] text-slate-400">Módulo Comercial • Clientes & Compradores</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -34,177 +34,226 @@
                 <div>
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Geral</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📊</span>
-                            <span>Dashboard Executivo</span>
-                        </a>
+                        <a href="dashboard.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📊</span><span>Dashboard Executivo</span></a>
                     </nav>
                 </div>
 
                 <div>
                     <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Comercial</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="vendas_empreendimentos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏢</span>
-                            <span>Empreendimentos & Obras</span>
-                        </a>
-                        <a href="vendas_clientes.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition">
-                            <span>👥</span>
-                            <span>Clientes & Compradores</span>
-                        </a>
-                        <a href="vendas_propostas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📄</span>
-                            <span>Propostas Comerciais</span>
-                        </a>
-                        <a href="vendas_imoveis.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏡</span>
-                            <span>Vendas & Contratos</span>
-                        </a>
+                        <a href="vendas_empreendimentos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🏢</span><span>Empreendimentos & Obras</span></a>
+                        <a href="vendas_clientes.html" class="flex items-center space-x-2 bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-md transition"><span>👥</span><span>Clientes & Compradores</span></a>
+                        <a href="vendas_propostas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📄</span><span>Propostas Comerciais</span></a>
+                        <a href="vendas_imoveis.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🏡</span><span>Vendas & Contratos</span></a>
                     </nav>
                 </div>
 
                 <div>
                     <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Suprimentos</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏷️</span>
-                            <span>Produtos & Insumos</span>
-                        </a>
-                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📍</span>
-                            <span>Locais de Estoque</span>
-                        </a>
-                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🚚</span>
-                            <span>Entradas & Transferências</span>
-                        </a>
-                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🛒</span>
-                            <span>Solicitações & Compras</span>
-                        </a>
-                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📦</span>
-                            <span>Balanços de Estoque</span>
-                        </a>
-                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>⚙️</span>
-                            <span>Cadastros Gerais</span>
-                        </a>
-                    </nav>
-                </div>
-
-                <div>
-                    <p class="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-2 px-1">Módulo Financeiro</p>
-                    <nav class="space-y-1 text-xs">
-                        <a href="financeiro_fluxo.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>💰</span>
-                            <span>Fluxo de Caixa</span>
-                        </a>
-                        <a href="financeiro_contas_pagar.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📉</span>
-                            <span>Contas a Pagar</span>
-                        </a>
-                        <a href="financeiro_contas_receber.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📈</span>
-                            <span>Contas a Receber</span>
-                        </a>
-                        <a href="financeiro_notas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>📄</span>
-                            <span>Notas Fiscais</span>
-                        </a>
-                        <a href="financeiro_tributos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏷️</span>
-                            <span>Tributos & Impostos</span>
-                        </a>
-                        <a href="financeiro_contas_bancarias.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🏦</span>
-                            <span>Contas Bancárias</span>
-                        </a>
-                        <a href="financeiro_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>⚙️</span>
-                            <span>Indexadores & Regras</span>
-                        </a>
+                        <a href="suprimentos_produtos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🏷️</span><span>Produtos & Insumos</span></a>
+                        <a href="suprimentos_locais.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📍</span><span>Locais de Estoque</span></a>
+                        <a href="suprimentos_entradas.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🚚</span><span>Entradas & Transferências</span></a>
+                        <a href="suprimentos_solicitacoes.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🛒</span><span>Solicitações & Compras</span></a>
+                        <a href="suprimentos_balancos.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>📦</span><span>Balanços de Estoque</span></a>
+                        <a href="suprimentos_cadastros.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>⚙️</span><span>Cadastros Gerais</span></a>
                     </nav>
                 </div>
 
                 <div>
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Governança</p>
                     <nav class="space-y-1 text-xs">
-                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition">
-                            <span>🛡️</span>
-                            <span>Matriz & Utilizadores</span>
-                        </a>
+                        <a href="admin.html" class="flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50 px-3 py-2 rounded-xl transition"><span>🛡️</span><span>Matriz & Utilizadores</span></a>
                     </nav>
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
-                Torquato ERP v1.0 • Minas Gerais
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center flex flex-col items-center space-y-1">
+                <div id="footer-logo-preview" class="w-6 h-6 flex items-center justify-center"></div>
+                <span>Torquato ERP v1.0 • Minas Gerais</span>
             </div>
         </aside>
 
         <!-- Conteúdo Central -->
-        <main class="flex-1 p-8 max-w-7xl space-y-6">
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+        <main class="flex-1 p-8 max-w-7xl">
+            <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h2 class="text-xl font-bold text-white">Clientes & Compradores</h2>
-                    <p class="text-xs text-slate-400">Cadastro centralizado de pessoas físicas e jurídicas vinculadas às negociações e vendas.</p>
+                    <h2 class="text-xl font-bold text-white">Diretório de Clientes & Compradores</h2>
+                    <p class="text-xs text-slate-400">Registe e gerencie fichas cadastrais completas para Pessoas Físicas e Jurídicas.</p>
                 </div>
-                <div class="flex items-center space-x-3 w-full md:w-auto">
-                    <button onclick="abrirModalCliente()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5 whitespace-nowrap">
-                        <span>➕</span>
-                        <span>Novo Cliente</span>
-                    </button>
-                </div>
+                <button onclick="abrirModalCliente()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg cursor-pointer flex items-center space-x-1.5">
+                    <span>➕</span>
+                    <span>Novo Cadastro</span>
+                </button>
             </div>
 
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
-                <table class="w-full text-left text-xs border-collapse">
-                    <thead>
-                        <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
-                            <th class="p-4">Razão Social / Nome</th>
-                            <th class="p-4">Tipo</th>
-                            <th class="p-4">CPF / CNPJ</th>
-                            <th class="p-4">E-mail</th>
-                            <th class="p-4">Telefone</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-clientes-corpo">
-                        <tr><td colspan="5" class="p-6 text-center text-slate-500">A carregar clientes...</td></tr>
-                    </tbody>
-                </table>
+            <!-- Tabela de Clientes -->
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+                <h3 class="text-sm font-bold text-amber-400">Clientes Cadastrados</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 bg-slate-950/50">
+                                <th class="p-4">Tipo</th>
+                                <th class="p-4">Nome / Razão Social</th>
+                                <th class="p-4">CPF / CNPJ</th>
+                                <th class="p-4">Telefone</th>
+                                <th class="p-4">E-mail</th>
+                                <th class="p-4 text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-clientes-corpo">
+                            <tr><td colspan="6" class="p-6 text-center text-slate-500">A carregar clientes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>
 
-    <!-- MODAL: NOVO CLIENTE -->
+    <!-- MODAL: FICHA CADASTRAL (PESSOA FÍSICA / JURÍDICA) -->
     <div id="modal-cliente" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <h3 class="text-base font-bold text-white">Registar Novo Cliente</h3>
-                <button type="button" onclick="fecharModalCliente()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
-            </div>
-            <form onsubmit="salvarClienteSupabase(event)" class="space-y-4 text-xs">
                 <div>
-                    <label class="block text-slate-400 font-bold mb-1">Nome / Razão Social *</label>
-                    <input type="text" id="cad-nome" required placeholder="Ex: Torquato Engenharia" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    <h3 id="modal-titulo" class="text-base font-bold text-white">Ficha de Cadastro de Cliente</h3>
+                    <p class="text-xs text-slate-400">Preencha os dados institucionais, fiscais e de correspondência.</p>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <button type="button" onclick="fecharModalCliente()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form id="form-cliente" onsubmit="salvarCliente(event)" class="space-y-5 text-xs">
+                <input type="hidden" id="cli-id">
+
+                <!-- SELETOR DE TIPO -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center space-x-6">
+                    <span class="text-amber-400 font-bold">Tipo de Cadastro:</span>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="radio" name="tipo_pessoa" value="juridica" checked onchange="alternarTipoPessoa()" class="text-amber-500 w-4 h-4">
+                        <span class="text-white font-medium">Pessoa Jurídica (PJ)</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="radio" name="tipo_pessoa" value="fisica" onchange="alternarTipoPessoa()" class="text-amber-500 w-4 h-4">
+                        <span class="text-white font-medium">Pessoa Física (PF)</span>
+                    </label>
+                </div>
+
+                <!-- SEÇÃO 1: DADOS PRINCIPAIS -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-slate-400 font-bold mb-1">Tipo *</label>
-                        <select id="cad-tipo" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
-                            <option value="Jurídica">Pessoa Jurídica</option>
-                            <option value="Física">Pessoa Física</option>
-                        </select>
+                        <label id="lbl-nome" class="block text-slate-400 font-bold mb-1">Razão Social *</label>
+                        <input type="text" id="cli-nome" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:border-amber-500">
                     </div>
                     <div>
-                        <label class="block text-slate-400 font-bold mb-1">CPF / CNPJ *</label>
-                        <input type="text" id="cad-cpf" required placeholder="00.000.000/0001-00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <label id="lbl-fantasia" class="block text-slate-400 font-bold mb-1">Nome Comercial / Fantasia</label>
+                        <input type="text" id="cli-fantasia" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label id="lbl-doc" class="block text-slate-400 font-bold mb-1">CNPJ *</label>
+                        <input type="text" id="cli-documento" required placeholder="00.000.000/0001-00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:border-amber-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label id="lbl-data" class="block text-slate-400 font-bold mb-1">Data de Constituição</label>
+                            <input type="date" id="cli-data" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label id="lbl-atividade" class="block text-slate-400 font-bold mb-1">Atividade / Profissão</label>
+                            <input type="text" id="cli-atividade" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:border-amber-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Grupo Econômico</label>
+                        <input type="text" id="cli-grupo" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:border-amber-500">
+                    </div>
+                    <div class="flex items-center space-x-4 pt-4">
+                        <label class="block text-slate-400 font-bold">Controle Acionário:</label>
+                        <label class="flex items-center space-x-1"><input type="radio" name="controle" value="Nacional" checked class="text-amber-500"> <span>Nacional</span></label>
+                        <label class="flex items-center space-x-1"><input type="radio" name="controle" value="Estrangeiro" class="text-amber-500"> <span>Estrangeiro</span></label>
+                        <input type="text" id="cli-pais-sede" placeholder="País" class="bg-slate-950 border border-slate-800 p-2 rounded-xl text-white w-28">
                     </div>
                 </div>
+
+                <!-- SEÇÃO 2: ENDEREÇO DA SEDE / RESIDÊNCIA -->
+                <div class="border-t border-slate-800 pt-4 space-y-3">
+                    <h4 class="font-bold text-amber-400">Endereço da Sede Social / Residência</h4>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Logradouro / Endereço</label>
+                        <input type="text" id="cli-end" placeholder="Av. Brasil, Rua..." class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Nº</label>
+                            <input type="text" id="cli-num" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-slate-400 font-bold mb-1">Complemento</label>
+                            <input type="text" id="cli-comp" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-slate-400 font-bold mb-1">Bairro</label>
+                            <input type="text" id="cli-bairro" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                        <div class="md:col-span-2">
+                            <label class="block text-slate-400 font-bold mb-1">Cidade</label>
+                            <input type="text" id="cli-cidade" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">UF</label>
+                            <input type="text" id="cli-uf" maxlength="2" placeholder="MG" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">CEP</label>
+                            <input type="text" id="cli-cep" placeholder="00000-000" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 3: CONTACTOS & INTERNET -->
+                <div class="border-t border-slate-800 pt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Telefone Principal</label>
+                        <input type="text" id="cli-tel" placeholder="(38) 99999-9999" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">E-mail de Contacto</label>
+                        <input type="email" id="cli-email" placeholder="cliente@email.com" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 font-bold mb-1">Página Internet / Website</label>
+                        <input type="text" id="cli-site" placeholder="www.cliente.com" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 4: CORRESPONDÊNCIA -->
+                <div class="border-t border-slate-800 pt-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-amber-400">Endereço para Correspondência</h4>
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" name="tipo_corr" value="sede" checked onchange="toggleCorr()" class="text-amber-500"> <span>Igual à Sede Social</span></label>
+                            <label class="flex items-center space-x-1 cursor-pointer"><input type="radio" name="tipo_corr" value="outro" onchange="toggleCorr()" class="text-amber-500"> <span>Outro Endereço</span></label>
+                        </div>
+                    </div>
+                    
+                    <div id="bloco-outra-corr" class="hidden space-y-3 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                        <div>
+                            <label class="block text-slate-400 font-bold mb-1">Endereço de Correspondência</label>
+                            <input type="text" id="corr-end" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-xl text-white">
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            <div><input type="text" id="corr-num" placeholder="Nº" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-xl text-white"></div>
+                            <div><input type="text" id="corr-comp" placeholder="Complemento" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-xl text-white"></div>
+                            <div><input type="text" id="corr-bairro" placeholder="Bairro" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-xl text-white"></div>
+                            <div><input type="text" id="corr-cidade" placeholder="Cidade" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-xl text-white"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
-                    <button type="button" onclick="fecharModalCliente()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Salvar Cliente</button>
+                    <button type="button" onclick="fecharModalCliente()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition shadow-lg cursor-pointer">Salvar Ficha na Nuvem</button>
                 </div>
             </form>
         </div>
@@ -215,7 +264,13 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        window.addEventListener('DOMContentLoaded', () => { verificarSessao(); carregarClientes(); });
+        let listaClientesCache = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarSessao();
+            carregarLogoMatriz();
+            carregarClientes();
+        });
 
         function verificarSessao() {
             const usuarioJSON = localStorage.getItem('torquato_user');
@@ -224,43 +279,130 @@
             document.getElementById('nome-usuario').innerText = `${usuario.nome} (${usuario.perfil.toUpperCase()})`;
         }
 
-        function sair() { localStorage.removeItem('torquato_user'); window.location.href = 'login.html'; }
+        function sair() {
+            localStorage.removeItem('torquato_user');
+            window.location.href = 'login.html';
+        }
+
+        async function carregarLogoMatriz() {
+            const { data } = await supabaseClient.from('empresa_matriz').select('logo_url').eq('id', 1).single();
+            if (data && data.logo_url) {
+                document.getElementById('header-logo-container').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-cover">`;
+                document.getElementById('footer-logo-preview').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-contain">`;
+            }
+        }
+
+        function alternarTipoPessoa() {
+            const tipo = document.querySelector('input[name="tipo_pessoa"]:checked').value;
+            const lblNome = document.getElementById('lbl-nome');
+            const lblFantasia = document.getElementById('lbl-fantasia');
+            const lblDoc = document.getElementById('lbl-doc');
+            const lblData = document.getElementById('lbl-data');
+            const lblAtividade = document.getElementById('lbl-atividade');
+
+            if (tipo === 'fisica') {
+                lblNome.innerText = "Nome Completo *";
+                lblFantasia.innerText = "Apelido / Nome Social";
+                lblDoc.innerText = "CPF *";
+                document.getElementById('cli-documento').placeholder = "000.000.000-00";
+                lblData.innerText = "Data de Nascimento";
+                lblAtividade.innerText = "Profissão";
+            } else {
+                lblNome.innerText = "Razão Social *";
+                lblFantasia.innerText = "Nome Comercial / Fantasia";
+                lblDoc.innerText = "CNPJ *";
+                document.getElementById('cli-documento').placeholder = "00.000.000/0001-00";
+                lblData.innerText = "Data de Constituição";
+                lblAtividade.innerText = "Principal Atividade Econômica";
+            }
+        }
+
+        function toggleCorr() {
+            const val = document.querySelector('input[name="tipo_corr"]:checked').value;
+            const bloco = document.getElementById('bloco-outra-corr');
+            if (val === 'outro') bloco.classList.remove('hidden');
+            else bloco.classList.add('hidden');
+        }
 
         async function carregarClientes() {
-            const tbody = document.getElementById('tabela-clientes-corpo');
-            const { data, error } = await supabaseClient.from('vendas_clientes').select('*');
-            if (error || !data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500">Nenhum cliente registado.</td></tr>`;
+            const corpo = document.getElementById('tabela-clientes-corpo');
+            const { data, error } = await supabaseClient.from('clientes_erp').select('*').order('criado_em', { ascending: false });
+
+            if (error) { corpo.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-400">Erro ao carregar: ${error.message}</td></tr>`; return; }
+
+            listaClientesCache = data || [];
+            if (listaClientesCache.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">Nenhum cliente registado.</td></tr>`;
                 return;
             }
-            tbody.innerHTML = data.map(c => `
+
+            corpo.innerHTML = listaClientesCache.map(c => `
                 <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                    <td class="p-4"><span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-bold uppercase text-[10px]">${c.tipo_pessoa || 'PJ'}</span></td>
                     <td class="p-4 font-bold text-white">${c.nome}</td>
-                    <td class="p-4 text-slate-300">${c.tipo_pessoa}</td>
-                    <td class="p-4 text-amber-400 font-mono">${c.cpf_cnpj}</td>
-                    <td class="p-4 text-slate-300">${c.email || '-'}</td>
+                    <td class="p-4 text-slate-300">${c.documento}</td>
                     <td class="p-4 text-slate-300">${c.telefone || '-'}</td>
+                    <td class="p-4 text-slate-300">${c.email || '-'}</td>
+                    <td class="p-4 text-right space-x-2">
+                        <button onclick="excluirCliente('${c.id}')" class="text-rose-400 hover:text-rose-300 bg-rose-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
+                    </td>
                 </tr>
             `).join('');
         }
 
-        function abrirModalCliente() { document.getElementById('modal-cliente').classList.remove('hidden'); }
-        function fecharModalCliente() { document.getElementById('modal-cliente').classList.add('hidden'); }
+        function abrirModalCliente() {
+            document.getElementById('cli-id').value = "";
+            document.getElementById('form-cliente').reset();
+            alternarTipoPessoa();
+            document.getElementById('modal-cliente').classList.remove('hidden');
+        }
 
-        async function salvarClienteSupabase(e) {
+        function fecharModalCliente() {
+            document.getElementById('modal-cliente').classList.add('hidden');
+        }
+
+        async function salvarCliente(e) {
             e.preventDefault();
-            const novoCliente = {
-                codigo: String(Math.floor(100 + Math.random() * 900)),
-                nome: document.getElementById('cad-nome').value,
-                tipo_pessoa: document.getElementById('cad-tipo').value,
-                cpf_cnpj: document.getElementById('cad-cpf').value,
-                email: 'contato@torquato.com',
-                telefone: '(38) 99999-9999',
-                cidade: 'Brasília de Minas - MG'
+            const tipoPessoa = document.querySelector('input[name="tipo_pessoa"]:checked').value;
+
+            const payload = {
+                tipo_pessoa: tipoPessoa,
+                nome: document.getElementById('cli-nome').value.trim(),
+                nome_fantasia: document.getElementById('cli-fantasia').value.trim(),
+                documento: document.getElementById('cli-documento').value.trim(),
+                data_constituicao: document.getElementById('cli-data').value || null,
+                atividade_economica: document.getElementById('cli-atividade').value.trim(),
+                grupo_economico: document.getElementById('cli-grupo').value.trim(),
+                controle_acionario: document.querySelector('input[name="controle"]:checked').value,
+                pais_sede: document.getElementById('cli-pais-sede').value.trim(),
+                endereco: document.getElementById('cli-end').value.trim(),
+                numero: document.getElementById('cli-num').value.trim(),
+                complemento: document.getElementById('cli-comp').value.trim(),
+                bairro: document.getElementById('cli-bairro').value.trim(),
+                cidade: document.getElementById('cli-cidade').value.trim(),
+                uf: document.getElementById('cli-uf').value.trim(),
+                cep: document.getElementById('cli-cep').value.trim(),
+                telefone: document.getElementById('cli-tel').value.trim(),
+                email: document.getElementById('cli-email').value.trim(),
+                website: document.getElementById('cli-site').value.trim(),
+                correspondencia_tipo: document.querySelector('input[name="tipo_corr"]:checked').value,
+                criado_em: new Date().toISOString()
             };
-            const { error } = await supabaseClient.from('vendas_clientes').insert([novoCliente]);
-            if (error) alert('Erro: ' + error.message);
-            else { alert('Cliente registado com sucesso!'); fecharModalCliente(); carregarClientes(); }
+
+            const { error } = await supabaseClient.from('clientes_erp').insert([payload]);
+            if (error) {
+                alert('Erro ao guardar cliente: ' + error.message);
+            } else {
+                alert('Ficha cadastrada com sucesso na nuvem!');
+                fecharModalCliente();
+                carregarClientes();
+            }
+        }
+
+        async function excluirCliente(id) {
+            if (!confirm('Deseja excluir este registo?')) return;
+            await supabaseClient.from('clientes_erp').delete().eq('id', id);
+            carregarClientes();
         }
     </script>
 </body>
