@@ -14,7 +14,7 @@
     <!-- Header Principal -->
     <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div id="header-logo-container" class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400 overflow-hidden">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
                 <p class="text-[10px] text-slate-400">Módulo Comercial • Vendas, Contratos & Unidades Imobiliárias</p>
@@ -138,8 +138,9 @@
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
-                Torquato ERP v1.0 • Minas Gerais
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center flex flex-col items-center space-y-1">
+                <div id="footer-logo-preview" class="w-6 h-6 flex items-center justify-center"></div>
+                <span>Torquato ERP v1.0 • Minas Gerais</span>
             </div>
         </aside>
 
@@ -181,34 +182,34 @@
         <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-6">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <h3 class="text-base font-bold text-white">Registar Contrato de Venda de Imóvel</h3>
-                <button type="button" onclick="fecharModalContrato()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+                <button type="button" onclick="fecharModalContrato()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
             <form onsubmit="salvarContrato(event)" class="space-y-4 text-xs">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Cliente / Comprador *</label>
-                    <select id="con-cliente" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    <select id="con-cliente" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
                         <option value="">A carregar clientes...</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Empreendimento / Obra *</label>
-                        <select id="con-obra" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <select id="con-obra" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
                             <option value="">A carregar obras...</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Unidade / Lote *</label>
-                        <input type="text" id="con-unidade" required placeholder="Ex: Lote 14" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <input type="text" id="con-unidade" required placeholder="Ex: Lote 14" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
                     </div>
                 </div>
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Valor Total do Contrato (R$) *</label>
-                    <input type="number" step="0.01" id="con-valor" required placeholder="150000.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    <input type="number" step="0.01" id="con-valor" required placeholder="150000.00" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
                 </div>
                 <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
-                    <button type="button" onclick="fecharModalContrato()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Salvar Contrato</button>
+                    <button type="button" onclick="fecharModalContrato()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold rounded-xl cursor-pointer hover:bg-slate-700 transition">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg transition">Salvar Contrato</button>
                 </div>
             </form>
         </div>
@@ -221,6 +222,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
+            carregarLogoMatriz();
             carregarSelectsContrato();
             carregarContratos();
         });
@@ -234,11 +236,21 @@
 
         function sair() { localStorage.removeItem('torquato_user'); window.location.href = 'login.html'; }
 
+        async function carregarLogoMatriz() {
+            const { data } = await supabaseClient.from('empresa_matriz').select('logo_url').eq('id', 1).single();
+            if (data && data.logo_url) {
+                document.getElementById('header-logo-container').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-cover">`;
+                document.getElementById('footer-logo-preview').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-contain">`;
+            }
+        }
+
         async function carregarSelectsContrato() {
-            const { data: clientes } = await supabaseClient.from('vendas_clientes').select('nome');
+            // Consulta a tabela unificada clientes_erp (suporta PF e PJ)
+            const { data: clientes } = await supabaseClient.from('clientes_erp').select('nome, tipo_pessoa, documento').order('nome');
             const selectCliente = document.getElementById('con-cliente');
             if (clientes) {
-                selectCliente.innerHTML = `<option value="">Selecione o cliente...</option>` + clientes.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+                selectCliente.innerHTML = `<option value="">Selecione o cliente...</option>` + 
+                    clientes.map(c => `<option value="${c.nome}">[${(c.tipo_pessoa || 'PJ').toUpperCase()}] ${c.nome} (${c.documento || 'Sem doc'})</option>`).join('');
             }
 
             const { data: obras } = await supabaseClient.from('vendas_empreendimentos_obras').select('nome_obra');
