@@ -14,7 +14,7 @@
     <!-- Header Principal -->
     <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div id="header-logo-container" class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400 overflow-hidden">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
                 <p class="text-[10px] text-slate-400">Módulo Financeiro • Contas a Receber & Receitas</p>
@@ -81,7 +81,10 @@
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">Torquato ERP v1.0 • Minas Gerais</div>
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center flex flex-col items-center space-y-1">
+                <div id="footer-logo-preview" class="w-6 h-6 flex items-center justify-center"></div>
+                <span>Torquato ERP v1.0 • Minas Gerais</span>
+            </div>
         </aside>
 
         <!-- Conteúdo Central -->
@@ -104,9 +107,6 @@
                     <label class="block text-slate-400 font-bold mb-1">Empreendimento / Obra:</label>
                     <select id="filtro-obra" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
                         <option value="Todos">Todos os Empreendimentos</option>
-                        <option value="Empreendimento BR BUILD">Empreendimento BR BUILD</option>
-                        <option value="Condomínio Enseada">Condomínio Enseada</option>
-                        <option value="Vila Real">Vila Real</option>
                     </select>
                 </div>
                 <div>
@@ -120,11 +120,11 @@
                 </div>
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Pesquisar Cliente:</label>
-                    <input type="text" id="filtro-busca" placeholder="Ex: Stefany Pereira..." onkeyup="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                    <input type="text" id="filtro-busca" placeholder="Pesquisar..." onkeyup="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
                 </div>
                 <div>
-                    <label class="block text-slate-400 font-bold mb-1">Vencimento:</label>
-                    <input type="date" id="filtro-data-inicio" value="2026-05-01" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                    <label class="block text-slate-400 font-bold mb-1">Vencimento a partir de:</label>
+                    <input type="date" id="filtro-data-inicio" onchange="carregarContas()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
                 </div>
             </div>
 
@@ -203,7 +203,7 @@
                         </div>
                         <div>
                             <label class="block text-slate-400 mb-1">Data do Recebimento *</label>
-                            <input type="date" id="rec-data" value="2026-10-19" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-white">
+                            <input type="date" id="rec-data" class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-white">
                         </div>
                     </div>
                 </div>
@@ -227,12 +227,16 @@
                 <input type="hidden" id="edit-id-receber">
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Cliente / Comprador *</label>
-                    <input type="text" id="cad-cliente" required placeholder="Ex: Stefany Pereira" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                    <select id="cad-cliente" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                        <option value="">A carregar clientes...</option>
+                    </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Empreendimento *</label>
-                        <input type="text" id="cad-obra" required placeholder="Ex: Vila Real" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white">
+                        <select id="cad-obra" required class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
+                            <option value="">A carregar obras...</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-slate-400 font-bold mb-1">Sequência da Parcela</label>
@@ -250,8 +254,8 @@
                     </div>
                 </div>
                 <div class="flex justify-end space-x-3 border-t border-slate-800 pt-4">
-                    <button type="button" onclick="fecharModalNovaConta()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl shadow-lg">Salvar no Supabase</button>
+                    <button type="button" onclick="fecharModalNovaConta()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg cursor-pointer">Salvar no Supabase</button>
                 </div>
             </form>
         </div>
@@ -266,8 +270,14 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
+            carregarLogoMatriz();
+            carregarSelectsAuxiliares();
             carregarContas();
             carregarBancosSelect();
+            
+            // Define a data de hoje por defeito para recebimentos
+            const hojeIso = new Date().toISOString().split('T')[0];
+            document.getElementById('rec-data').value = hojeIso;
         });
 
         function verificarSessao() {
@@ -282,6 +292,37 @@
             window.location.href = 'login.html';
         }
 
+        async function carregarLogoMatriz() {
+            const { data } = await supabaseClient.from('empresa_matriz').select('logo_url').eq('id', 1).single();
+            if (data && data.logo_url) {
+                document.getElementById('header-logo-container').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-cover">`;
+                document.getElementById('footer-logo-preview').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-contain">`;
+            }
+        }
+
+        async function carregarSelectsAuxiliares() {
+            // Carrega Clientes da tabela clientes_erp (PF / PJ)
+            const { data: clientes } = await supabaseClient.from('clientes_erp').select('nome, tipo_pessoa, documento').order('nome');
+            const selectCliente = document.getElementById('cad-cliente');
+            if (clientes) {
+                selectCliente.innerHTML = `<option value="">Selecione o cliente...</option>` + 
+                    clientes.map(c => `<option value="${c.nome}">[${(c.tipo_pessoa || 'PJ').toUpperCase()}] ${c.nome} (${c.documento || 'Sem doc'})</option>`).join('');
+            }
+
+            // Carrega Obras para Modal e Filtro
+            const { data: obras } = await supabaseClient.from('vendas_empreendimentos_obras').select('nome_obra').order('nome_obra');
+            const selectObraCad = document.getElementById('cad-obra');
+            const selectObraFiltro = document.getElementById('filtro-obra');
+            
+            if (obras) {
+                selectObraCad.innerHTML = `<option value="">Selecione a obra...</option>` + 
+                    obras.map(o => `<option value="${o.nome_obra}">${o.nome_obra}</option>`).join('');
+                
+                selectObraFiltro.innerHTML = `<option value="Todos">Todos os Empreendimentos</option>` + 
+                    obras.map(o => `<option value="${o.nome_obra}">${o.nome_obra}</option>`).join('');
+            }
+        }
+
         async function carregarBancosSelect() {
             const { data } = await supabaseClient.from('financeiro_contas_bancarias').select('*');
             const select = document.getElementById('rec-conta-banco');
@@ -294,6 +335,7 @@
             const obraFiltro = document.getElementById('filtro-obra').value;
             const statusFiltro = document.getElementById('filtro-status').value;
             const busca = document.getElementById('filtro-busca').value.toLowerCase();
+            const dataInicio = document.getElementById('filtro-data-inicio').value;
             const tbody = document.getElementById('tabela-receber-corpo');
 
             let query = supabaseClient.from('financeiro_contas_receber').select('*');
@@ -304,7 +346,12 @@
             if (error) { tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-red-400">Erro: ${error.message}</td></tr>`; return; }
 
             let lista = data || [];
-            if (busca) lista = lista.filter(c => c.cliente.toLowerCase().includes(busca) || c.codigo.includes(busca));
+            if (busca) lista = lista.filter(c => (c.cliente && c.cliente.toLowerCase().includes(busca)) || (c.codigo && c.codigo.includes(busca)));
+
+            if (dataInicio) {
+                const dtFiltroFormatada = dataInicio.split('-').reverse().join('/');
+                lista = lista.filter(c => c.vencimento >= dtFiltroFormatada);
+            }
 
             let totalAReceber = 0, totalRecebido = 0, totalAtrasado = 0;
             lista.forEach(c => {
@@ -431,8 +478,8 @@
         async function salvarOuAtualizarContaReceber(e) {
             e.preventDefault();
             const editId = document.getElementById('edit-id-receber').value;
-            const cliente = document.getElementById('cad-cliente').value.trim();
-            const obra = document.getElementById('cad-obra').value.trim();
+            const cliente = document.getElementById('cad-cliente').value;
+            const obra = document.getElementById('cad-obra').value;
             const sequencia = document.getElementById('cad-seq').value.trim() || '1 / 1';
             const valor = Number(document.getElementById('cad-valor').value);
             const vencimentoIso = document.getElementById('cad-vencimento').value;
@@ -464,7 +511,6 @@
         async function excluirConta(id, cliente, status, valor, caixa) {
             if (!confirm(`Tem certeza de que deseja excluir a conta a receber de "${cliente}"?`)) return;
 
-            // Se a conta já estava recebida, estorna o valor da conta bancária para manter a lógica do saldo exata
             if (status === 'Recebida' && caixa && caixa !== '-') {
                 const { data: bancoData } = await supabaseClient.from('financeiro_contas_bancarias').select('*').eq('nome', caixa).single();
                 if (bancoData) {
