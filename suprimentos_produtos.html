@@ -14,7 +14,7 @@
     <!-- Header Principal -->
     <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div id="header-logo-container" class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400 overflow-hidden">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
                 <p class="text-[10px] text-slate-400">Módulo Suprimentos • Catálogo de Produtos</p>
@@ -145,7 +145,7 @@
 
         <!-- Conteúdo Central -->
         <main class="flex-1 p-8 max-w-7xl space-y-6">
-            
+
             <!-- Cabeçalho de Ações -->
             <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
                 <div>
@@ -201,13 +201,14 @@
                                 <th class="p-4">Produto / Material</th>
                                 <th class="p-4">Apelido</th>
                                 <th class="p-4">Tipo</th>
+                                <th class="p-4">Categoria / Subcat.</th>
                                 <th class="p-4">Unidade</th>
                                 <th class="p-4">Status</th>
                                 <th class="p-4 text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="tabela-produtos-corpo" class="divide-y divide-slate-800/60">
-                            <tr><td colspan="7" class="p-4 text-center text-slate-500">A carregar produtos do Supabase...</td></tr>
+                            <tr><td colspan="8" class="p-4 text-center text-slate-500">A carregar produtos do Supabase...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -218,10 +219,10 @@
 
     <!-- MODAL DE CADASTRO/EDIÇÃO DE PRODUTO -->
     <div id="modal-produto" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="text-base font-bold text-white" id="modal-produto-titulo">Cadastrar Novo Produto / Insumo</h3>
-                <button onclick="fecharModalProduto()" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+                <button type="button" onclick="fecharModalProduto()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form onsubmit="salvarProduto(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
@@ -248,8 +249,20 @@
                 </div>
                 <div>
                     <label class="block text-slate-400 font-bold mb-1">Unidade de Medida</label>
-                    <select id="prod-unidade" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
-                        <option value="un">A carregar unidades...</option>
+                    <select id="prod-unidade-id" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                        <option value="">Sem unidade</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Categoria</label>
+                    <select id="prod-categoria-id" onchange="atualizarSelectSubcategorias()" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                        <option value="">Sem categoria</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-slate-400 font-bold mb-1">Subcategoria</label>
+                    <select id="prod-subcategoria-id" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white">
+                        <option value="">Sem subcategoria</option>
                     </select>
                 </div>
                 <div class="md:col-span-2">
@@ -259,7 +272,7 @@
 
                 <div class="md:col-span-2 flex justify-end space-x-3 pt-3 border-t border-slate-800">
                     <button type="button" onclick="fecharModalProduto()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl cursor-pointer">Cancelar</button>
-                    <button type="submit" class="px-6 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Salvar Produto</button>
+                    <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl cursor-pointer shadow-lg">Salvar Produto</button>
                 </div>
             </form>
         </div>
@@ -270,9 +283,15 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_G6bt_yL7toxF8vYSpyGLdw_jA8xAtN4';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        let unidadesCache = [];
+        let categoriasCache = [];
+        let subcategoriasCache = [];
+        let produtosCache = [];
+
         window.addEventListener('DOMContentLoaded', async () => {
             verificarSessao();
-            await carregarUnidadesMedida();
+            await carregarLogoMatriz();
+            await carregarAuxiliares();
             await carregarProdutos();
         });
 
@@ -291,17 +310,64 @@
             window.location.href = 'login.html';
         }
 
-        async function carregarUnidadesMedida() {
-            const selectUnidade = document.getElementById('prod-unidade');
-            // Puxa diretamente da tabela correta "unidades_medida" do Supabase
-            const { data, error } = await supabaseClient.from('unidades_medida').select('*');
-            
-            if (error || !data || data.length === 0) {
-                selectUnidade.innerHTML = `<option value="un">un - Unidade</option><option value="kg">kg - Quilograma</option>`;
-                return;
+        async function carregarLogoMatriz() {
+            const { data } = await supabaseClient.from('empresa_matriz').select('logo_url').eq('id', 1).single();
+            if (data && data.logo_url) {
+                document.getElementById('header-logo-container').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-cover">`;
             }
+        }
 
-            selectUnidade.innerHTML = data.map(u => `<option value="${u.sigla}">${u.sigla} - ${u.descricao || u.sigla}</option>`).join('');
+        async function carregarAuxiliares() {
+            const [resUnid, resCat, resSub] = await Promise.all([
+                supabaseClient.from('unidades_medida').select('*').order('sigla', { ascending: true }),
+                supabaseClient.from('categorias_produtos').select('*').order('nome', { ascending: true }),
+                supabaseClient.from('subcategorias_produtos').select('*').order('nome', { ascending: true })
+            ]);
+
+            unidadesCache = resUnid.data || [];
+            categoriasCache = resCat.data || [];
+            subcategoriasCache = resSub.data || [];
+
+            const selectUnidade = document.getElementById('prod-unidade-id');
+            selectUnidade.innerHTML = `<option value="">Sem unidade</option>` +
+                unidadesCache.map(u => `<option value="${u.id}">${u.sigla} - ${u.descricao || u.sigla}</option>`).join('');
+
+            const selectCategoria = document.getElementById('prod-categoria-id');
+            selectCategoria.innerHTML = `<option value="">Sem categoria</option>` +
+                categoriasCache.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+
+            atualizarSelectSubcategorias();
+        }
+
+        function atualizarSelectSubcategorias(subcategoriaSelecionada = '') {
+            const catId = document.getElementById('prod-categoria-id').value;
+            const selectSub = document.getElementById('prod-subcategoria-id');
+
+            const filtradas = catId
+                ? subcategoriasCache.filter(s => String(s.categoria_id) === String(catId))
+                : subcategoriasCache;
+
+            selectSub.innerHTML = `<option value="">Sem subcategoria</option>` +
+                filtradas.map(s => `<option value="${s.id}">${s.nome}</option>`).join('');
+
+            if (subcategoriaSelecionada) {
+                selectSub.value = String(subcategoriaSelecionada);
+            }
+        }
+
+        function obterNomeUnidade(id) {
+            if (!id) return '-';
+            const u = unidadesCache.find(item => String(item.id) === String(id));
+            return u ? u.sigla : '-';
+        }
+
+        function obterCategoriaSubcategoria(catId, subId) {
+            const cat = categoriasCache.find(c => String(c.id) === String(catId));
+            const sub = subcategoriasCache.find(s => String(s.id) === String(subId));
+            if (cat && sub) return `${cat.nome} / ${sub.nome}`;
+            if (cat) return cat.nome;
+            if (sub) return sub.nome;
+            return '-';
         }
 
         async function carregarProdutos() {
@@ -320,17 +386,22 @@
             const { data, error } = await query.order('id', { ascending: false });
 
             if (error) {
-                corpo.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-red-400">Erro ao carregar: ${error.message}</td></tr>`;
+                corpo.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-red-400">Erro ao carregar: ${error.message}</td></tr>`;
                 return;
             }
 
-            let filtrados = data || [];
+            produtosCache = data || [];
+            let filtrados = produtosCache;
             if (busca) {
-                filtrados = filtrados.filter(p => (p.nome || '').toLowerCase().includes(busca) || (p.codigo || '').toLowerCase().includes(busca));
+                filtrados = filtrados.filter(p =>
+                    (p.nome || '').toLowerCase().includes(busca) ||
+                    (p.codigo || '').toLowerCase().includes(busca) ||
+                    (p.apelido || '').toLowerCase().includes(busca)
+                );
             }
 
             if (filtrados.length === 0) {
-                corpo.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">Nenhum produto cadastrado. Clique em "+ Novo Produto".</td></tr>`;
+                corpo.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-500">Nenhum produto cadastrado. Clique em "+ Novo Produto".</td></tr>`;
                 return;
             }
 
@@ -340,15 +411,16 @@
                     <td class="p-4 font-medium text-white">${p.nome}</td>
                     <td class="p-4 text-slate-400">${p.apelido || '-'}</td>
                     <td class="p-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${p.tipo || 'Material'}</span></td>
-                    <td class="p-4 text-slate-300">${p.unidade || 'un'}</td>
+                    <td class="p-4 text-slate-300">${obterCategoriaSubcategoria(p.categoria_id, p.subcategoria_id)}</td>
+                    <td class="p-4 text-slate-300">${obterNomeUnidade(p.unidade_medida_id)}</td>
                     <td class="p-4">
-                        <button onclick="alternarStatusProduto(${p.id}, ${p.ativo})" class="px-2 py-0.5 rounded text-[10px] font-bold ${p.ativo !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}">
+                        <button type="button" onclick="alternarStatusProduto(${p.id}, ${p.ativo !== false})" class="px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer ${p.ativo !== false ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}">
                             ${p.ativo !== false ? '● Ativo' : '○ Inativo'}
                         </button>
                     </td>
                     <td class="p-4 text-right space-x-2">
-                        <button onclick="editarProduto(${p.id}, '${p.codigo || ''}', '${p.nome}', '${p.apelido || ''}', '${p.tipo || 'Material'}', '${p.unidade || 'un'}', '${p.especificacoes || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg text-[10px] font-bold">Editar</button>
-                        <button onclick="excluirProduto(${p.id})" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px]">Excluir</button>
+                        <button type="button" onclick="editarProduto(${p.id})" class="text-amber-400 hover:text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer">Editar</button>
+                        <button type="button" onclick="excluirProduto(${p.id})" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] cursor-pointer">Excluir</button>
                     </td>
                 </tr>
             `).join('');
@@ -359,25 +431,34 @@
         }
 
         async function abrirModalProduto() {
-            await carregarUnidadesMedida();
+            await carregarAuxiliares();
             document.getElementById('prod-id').value = '';
             document.getElementById('prod-codigo').value = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('prod-tipo').value = 'Material';
             document.getElementById('prod-nome').value = '';
             document.getElementById('prod-apelido').value = '';
+            document.getElementById('prod-unidade-id').value = '';
+            document.getElementById('prod-categoria-id').value = '';
+            atualizarSelectSubcategorias('');
             document.getElementById('prod-especificacoes').value = '';
             document.getElementById('modal-produto-titulo').innerText = 'Cadastrar Novo Produto / Insumo';
             document.getElementById('modal-produto').classList.remove('hidden');
         }
 
-        async function editarProduto(id, codigo, nome, apelido, tipo, unidade, especificacoes) {
-            await carregarUnidadesMedida();
-            document.getElementById('prod-id').value = id;
-            document.getElementById('prod-codigo').value = codigo;
-            document.getElementById('prod-nome').value = nome;
-            document.getElementById('prod-apelido').value = apelido;
-            document.getElementById('prod-tipo').value = tipo;
-            document.getElementById('prod-unidade').value = unidade;
-            document.getElementById('prod-especificacoes').value = especificacoes;
+        async function editarProduto(id) {
+            const p = produtosCache.find(item => String(item.id) === String(id));
+            if (!p) return;
+
+            await carregarAuxiliares();
+            document.getElementById('prod-id').value = p.id;
+            document.getElementById('prod-codigo').value = p.codigo || '';
+            document.getElementById('prod-tipo').value = p.tipo || 'Material';
+            document.getElementById('prod-nome').value = p.nome || '';
+            document.getElementById('prod-apelido').value = p.apelido || '';
+            document.getElementById('prod-unidade-id').value = p.unidade_medida_id ? String(p.unidade_medida_id) : '';
+            document.getElementById('prod-categoria-id').value = p.categoria_id ? String(p.categoria_id) : '';
+            atualizarSelectSubcategorias(p.subcategoria_id ? String(p.subcategoria_id) : '');
+            document.getElementById('prod-especificacoes').value = p.especificacoes || '';
             document.getElementById('modal-produto-titulo').innerText = 'Editar Produto / Insumo';
             document.getElementById('modal-produto').classList.remove('hidden');
         }
@@ -389,19 +470,32 @@
         async function salvarProduto(e) {
             e.preventDefault();
             const prodId = document.getElementById('prod-id').value;
-            const codigo = document.getElementById('prod-codigo').value;
+            const codigo = document.getElementById('prod-codigo').value.trim();
             const nome = document.getElementById('prod-nome').value.trim();
-            const apelido = document.getElementById('prod-apelido').value.trim();
+            const apelido = document.getElementById('prod-apelido').value.trim() || '-';
             const tipo = document.getElementById('prod-tipo').value;
-            const unidade = document.getElementById('prod-unidade').value;
+            const unidadeVal = document.getElementById('prod-unidade-id').value;
+            const categoriaVal = document.getElementById('prod-categoria-id').value;
+            const subcategoriaVal = document.getElementById('prod-subcategoria-id').value;
             const especificacoes = document.getElementById('prod-especificacoes').value.trim();
 
-            const payload = { codigo, nome, apelido, tipo, unidade, especificacoes, ativo: true };
+            const payload = {
+                codigo,
+                nome,
+                apelido,
+                tipo,
+                categoria_id: categoriaVal ? Number(categoriaVal) : null,
+                subcategoria_id: subcategoriaVal ? Number(subcategoriaVal) : null,
+                unidade_medida_id: unidadeVal ? Number(unidadeVal) : null,
+                especificacoes,
+                ativo: true
+            };
 
             let res;
             if (prodId) {
                 res = await supabaseClient.from('produtos_erp').update(payload).eq('id', prodId);
             } else {
+                payload.criado_em = new Date().toISOString();
                 res = await supabaseClient.from('produtos_erp').insert([payload]);
             }
 
@@ -415,7 +509,7 @@
         }
 
         async function alternarStatusProduto(id, statusAtual) {
-            const novoStatus = statusAtual === false ? true : false;
+            const novoStatus = !statusAtual;
             await supabaseClient.from('produtos_erp').update({ ativo: novoStatus }).eq('id', id);
             carregarProdutos();
         }
