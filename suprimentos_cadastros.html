@@ -14,7 +14,7 @@
     <!-- Header Principal -->
     <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400">TE</div>
+            <div id="header-logo-container" class="w-10 h-10 bg-amber-500 text-slate-950 font-black rounded-xl flex items-center justify-center text-lg shadow-md border border-amber-400 overflow-hidden">TE</div>
             <div>
                 <h1 class="text-lg font-bold text-white tracking-tight">Torquato ERP</h1>
                 <p class="text-[10px] text-slate-400">Módulo Suprimentos • Parâmetros & Fornecedores</p>
@@ -138,8 +138,9 @@
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
-                Torquato ERP v1.0 • Minas Gerais
+            <div class="pt-4 border-t border-slate-800/80 text-[10px] text-slate-500 text-center flex flex-col items-center space-y-1">
+                <div id="footer-logo-preview" class="w-6 h-6 flex items-center justify-center"></div>
+                <span>Torquato ERP v1.0 • Minas Gerais</span>
             </div>
         </aside>
 
@@ -164,18 +165,18 @@
                 <h3 class="text-sm font-bold text-amber-400" id="form-titulo">Adicionar Novo Registo</h3>
                 <form onsubmit="salvarCadastroPadrao(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                     <input type="hidden" id="item-id">
-                    
+
                     <div id="wrapper-campo-0" class="hidden md:col-span-3">
                         <label class="block text-slate-400 font-bold mb-1">Categoria Pai</label>
                         <select id="input-campo-0" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500 cursor-pointer"></select>
                     </div>
 
                     <div id="wrapper-campo-1">
-                        <label class="block text-slate-400 font-bold mb-1" id="label-campo-1">Nome / Sigla</label>
+                        <label class="block text-slate-400 font-bold mb-1" id="label-campo-1">Sigla (Ex: kg, m²)</label>
                         <input type="text" id="input-campo-1" required placeholder="Ex: kg" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
                     </div>
                     <div id="wrapper-campo-2" class="md:col-span-2">
-                        <label class="block text-slate-400 font-bold mb-1" id="label-campo-2">Descrição</label>
+                        <label class="block text-slate-400 font-bold mb-1" id="label-campo-2">Descrição Completa</label>
                         <input type="text" id="input-campo-2" required placeholder="Ex: Quilograma" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white focus:outline-none focus:border-amber-500">
                     </div>
 
@@ -227,7 +228,7 @@
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr class="border-b border-slate-800 text-slate-400" id="tabela-cabecalho">
-                                <th class="p-3">Nome</th>
+                                <th class="p-3">Sigla</th>
                                 <th class="p-3">Descrição</th>
                                 <th class="p-3 text-right">Ações</th>
                             </tr>
@@ -238,7 +239,6 @@
                     </table>
                 </div>
             </div>
-
         </main>
     </div>
 
@@ -252,6 +252,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             verificarSessao();
+            carregarLogoMatriz();
             carregarCategoriasCache().then(() => carregarDadosAtuais());
         });
 
@@ -267,8 +268,16 @@
             window.location.href = 'login.html';
         }
 
+        async function carregarLogoMatriz() {
+            const { data } = await supabaseClient.from('empresa_matriz').select('logo_url').eq('id', 1).single();
+            if (data && data.logo_url) {
+                document.getElementById('header-logo-container').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-cover">`;
+                document.getElementById('footer-logo-preview').innerHTML = `<img src="${data.logo_url}" class="w-full h-full object-contain">`;
+            }
+        }
+
         async function carregarCategoriasCache() {
-            const { data } = await supabaseClient.from('categorias_produtos').select('*');
+            const { data } = await supabaseClient.from('categorias_produtos').select('*').order('id', { ascending: true });
             categoriasCache = data || [];
             const selectPai = document.getElementById('input-campo-0');
             selectPai.innerHTML = categoriasCache.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
@@ -315,11 +324,13 @@
                         document.getElementById('label-campo-1').innerText = "Sigla (Ex: kg, m²)";
                         document.getElementById('input-campo-1').placeholder = "Ex: kg";
                         document.getElementById('label-campo-2').innerText = "Descrição Completa";
+                        document.getElementById('input-campo-2').placeholder = "Ex: Quilograma";
                     } else if (aba === 'cat_produtos') {
                         document.getElementById('form-titulo').innerText = "Adicionar Nova Categoria de Produtos";
                         document.getElementById('label-campo-1').innerText = "Nome da Categoria";
                         document.getElementById('input-campo-1').placeholder = "Ex: Armaduras";
                         document.getElementById('label-campo-2').innerText = "Descrição";
+                        document.getElementById('input-campo-2').placeholder = "Ex: Aços e ferragens estruturais";
                     }
                 }
             }
@@ -365,7 +376,7 @@
                         <td class="p-3 text-slate-300">${item.inscricao_estadual || '-'}</td>
                         <td class="p-3 text-slate-300">${item.inscricao_municipal || '-'}</td>
                         <td class="p-3 text-right space-x-2">
-                            <button onclick="prepararEdicaoFornecedor(${item.id}, '${item.nome || ''}', '${item.cpf_cnpj || ''}', '${item.endereco || ''}', '${item.inscricao_estadual || ''}', '${item.inscricao_municipal || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Editar</button>
+                            <button onclick="prepararEdicaoFornecedor(${item.id}, '${encodeURIComponent(item.nome || '')}', '${encodeURIComponent(item.cpf_cnpj || '')}', '${encodeURIComponent(item.endereco || '')}', '${encodeURIComponent(item.inscricao_estadual || '')}', '${encodeURIComponent(item.inscricao_municipal || '')}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Editar</button>
                             <button onclick="excluirRegisto(${item.id}, 'fornecedores')" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
                         </td>
                     </tr>
@@ -379,7 +390,7 @@
                     <th class="p-3">Descrição</th>
                     <th class="p-3 text-right">Ações</th>
                 `;
-                
+
                 const { data, error } = await supabaseClient
                     .from('subcategorias_produtos')
                     .select('id, nome, descricao, categoria_id, categorias_produtos(nome)')
@@ -396,14 +407,14 @@
                         <td class="p-3 font-medium text-white">${item.nome}</td>
                         <td class="p-3 text-slate-300">${item.descricao || '-'}</td>
                         <td class="p-3 text-right space-x-2">
-                            <button onclick="prepararEdicaoSub(${item.id}, ${item.categoria_id}, '${item.nome}', '${item.descricao || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Editar</button>
+                            <button onclick="prepararEdicaoSub(${item.id}, ${item.categoria_id}, '${encodeURIComponent(item.nome || '')}', '${encodeURIComponent(item.descricao || '')}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Editar</button>
                             <button onclick="excluirRegisto(${item.id}, 'subcategorias_produtos')" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
                         </td>
                     </tr>
                 `).join('');
 
             } else {
-                tituloTabela.innerText = 'Lista de Registos';
+                tituloTabela.innerText = abaAtual === 'unidades' ? 'Lista de Unidades de Medida' : 'Lista de Categorias de Produtos';
                 tabelaCabecalho.innerHTML = `
                     <th class="p-3">${abaAtual === 'unidades' ? 'Sigla' : 'Nome'}</th>
                     <th class="p-3">Descrição</th>
@@ -418,16 +429,19 @@
                     return;
                 }
 
-                tabelaCorpo.innerHTML = data.map(item => `
-                    <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                        <td class="p-3 font-medium text-white">${abaAtual === 'unidades' ? item.sigla : item.nome}</td>
-                        <td class="p-3 text-slate-300">${item.descricao || '-'}</td>
-                        <td class="p-3 text-right space-x-2">
-                            <button onclick="prepararEdicao(${item.id}, '${(abaAtual === 'unidades' ? item.sigla : item.nome)}', '${item.descricao || ''}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Editar</button>
-                            <button onclick="excluirRegisto(${item.id}, '${nomeTabela}')" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
-                        </td>
-                    </tr>
-                `).join('');
+                tabelaCorpo.innerHTML = data.map(item => {
+                    const c1 = abaAtual === 'unidades' ? item.sigla : item.nome;
+                    return `
+                        <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                            <td class="p-3 font-medium text-white">${c1}</td>
+                            <td class="p-3 text-slate-300">${item.descricao || '-'}</td>
+                            <td class="p-3 text-right space-x-2">
+                                <button onclick="prepararEdicao(${item.id}, '${encodeURIComponent(c1 || '')}', '${encodeURIComponent(item.descricao || '')}')" class="text-amber-400 hover:text-amber-300 bg-amber-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Editar</button>
+                                <button onclick="excluirRegisto(${item.id}, '${nomeTabela}')" class="text-red-400 hover:text-red-300 bg-red-950/40 px-2.5 py-1 rounded-lg text-[10px] transition cursor-pointer">Excluir</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
             }
         }
 
@@ -471,18 +485,12 @@
         async function salvarFornecedorCompleto(e) {
             e.preventDefault();
             const id = document.getElementById('forn-id').value;
-            const nome = document.getElementById('forn-nome').value.trim();
-            const cpf_cnpj = document.getElementById('forn-cpf-cnpj').value.trim();
-            const endereco = document.getElementById('forn-endereco').value.trim();
-            const inscricao_estadual = document.getElementById('forn-ie').value.trim();
-            const inscricao_municipal = document.getElementById('forn-im').value.trim();
-
             const payload = {
-                nome,
-                cpf_cnpj,
-                endereco,
-                inscricao_estadual,
-                inscricao_municipal
+                nome: document.getElementById('forn-nome').value.trim(),
+                cpf_cnpj: document.getElementById('forn-cpf-cnpj').value.trim(),
+                endereco: document.getElementById('forn-endereco').value.trim(),
+                inscricao_estadual: document.getElementById('forn-ie').value.trim(),
+                inscricao_municipal: document.getElementById('forn-im').value.trim()
             };
 
             let res;
@@ -503,8 +511,8 @@
 
         function prepararEdicao(id, campo1, campo2) {
             document.getElementById('item-id').value = id;
-            document.getElementById('input-campo-1').value = campo1;
-            document.getElementById('input-campo-2').value = campo2;
+            document.getElementById('input-campo-1').value = decodeURIComponent(campo1);
+            document.getElementById('input-campo-2').value = decodeURIComponent(campo2);
             document.getElementById('btn-cancelar-edicao').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -512,21 +520,34 @@
         function prepararEdicaoSub(id, catId, nome, desc) {
             document.getElementById('item-id').value = id;
             document.getElementById('input-campo-0').value = catId;
-            document.getElementById('input-campo-1').value = nome;
-            document.getElementById('input-campo-2').value = desc;
+            document.getElementById('input-campo-1').value = decodeURIComponent(nome);
+            document.getElementById('input-campo-2').value = decodeURIComponent(desc);
             document.getElementById('btn-cancelar-edicao').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function prepararEdicaoFornecedor(id, nome, cpf_cnpj, endereco, ie, im) {
+        function prepararEdicaoFornecedor(id, nome, cpfCnpj, endereco, ie, im) {
             document.getElementById('forn-id').value = id;
-            document.getElementById('forn-nome').value = nome;
-            document.getElementById('forn-cpf-cnpj').value = cpf_cnpj;
-            document.getElementById('forn-endereco').value = endereco;
-            document.getElementById('forn-ie').value = ie;
-            document.getElementById('forn-im').value = im;
+            document.getElementById('forn-nome').value = decodeURIComponent(nome);
+            document.getElementById('forn-cpf-cnpj').value = decodeURIComponent(cpfCnpj);
+            document.getElementById('forn-endereco').value = decodeURIComponent(endereco);
+            document.getElementById('forn-ie').value = decodeURIComponent(ie);
+            document.getElementById('forn-im').value = decodeURIComponent(im);
             document.getElementById('btn-cancelar-forn').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function excluirRegisto(id, nomeTabela) {
+            if (!confirm('Deseja excluir este registo?')) return;
+            const { error } = await supabaseClient.from(nomeTabela).delete().eq('id', id);
+            if (error) {
+                alert('Erro ao excluir: ' + error.message);
+                return;
+            }
+            if (nomeTabela === 'categorias_produtos') {
+                await carregarCategoriasCache();
+            }
+            carregarDadosAtuais();
         }
 
         function limparFormulario() {
@@ -544,16 +565,6 @@
             document.getElementById('forn-ie').value = '';
             document.getElementById('forn-im').value = '';
             document.getElementById('btn-cancelar-forn').classList.add('hidden');
-        }
-
-        async function excluirRegisto(id, tabela) {
-            if (!confirm('Tem a certeza que deseja excluir este registo?')) return;
-            const { error } = await supabaseClient.from(tabela).delete().eq('id', id);
-            if (error) {
-                alert('Erro ao excluir: ' + error.message);
-            } else {
-                carregarDadosAtuais();
-            }
         }
     </script>
 </body>
